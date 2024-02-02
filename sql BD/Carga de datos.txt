@@ -1,143 +1,37 @@
-drop database pdts;
-CREATE DATABASE pdts;
-use pdts;
+-- //////////////////////////////////////////////////////////////////////////////////////////////////
+-- CARGA DE DATOS ///////////////////////////////////////////////////////////////////////////////////
+-- //////////////////////////////////////////////////////////////////////////////////////////////////
 
-CREATE TABLE admin (
-	email VARCHAR(255) NOT NULL PRIMARY KEY,
-    password VARCHAR(255) NOT NULL
-);
+INSERT INTO secciones(nombre) VALUES
+	('Sistema de evaluacion'),				-- id 1
+    ('Instancias e indicadores'),			-- id 2
+    ('Evaluadores'),						-- id 3
+    ('Software');							-- id 4
 
-CREATE TABLE evaluadores (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-	nombre VARCHAR(255) NOT NULL,
-    apellido VARCHAR(255) NOT NULL
-);
+INSERT INTO tipo_preguntas (tipo) VALUES  
+	('opcion multiple'),	-- id 1
+    ('texto'),		  		-- id 2
+    ('si/no'),	   			-- id 3
+    ('enunciado');			-- id 4
 
-CREATE TABLE admins_CyT (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    apellido VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE instituciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    id_admin INT,
-    FOREIGN KEY (id_admin) REFERENCES admins_CyT(id)
-);
-
-CREATE TABLE estado_eval(
-  	id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre varchar(255)
-);
-INSERT into estado_eval(nombre) 
-	VALUES 
-    	('Sin evaluar'),
-    	('En evaluacion por el director'),
-        ('En evaluacion por los evaluadores'),
-        ('Evaluado');
-
-CREATE TABLE proyectos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
-    id_estado_eval int,
-    id_director INT,
-    id_institucion INT,
-    FechaInicio DATE,
-    FechaFin DATE,
-    area_conocim varchar(255),
-    subarea_conocim varchar(255),
-    problema_a_resolver text,
-    producto_a_generar text,
-    resumen text,
-    novedad_u_originalidad text,
-    grado_relevancia text,
-    grado_pertinencia text, 
-    grado_demanda text,
-    fecha_carga date,
-    obligatoriedad_proposito boolean DEFAULT false,
-    FOREIGN KEY (id_estado_eval) REFERENCES estado_eval(id),
-    FOREIGN KEY (id_director) REFERENCES evaluadores(id),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id)
-);
-
--- no estoy seguro que esta tabla necesariamente exista, podria usarse la de usuarios, pero no se si es que los participantes realmente
--- son usuarios del sistema. Asi que provisoriamente lo dejo asi
-CREATE TABLE participantes(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre varchar(255),
-    apellido varchar(255)
-);
-
-CREATE TABLE participantes_x_proyectos(
-	id_proyecto INT,
-    id_participante INT,
-    id_institucion INT, -- no necesariamente sea el mismo id que el del proyecto supongo
-    funcion varchar(255),
-    FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
-    FOREIGN KEY (id_participante) REFERENCES participantes(id),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id)
-);
-
-CREATE TABLE evaluadores_x_instituciones (
-    id_institucion INT,
-    id_evaluador INT,
-    PRIMARY KEY(id_institucion, id_evaluador),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id),
-    FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id)
-);
-
-CREATE TABLE evaluadores_x_proyectos (
-    id_proyecto INT,
-    id_evaluador INT,
-    fecha_inicio_eval date,
-    fecha_fin_eval date,
-    PRIMARY KEY (id_proyecto, id_evaluador),
-    FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
-    FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id)
-);
-
-CREATE TABLE instancias (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255)
-);
+INSERT INTO tipos_instituciones(tipo) VALUES
+	('Organizacion Gubernamental'),
+	('Asociación Civil'),
+	('Cámara'),
+	('Cooperativa'),
+	('ONG'),
+	('Empresa Pública'),
+	('Empresa Privada'),
+	('Universidad'),
+	('Otros');
+    
+INSERT into estado_eval(nombre) VALUES 
+    ('Sin evaluar'),
+    ('En evaluacion por el director'),
+    ('En evaluacion por los evaluadores'),
+    ('Evaluado');
 
 INSERT INTO instancias (nombre) VALUES ('Entidad'), ('Proposito');
-
-CREATE TABLE dimensiones (
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255),
-    id_instancia INT,
-    FOREIGN KEY (id_instancia) REFERENCES instancias(id)
-);
-
-CREATE TABLE indicadores (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    pregunta TEXT not null,
-    fundamentacion TEXT,
-    id_dimension INT,
-    determinante boolean,
-    fecha_elim date DEFAULT null,
-    FOREIGN KEY (id_dimension) REFERENCES dimensiones(id)
-);
-
-CREATE TABLE RespuestasEvaluacion (
-    id_indicador INT,
-    id_evaluador INT,
-    id_proyecto INT,
-    respuesta varchar(255), 
-    fecha_respuesta date,
-    calificacion int, -- este atributo o el de arriba podrian no estar. Con uno solo de los dos alcanza
-    PRIMARY KEY (id_indicador, id_evaluador, id_proyecto),
-    FOREIGN KEY (id_indicador) REFERENCES indicadores(id),
-    FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id),
-    FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
-);
 
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 -- Dimensiones e indicadores de la instancia de Entidad ///////////////////////////////////////////////////////////////////
@@ -273,46 +167,9 @@ INSERT into indicadores(pregunta, id_dimension, determinante, fundamentacion)
         10, true,
         'Debe fundamentarse el grado de satisfacción consignado respecto de la contribución del proyecto a metas u objetivos políticos definidos en el marco de las demandas sociales nacionales o globales.');
 
--- ////////////////////////////////////////////////////////////////////////
--- no me agrada mucho las siguientes tablas que hice, habria que revisarlas
-CREATE TABLE secciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre varchar(255)
-);
-
-INSERT INTO secciones(nombre) VALUES
-	('Sistema de evaluacion'),				-- id 1
-    ('Instancias e indicadores'),			-- id 2
-    ('Evaluadores'),						-- id 3
-    ('Software');							-- id 4
-
-CREATE TABLE tipo_preguntas (
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    tipo varchar(255)
-);
-
-INSERT INTO tipo_preguntas (tipo) VALUES  
-	('opcion multiple'),	-- id 1
-    ('texto'),		  		-- id 2
-    ('si/no'),	   			-- id 3
-    ('enunciado');			-- id 4
-    
-CREATE TABLE preguntas_seccion (
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    pregunta text,
-    id_seccion INT,      -- podriamos settearlo en null en los casos de las subpreguntas, para poder identificarlas
-    id_tipo_pregunta INT,
-    FOREIGN KEY (id_seccion) REFERENCES secciones(id),
-    FOREIGN KEY (id_tipo_pregunta) REFERENCES tipo_preguntas(id)
-);
-
-create TABLE relacion_subpregunta(
-	id_pregunta_padre int,
-    id_subpregunta int,
-    PRIMARY KEY (id_pregunta_padre, id_subpregunta),
-    FOREIGN KEY (id_pregunta_padre) REFERENCES preguntas_seccion(id),
-    FOREIGN KEY (id_subpregunta) REFERENCES preguntas_seccion(id)
-);
+-- ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-- pREGUNTAS DE ENCUESTA //////////////////////////////////////////////////////////////////////////////////////
+-- ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 INSERT INTO preguntas_seccion(pregunta, id_seccion, id_tipo_pregunta) VALUES
 -- PREGUNTAS
@@ -376,11 +233,6 @@ INSERT INTO relacion_subpregunta(id_pregunta_padre,id_subpregunta) VALUES
 	(6,39),
 	(6,40);
 
-CREATE TABLE opciones(
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    valor varchar(255)
-);
-
 INSERT INTO opciones(valor) VALUES
 	('nada util'),
     ('poco util'),
@@ -401,14 +253,6 @@ INSERT INTO opciones(valor) VALUES
     ('poco facil de usar'),
     ('facil de usar'),
     ('muy facil de usar');
-
-CREATE TABLE opciones_x_preguntas (
-	id_opcion INT,
-    id_preguntas_seccion INT,
-    PRIMARY KEY (id_opcion, id_preguntas_seccion),
-    FOREIGN KEY (id_opcion) REFERENCES opciones(id),
-    FOREIGN KEY (id_preguntas_seccion) REFERENCES preguntas_seccion(id)
-);
 
 INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
     (1,1), (2,1), (3,1), (4,1),			-- CONSIDERA UTIL CONTAR CON UN SISTEMA DE EVAL...
@@ -452,5 +296,3 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
     (5,38), (6,38), (7,38), (8,38),
     (5,39), (6,39), (7,39), (8,39),
     (5,40), (6,40), (7,40), (8,40);
-
-        
