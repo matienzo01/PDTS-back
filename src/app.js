@@ -12,7 +12,7 @@ app.post('/dimensiones', (req, res) => {
     }).on('end', () => {
         let params = Object.values(JSON.parse(body))
         let tabla = 'dimensiones(nombre,id_instancia)'
-        gen_consulta.insert(tabla,params,(err,resultados) => {
+        gen_consulta._insert(tabla,params,(err,resultados) => {
             
             if (err) {
                 res.status(400).json({ error: 'Bad request' });
@@ -29,7 +29,7 @@ app.get('/dimensiones', (req, res) => {
         body += chunk.toString();
     }).on('end', () => {
         let tabla = 'dimensiones'
-        gen_consulta.select(tabla,null,null,(err,resultados) => {
+        gen_consulta._select(tabla,null,null,(err,resultados) => {
             if (err) {
                 res.status(400).json({ error: 'Bad request' });
             } else {
@@ -44,14 +44,30 @@ app.get('/dimensiones/:id_instancia', (req, res) => {
     req.on('data', (chunk) => {
         body += chunk.toString();
     }).on('end', () => {
+        let condiciones = [`id_instancia = ${req.params.id_instancia.replace(/:/g, '')}`]
+        let tabla = 'dimensiones'
         
-        let condiciones = [
-            `id_instancia = ${req.params.id_instancia.replace(/:/g, '')}`
-        ]
+        gen_consulta._select(tabla,null,condiciones,(err,resultados) => {
+            if (err) {
+                res.status(400).json({ error: 'Bad request' });
+            } else {
+                res.status(200).json(resultados);
+            }
+        })
+    })
+})
+
+app.delete('/dimensiones/:id', (req, res) => {
+    let body = ''
+    req.on('data', (chunk) => {
+        body += chunk.toString();
+    }).on('end', () => {
+        
+        let condiciones = [`id = ${req.params.id.replace(/:/g, '')}`]
 
         console.log(condiciones)
         let tabla = 'dimensiones'
-        gen_consulta.select(tabla,null,condiciones,(err,resultados) => {
+        gen_consulta._delete(tabla,condiciones,(err,resultados) => {
             if (err) {
                 res.status(400).json({ error: 'Bad request' });
             } else {

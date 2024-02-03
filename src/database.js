@@ -19,6 +19,7 @@ function conect_BD() {
 }
 
 function consulta(sql, values, callback) {
+  console.log(sql)
   connection.query(sql, values, (err, resultados, campos) => {
     if (err) {
       console.error('Error al realizar la consulta:', err);
