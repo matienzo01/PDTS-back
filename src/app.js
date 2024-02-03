@@ -44,9 +44,10 @@ app.get('/dimensiones/:id_instancia', (req, res) => {
     req.on('data', (chunk) => {
         body += chunk.toString();
     }).on('end', () => {
-        let condiciones = {
-            id_instancia : parseInt(req.params.id_instancia.replace(/:/g, ''))
-        }
+        
+        let condiciones = [
+            `id_instancia = ${req.params.id_instancia.replace(/:/g, '')}`
+        ]
 
         console.log(condiciones)
         let tabla = 'dimensiones'

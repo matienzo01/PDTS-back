@@ -20,10 +20,8 @@ function conect_BD() {
 
 function consulta(sql, values, callback) {
   connection.query(sql, values, (err, resultados, campos) => {
-    //callback(err ? err : null, err ? null : resultados)
     if (err) {
       console.error('Error al realizar la consulta:', err);
-      // Llamamos al callback con el error para que sea manejado en el lugar que llama a esta función
       callback(err, null);
     } else {
       callback(null, resultados);

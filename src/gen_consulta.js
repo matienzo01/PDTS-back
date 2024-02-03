@@ -17,21 +17,7 @@ function insert(tabla, params, callback) {
 function select(tabla, columnas, condiciones, callback) {
 
     if (columnas == null) {columnas = '*'}
-    let resultado = ''
-    if (condiciones != null){
-        resultado += 'WHERE '
-        let atributos = Object.keys(condiciones)
-        atributos.forEach( (atributo) => {
-            resultado += atributo + ' = ' 
-            let tipo = typeof condiciones[atributo]
-            if (tipo === 'number' || tipo === 'boolean')
-                resultado += condiciones[atributo] + ' AND ';
-            else
-                resultado += '"' +condiciones[atributo] + '"'+ ' AND ';
-        })
-        resultado = resultado.slice(0, -5);
-    }
-        
+    let resultado = (condiciones && `WHERE ${condiciones.join(' AND ')}`) ?? '';
     let sql = `SELECT ${columnas} from ${tabla} ${resultado}`
     console.log(sql)
 
