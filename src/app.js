@@ -23,6 +23,42 @@ app.post('/dimensiones', (req, res) => {
     });
 });
 
+app.get('/dimensiones', (req, res) => {
+    let body = ''
+    req.on('data', (chunk) => {
+        body += chunk.toString();
+    }).on('end', () => {
+        let tabla = 'dimensiones'
+        gen_consulta.select(tabla,null,null,(err,resultados) => {
+            if (err) {
+                res.status(400).json({ error: 'Bad request' });
+            } else {
+                res.status(200).json(resultados);
+            }
+        })
+    })
+});
+
+app.get('/dimensiones/:id_instancia', (req, res) => {
+    let body = ''
+    req.on('data', (chunk) => {
+        body += chunk.toString();
+    }).on('end', () => {
+        let condiciones = {
+            id_instancia : parseInt(req.params.id_instancia.replace(/:/g, ''))
+        }
+
+        console.log(condiciones)
+        let tabla = 'dimensiones'
+        gen_consulta.select(tabla,null,condiciones,(err,resultados) => {
+            if (err) {
+                res.status(400).json({ error: 'Bad request' });
+            } else {
+                res.status(200).json(resultados);
+            }
+        })
+    })
+})
 
 app.listen(PORT, () => {
     database.conect_BD()
