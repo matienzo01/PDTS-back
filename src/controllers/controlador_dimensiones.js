@@ -35,7 +35,6 @@ const createDimensiones = async (req,res) => {
 
     try {
         const params = Object.values(body)
-        console.log(params)
         res.status(201).json( await servicio.createDimensiones(params))
     } catch(error) {
         console.error('Error al insertar', error)
