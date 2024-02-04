@@ -12,7 +12,7 @@ const getAllDimensiones = async () => {
 
 const getOneDimensiones = async(id) => { 
     try {
-        const condiciones = [`id = ${id.replace(/:/g, '')}`]
+        const condiciones = [`id = ${id}`]
         return await gen_consulta._select(TABLA,null,condiciones)
     } catch(error) {
         throw error;
@@ -34,7 +34,7 @@ const updateDimensiones = async () => {
 
 const deleteDimensiones = async (id) => {
     try {
-        const condiciones = [`id = ${id.replace(/:/g, '')}`]
+        const condiciones = [`id = ${id}`]
         return await gen_consulta._delete(TABLA,condiciones)
     } catch(error) {
 

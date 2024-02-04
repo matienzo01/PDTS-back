@@ -10,10 +10,7 @@ const getAllDimensiones = async (req,res) => {
 }
 
 const getOneDimensiones = async (req,res) => {
-    const {
-        body,
-        params: { id_dimension }
-    } = req
+    const { params: { id_dimension }} = req
 
     if (!id_dimension) return;
 
