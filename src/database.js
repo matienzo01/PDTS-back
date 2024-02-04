@@ -8,7 +8,7 @@ const connection = mysql.createConnection({
   database: 'pdts'
 });
 
-function conect_BD() {
+function connect_BD() {
   connection.connect((err) => {
     if (err) {
       console.error('Error de conexión a la base de datos:', err);
@@ -31,6 +31,6 @@ function consulta(sql, values, callback) {
 }
 
 module.exports = {
-  conect_BD,
+  connect_BD,
   consulta
 };
