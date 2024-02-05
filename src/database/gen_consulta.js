@@ -2,8 +2,16 @@ const database = require('./database');
 
 function _insert(tabla, params) {
     return new Promise((resolve, reject) => {
-        const a = `(${Array(params.length).fill('?').join(',')})`
+        let a 
+        if (!params.every(item => Array.isArray(item))){
+            a = `(${Array(params.length).fill('?').join(',')})`
+        } else {
+            const substring = '(?)'
+            const stringsRepetidos = params.map( () => substring)
+            a = stringsRepetidos.join(',')
+        }
         const sql = `INSERT INTO ${tabla} VALUES ${a}`
+
         database.consulta(sql,params, (err, resultados) => {
             if (err) {
                 console.error('Error al realizar la inserción en la base de datos:', err);

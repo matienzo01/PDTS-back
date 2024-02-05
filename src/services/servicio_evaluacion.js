@@ -1,7 +1,7 @@
 const gen_consulta = require('../database/gen_consulta')
 const TABLA = ''
 
-const respuesta = {
+const preguntas = {
     tipo: 'evaluacion',
     id_evaluador : 1,
     id_proyecto : 2,
@@ -54,11 +54,12 @@ const respuesta = {
 }
 
 const getEvaluacion = async (id_proyecto,id_evaluador) => {
-    respuesta.id_evaluador = id_evaluador
-    respuesta.id_proyecto = parseInt(id_proyecto)
-    return respuesta; 
-
     /*
+    preguntas.id_evaluador = id_evaluador
+    preguntas.id_proyecto = parseInt(id_proyecto)
+    return preguntas; 
+    */
+    
     const resultadosTransformados = {};
     const indicadores = await gen_consulta._call('obtener_Evaluacion')
 
@@ -102,10 +103,39 @@ const getEvaluacion = async (id_proyecto,id_evaluador) => {
         }
     });
     return resultadosTransformados
+    
+}
 
-    */
+const postEvaluacion = async (id_proyecto,id_evaluador,respuestas) => {
+    const flag_eval = true //esto vuela despues
+    const fecha = new Date()
+    const fecha_respuesta = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
+
+    if (flag_eval) {
+        try {
+            const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,fecha_respuesta,calificacion)'
+            const tabla = `respuestas_evaluacion${atributos}`
+            const resultados_a_insertar = respuestas.map(rta => [
+                rta.id_indicador,
+                id_evaluador,
+                id_proyecto,
+                rta.answer,
+                fecha_respuesta,
+                rta.value
+            ]);
+
+            return await gen_consulta._insert(tabla,resultados_a_insertar)
+        } catch(error) {
+            throw error
+        } 
+
+    } else {
+        // aca se entraria si fueran las repsuestas de la opinion
+    }
+    
 }
 
 module.exports = {
-    getEvaluacion
+    getEvaluacion,
+    postEvaluacion
 }

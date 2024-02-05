@@ -39,11 +39,6 @@ const createDimensiones = async (req,res) => {
     }
 }
 
-const updateDimensiones = async (req,res) => {
-    const updatedDimension = servicio.updateDimensiones(req.params.id_dimension)
-    res.send('update dimensiones')
-}
-
 const deleteDimensiones = async (req,res) => {
     const {
         body,
@@ -64,6 +59,5 @@ module.exports = {
     getAllDimensiones,
     getOneDimensiones,
     createDimensiones,
-    updateDimensiones,
     deleteDimensiones
 }

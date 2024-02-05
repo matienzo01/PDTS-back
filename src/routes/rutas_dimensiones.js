@@ -7,6 +7,5 @@ router
     .get('/:id_dimension', controlador.getOneDimensiones)
     .post('/', controlador.createDimensiones)
     .delete('/:id_dimension', controlador.deleteDimensiones)
-    .put('/:id_dimension', controlador.updateDimensiones)
 
 module.exports = router

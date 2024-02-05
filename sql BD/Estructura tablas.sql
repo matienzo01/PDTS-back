@@ -31,8 +31,13 @@ CREATE TABLE admins_CyT (
     password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE tipos_instituciones(
+CREATE TABLE roles_institcuciones(
 	id INT AUTO_INCREMENT PRIMARY KEY,
+    rol varchar(255)
+);
+
+CREATE TABLE tipos_instituciones(
+    id INT AUTO_INCREMENT PRIMARY KEY,
     tipo varchar(255)
 );
 
@@ -48,6 +53,19 @@ CREATE TABLE instituciones (
     mail_institucional VARCHAR(255) NOT NULL,
     FOREIGN KEY (id_admin) REFERENCES admins_CyT(id),
     FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
+);
+
+CREATE TABLE instituciones_participantes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE instituciones_x_inst_participantes(
+    id_institucion INT,
+    id_inst_participante INT,
+    PRIMARY KEY (id_institucion,id_inst_participante),
+    FOREIGN KEY (id_institucion) REFERENCES instituciones(id),
+    FOREIGN KEY (id_inst_participante) REFERENCES instituciones_participantes(id)
 );
 
 CREATE TABLE estado_eval(
@@ -78,6 +96,16 @@ CREATE TABLE proyectos (
     FOREIGN KEY (id_estado_eval) REFERENCES estado_eval(id),
     FOREIGN KEY (id_director) REFERENCES evaluadores(id),
     FOREIGN KEY (id_institucion) REFERENCES instituciones(id)
+);
+
+CREATE TABLE participación_instituciones(
+    id_proyecto INT,
+    id_rol INT,
+    id_inst_participante INT,
+    PRIMARY KEY (id_inst_participante,id_rol,id_proyecto),
+    FOREIGN KEY (id_inst_participante) REFERENCES instituciones_participantes(id),
+    FOREIGN KEY (id_rol) REFERENCES roles_institcuciones(id),
+    FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
 -- no estoy seguro que esta tabla necesariamente exista, podria usarse la de usuarios, pero no se si es que los participantes realmente
@@ -145,7 +173,7 @@ CREATE TABLE respuestas_evaluacion (
     id_proyecto INT,
     respuesta varchar(255), 
     fecha_respuesta date,
-    calificacion int, -- este atributo o el de arriba podrian no estar. Con uno solo de los dos alcanza
+    calificacion DECIMAL(5,2), -- este atributo o el de arriba podrian no estar. Con uno solo de los dos alcanza
     PRIMARY KEY (id_indicador, id_evaluador, id_proyecto),
     FOREIGN KEY (id_indicador) REFERENCES indicadores(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id),
@@ -205,4 +233,3 @@ CREATE TABLE respuestas_encuesta (
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
-  

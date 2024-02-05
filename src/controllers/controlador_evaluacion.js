@@ -12,6 +12,19 @@ const getEvaluacion = async(req,res) => {
     }
 }
 
+const postEvaluacion = async(req,res) => {
+    const { respuestas }= req.body
+    const id_evaluador = 1
+    const id_proyecto = 1
+    try {
+        res.status(200).json(await servicio.postEvaluacion(id_proyecto,id_evaluador,respuestas))
+    } catch {
+        console.error('Error al insertar las respuetas', error)
+        res.status(500).json({ error: `Error `})
+    }
+}
+
 module.exports = {
-    getEvaluacion
+    getEvaluacion,
+    postEvaluacion
 }

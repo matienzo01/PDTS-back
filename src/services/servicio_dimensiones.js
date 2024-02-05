@@ -28,25 +28,18 @@ const createDimensiones = async (params) => {
 
 }
 
-const updateDimensiones = async () => {
-    return ;
-}
-
 const deleteDimensiones = async (id) => {
     try {
         const condiciones = [`id = ${id}`]
         return await gen_consulta._delete(TABLA,condiciones)
     } catch(error) {
-
+        throw error
     }
-
-    return ;
 }
 
 module.exports = {
     getAllDimensiones,
     getOneDimensiones,
     createDimensiones,
-    updateDimensiones,
     deleteDimensiones
 }

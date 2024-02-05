@@ -1,6 +1,14 @@
+
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
--- CARGA DE DATOS ///////////////////////////////////////////////////////////////////////////////////
+-- CARGA DE DATOS BUENOS ////////////////////////////////////////////////////////////////////////////
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
+
+INSERT INTO roles_institcuciones(rol) VALUES
+    ('Ejecutora'),
+    ('Financiadora'),
+    ('Adoptante'),
+    ('Demandante'),
+    ('Promotora');
 
 INSERT INTO secciones(nombre) VALUES
 	('Sistema de evaluacion'),				-- id 1
@@ -296,3 +304,71 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
     (5,38), (6,38), (7,38), (8,38),
     (5,39), (6,39), (7,39), (8,39),
     (5,40), (6,40), (7,40), (8,40);
+
+-- //////////////////////////////////////////////////////////////////////////////////////////////////
+-- CARGA DE DATOS DE PRUEBA /////////////////////////////////////////////////////////////////////////
+-- //////////////////////////////////////////////////////////////////////////////////////////////////
+
+INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
+    ('Juan','Administrador','admin@mail.com','');
+
+INSERT INTO instituciones (id_admin, id_tipo, nombre, pais, provincia, localidad, telefono_institucional, mail_institucional) 
+VALUES 
+(1, 1, 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com');
+
+INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
+VALUES 
+('evaluador1@example.com', 'contrasena123', 'Juan', 'Pérez', 123456789, '555-1234', 'Informática', 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A'),
+('evaluador2@example.com', 'password456', 'María', 'González', 987654321, '555-5678', 'Biología', 'Instituto ABC', 'México', 'Ciudad B', 'Estado C'),
+('evaluador3@example.com', 'clave789', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'Colegio DEF', 'España', 'Madrid', 'Ciudad D'),
+('evaluador4@example.com', 'segura987', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'Escuela GHI', 'Colombia', 'Bogotá', 'Ciudad E'),
+('evaluador5@example.com', 'miclave123', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Academia JKL', 'Chile', 'Santiago', 'Ciudad F');
+
+INSERT INTO evaluadores_x_instituciones(id_institucion,id_evaluador) VALUES
+    (1,1),
+    (1,2),
+    (1,3),
+    (1,4),
+    (1,5);
+
+INSERT INTO proyectos (
+    titulo,
+    id_estado_eval,
+    id_director,
+    id_institucion,
+    FechaInicio,
+    FechaFin,
+    area_conocim,
+    subarea_conocim,
+    problema_a_resolver,
+    producto_a_generar,
+    resumen,
+    novedad_u_originalidad,
+    grado_relevancia,
+    grado_pertinencia,
+    grado_demanda,
+    fecha_carga,
+    obligatoriedad_proposito,
+    obligatoriedad_opinion
+) VALUES (
+    'Proyecto Ejemplo',
+    1, 
+    1,
+    1, -- Reemplaza con el ID correcto de instituciones
+    '2024-02-05',
+    '2024-12-31',
+    'Ciencia de Datos',
+    'Análisis de Datos',
+    'Descripción del problema a resolver',
+    'Descripción del producto a generar',
+    'Resumen del proyecto',
+    'Novedad u originalidad del proyecto',
+    'Alto',
+    'Muy pertinente',
+    'Alta',
+    '2024-02-05',
+    1, 
+    1  -- true para obligatoriedad_opinion
+);
+
+
