@@ -49,8 +49,23 @@ function _delete(tabla, condiciones) {
     })
 }
 
+function _call(procedure) {
+    return new Promise((resolve, reject) => {
+        const sql = `CALL ${procedure}()`
+        database.consulta(sql,[], (err, resultados) => {
+            if (err) {
+                console.error('Error al realizar la eliminacion en la base de datos:', err);
+                reject(err);
+            } else {
+                resolve(resultados);
+            }
+        }) 
+    })
+}
+
 module.exports = {
     _insert,
     _select,
-    _delete
+    _delete,
+    _call
 }

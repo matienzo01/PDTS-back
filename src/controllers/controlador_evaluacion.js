@@ -4,7 +4,6 @@ const getEvaluacion = async(req,res) => {
     const { id_proyecto } = req.query
     const id_evaluador = 1
     
-
     try {
         res.status(200).json(await servicio.getEvaluacion(id_proyecto,id_evaluador))
     } catch {

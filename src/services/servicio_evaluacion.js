@@ -54,11 +54,56 @@ const respuesta = {
 }
 
 const getEvaluacion = async (id_proyecto,id_evaluador) => {
-    //aca haria la consulta a la bd
     respuesta.id_evaluador = id_evaluador
-    respuesta.id_proyecto = id_proyecto
-    return respuesta
-    
+    respuesta.id_proyecto = parseInt(id_proyecto)
+    return respuesta; 
+
+    /*
+    const resultadosTransformados = {};
+    const indicadores = await gen_consulta._call('obtener_Evaluacion')
+
+    indicadores[0].forEach(row => {
+
+        const dimension = {
+            id_dimension: row.id_dimension,
+            nombre: row.nombre_dimension,
+            indicadores: []
+        };
+
+        const indicador = {
+            id_indicador: row.id_indicador,
+            indicador: row.pregunta,
+            fundamentacion: row.fundamentacion,
+            determinante: row.determinante
+         };
+        
+        // Verificar si la dimensión ya existe en el objeto resultadosTransformados
+        if (resultadosTransformados[row.nombre_instancia]) {
+            // Verificar si la dimensión ya existe en la instancia
+            const instancia = resultadosTransformados[row.nombre_instancia].find(
+                inst => inst.id_dimension === row.id_dimension
+            );
+        
+            if (instancia) {
+                instancia.indicadores.push(indicador);
+            } else {
+              // Agregar la dimensión a la instancia existente
+                resultadosTransformados[row.nombre_instancia].push({
+                    ...dimension,
+                    indicadores: [indicador]
+                });
+            }
+        } else {
+            // Agregar una nueva instancia con la dimensión y el indicador
+            resultadosTransformados[row.nombre_instancia] = [{
+                ...dimension,
+                indicadores: [indicador]
+            }];
+        }
+    });
+    return resultadosTransformados
+
+    */
 }
 
 module.exports = {
