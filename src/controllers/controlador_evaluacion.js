@@ -13,9 +13,8 @@ const getEvaluacion = async(req,res) => {
 }
 
 const postEvaluacion = async(req,res) => {
-    const { respuestas }= req.body
+    const { respuestas, id_proyecto }= req.body
     const id_evaluador = 1
-    const id_proyecto = 1
     try {
         res.status(200).json(await servicio.postEvaluacion(id_proyecto,id_evaluador,respuestas))
     } catch {

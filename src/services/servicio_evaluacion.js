@@ -54,12 +54,12 @@ const preguntas = {
 }
 
 const getEvaluacion = async (id_proyecto,id_evaluador) => {
-    /*
+    
     preguntas.id_evaluador = id_evaluador
     preguntas.id_proyecto = parseInt(id_proyecto)
     return preguntas; 
-    */
     
+    /*
     const resultadosTransformados = {};
     const indicadores = await gen_consulta._call('obtener_Evaluacion')
 
@@ -102,7 +102,7 @@ const getEvaluacion = async (id_proyecto,id_evaluador) => {
             }];
         }
     });
-    return resultadosTransformados
+    return resultadosTransformados*/
     
 }
 
