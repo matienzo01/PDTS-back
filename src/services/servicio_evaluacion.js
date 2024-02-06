@@ -59,7 +59,103 @@ const getEvaluacion = async (id_proyecto,id_evaluador) => {
     preguntas.id_proyecto = parseInt(id_proyecto)
     return preguntas; */
     
-    
+    try {
+
+        const tabla = 'evaluadores_x_proyectos'
+        const condiciones = [
+            `id_proyecto = ${id_proyecto}`,
+            `id_evaluador = ${id_evaluador}`
+        ]
+        const existe = await gen_consulta._select(tabla,null,condiciones)
+
+        if (existe.length === 1){ //existe un evaluador asignado a ese proyecto
+            if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
+                return await get_eval_proyecto()
+            } else {
+                if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
+                    return await get_opinion_proyecto()
+                }
+                return 'no hay mas por evaluar capo'
+            }        
+        }
+
+    } catch(error) {
+        throw(error)
+    }
+}
+
+const tipo_and_opciones = (item,tipos_preguntas,opciones,opciones_x_preguntas) => {
+    const tipo_preg = tipos_preguntas[item.id_tipo_pregunta-1].tipo
+    let opciones_item = []
+        if (tipo_preg === 'opcion multiple') {
+            const ids_opciones = opciones_x_preguntas
+                .filter(elemento => elemento.id_preguntas_seccion === item.id_pregunta)
+                .map(elemento => elemento.id_opcion)
+
+            opciones_item = opciones
+                .filter(elemento => ids_opciones.includes(elemento.id))
+                .map(elemento => elemento.valor);
+            }
+    return {tipo_preg, opciones_item}
+}
+
+const get_opinion_proyecto = async  () => {
+    const tipos_preguntas = await gen_consulta._select('tipo_preguntas',null,null)
+    const opciones = await gen_consulta._select('opciones',null,null)
+    const all_preguntas = await gen_consulta._call('obtener_Opinion')
+    const opciones_x_preguntas = await gen_consulta._select('opciones_x_preguntas',null,null)
+    const rel_subpreg = await gen_consulta._select('relacion_subpregunta',null,null)
+    const transformedResult = {};
+
+    all_preguntas[0].forEach(item => {
+        
+        if (item.id_seccion){
+            
+            // Verificar si la sección ya existe en el objeto transformado
+            if (!transformedResult[item.nombre_seccion.toLowerCase()]) {
+                // Si no existe, crear un nuevo objeto de sección
+                transformedResult[item.nombre_seccion.toLowerCase()] = {
+                    id_seccion: item.id_seccion,
+                    preguntas: []
+                };
+            }
+            
+
+            const {tipo_preg, opciones_item} = tipo_and_opciones(item,tipos_preguntas,opciones,opciones_x_preguntas)
+
+            transformedResult[item.nombre_seccion.toLowerCase()].preguntas.push({
+                id_pregunta: item.id_pregunta,
+                enunciado_pregunta: item.enunciado_pregunta,
+                tipo_pregunta: tipo_preg,
+                opciones: opciones_item,
+                subpreguntas: []
+            });
+
+        } else {
+            const id_padre = rel_subpreg.filter(elemento => elemento.id_subpregunta === item.id_pregunta)[0].id_pregunta_padre
+            const {tipo_preg, opciones_item} = tipo_and_opciones(item,tipos_preguntas,opciones,opciones_x_preguntas)
+
+            const subpregunta = {
+                id_pregunta: item.id_pregunta,
+                enunciado_pregunta: item.enunciado_pregunta,
+                tipo_pregunta: tipo_preg,
+                opciones: opciones_item
+            }
+            
+            for (const seccion in transformedResult) {
+                const preguntas = transformedResult[seccion].preguntas;
+                for (const pregunta of preguntas) {
+                    if (pregunta.id_pregunta === id_padre) {
+                        pregunta.subpreguntas.push(subpregunta);
+                    }
+                }
+            }         
+        }
+    });
+    return transformedResult
+}
+
+const get_eval_proyecto = async () => {
     const resultadosTransformados = {};
     const indicadores = await gen_consulta._call('obtener_Evaluacion')
 
@@ -103,7 +199,6 @@ const getEvaluacion = async (id_proyecto,id_evaluador) => {
         }
     });
     return resultadosTransformados
-    
 }
 
 const postEvaluacion = async (id_proyecto,id_evaluador,respuestas) => {

@@ -33,5 +33,19 @@ BEGIN
         i.fecha_elim IS NULL;
 END //
 
+CREATE PROCEDURE obtener_Opinion()
+BEGIN   
+    SELECT 
+        preguntas_seccion.id AS id_pregunta,
+        preguntas_seccion.pregunta AS enunciado_pregunta,
+        preguntas_seccion.id_seccion AS id_seccion,
+       secciones.nombre AS nombre_seccion,
+       preguntas_seccion.id_tipo_pregunta AS id_tipo_pregunta
+    FROM 
+        preguntas_seccion
+    LEFT JOIN 
+        secciones ON preguntas_seccion.id_seccion = secciones.id;
+END //
+
 DELIMITER ;
 

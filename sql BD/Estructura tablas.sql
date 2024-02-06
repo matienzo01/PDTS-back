@@ -139,6 +139,7 @@ CREATE TABLE evaluadores_x_proyectos (
     id_evaluador INT,
     fecha_inicio_eval date,
     fecha_fin_eval date DEFAULT null,
+    fecha_fin_op date DEFAULT null,
     -- se podria poner un atributo de estado, pero si la fecha de fin de evaluacion está en nulo, se podria decir que todavia esta pendiente de evaluar
     PRIMARY KEY (id_proyecto, id_evaluador),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
