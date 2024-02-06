@@ -71,9 +71,25 @@ function _call(procedure) {
     })
 }
 
+function _update(tabla, params, set, condiciones){
+    return new Promise((resolve,reject) => {
+        const resultado = (condiciones && `WHERE ${condiciones.join(' AND ')}`) ?? '';
+        const sql = `UPDATE ${tabla} SET ${set} ${resultado}`
+        database.consulta(sql,params, (err, resultados) => {
+            if (err) {
+                console.error('Error al realizar la actualizacion en la base de datos:', err);
+                reject(err);
+            } else {
+                resolve(resultados);
+            }
+        })
+    })
+}
+
 module.exports = {
     _insert,
     _select,
     _delete,
-    _call
+    _call,
+    _update
 }

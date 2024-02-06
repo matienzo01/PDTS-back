@@ -172,7 +172,6 @@ CREATE TABLE respuestas_evaluacion (
     id_evaluador INT,
     id_proyecto INT,
     respuesta varchar(255), 
-    fecha_respuesta date,
     calificacion DECIMAL(5,2), -- este atributo o el de arriba podrian no estar. Con uno solo de los dos alcanza
     PRIMARY KEY (id_indicador, id_evaluador, id_proyecto),
     FOREIGN KEY (id_indicador) REFERENCES indicadores(id),

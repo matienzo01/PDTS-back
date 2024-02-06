@@ -366,9 +366,14 @@ INSERT INTO proyectos (
     'Alto',
     'Muy pertinente',
     'Alta',
-    '2024-02-05',
+    NOW(),
     1, 
     1  -- true para obligatoriedad_opinion
 );
+
+INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,fecha_inicio_eval) VALUES
+	(1,1,NOW()),
+    (1,2,NOW());
+
 
 

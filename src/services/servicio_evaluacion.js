@@ -54,12 +54,12 @@ const preguntas = {
 }
 
 const getEvaluacion = async (id_proyecto,id_evaluador) => {
-    
+    /*
     preguntas.id_evaluador = id_evaluador
     preguntas.id_proyecto = parseInt(id_proyecto)
-    return preguntas; 
+    return preguntas; */
     
-    /*
+    
     const resultadosTransformados = {};
     const indicadores = await gen_consulta._call('obtener_Evaluacion')
 
@@ -102,29 +102,36 @@ const getEvaluacion = async (id_proyecto,id_evaluador) => {
             }];
         }
     });
-    return resultadosTransformados*/
+    return resultadosTransformados
     
 }
 
 const postEvaluacion = async (id_proyecto,id_evaluador,respuestas) => {
     const flag_eval = true //esto vuela despues
     const fecha = new Date()
-    const fecha_respuesta = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
+    const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
     if (flag_eval) {
         try {
-            const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,fecha_respuesta,calificacion)'
+            const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,calificacion)'
             const tabla = `respuestas_evaluacion${atributos}`
             const resultados_a_insertar = respuestas.map(rta => [
                 rta.id_indicador,
                 id_evaluador,
                 id_proyecto,
                 rta.answer,
-                fecha_respuesta,
                 rta.value
             ]);
+            const res_insert_rtas = await gen_consulta._insert(tabla,resultados_a_insertar)
 
-            return await gen_consulta._insert(tabla,resultados_a_insertar)
+            const tabla2 = 'evaluadores_x_proyectos'
+            const set = 'fecha_fin_eval = ?'
+            const condiciones = [
+                `id_proyecto = ${id_proyecto}`,
+                `id_evaluador = ${id_evaluador}`]
+            const res_put_fecha = await gen_consulta._update(tabla2,fecha_respuesta,set,condiciones)
+
+            return res_insert_rtas
         } catch(error) {
             throw error
         } 
