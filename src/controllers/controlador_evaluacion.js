@@ -7,7 +7,7 @@ const getEvaluacion = async (req, res) => {
   try {
     const evaluacion = await servicio.getEvaluacion(id_proyecto, id_evaluador)
     res.status(200).json({ id_proyecto, ...evaluacion })
-  } catch {
+  } catch (error) {
     console.error('Error al obtener la evaluacion', error)
     res.status(500).json({ error: `Error al obtener la evaluacion del evaluador con id: ${id_evaluador} para el proyecto con id: ${id_proyecto}` })
   }

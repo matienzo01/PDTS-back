@@ -70,12 +70,12 @@ const getEvaluacion = async (id_proyecto, id_evaluador) => {
 
     if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
       if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
-        const preguntas = await get_eval_proyecto()
-        return { tipo: 'evaluacion', preguntas }
+        const webform = await get_eval_proyecto()
+        return { tipo: 'evaluacion', webform }
       } else {
         if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
-          const preguntas = await get_opinion_proyecto()
-          return { tipo: 'opinion', preguntas }
+          const webform = await get_opinion_proyecto()
+          return { tipo: 'opinion', webform }
         }
         return 'no hay mas por evaluar capo'
       }
@@ -102,30 +102,34 @@ const tipo_and_opciones = (item, tipos_preguntas, opciones, opciones_x_preguntas
 }
 
 const get_opinion_proyecto = async () => {
-  const tipos_preguntas = await gen_consulta._select('tipo_preguntas', null, null)
-  const opciones = await gen_consulta._select('opciones', null, null)
-  const all_preguntas = await gen_consulta._call('obtener_Opinion')
-  const opciones_x_preguntas = await gen_consulta._select('opciones_x_preguntas', null, null)
-  const rel_subpreg = await gen_consulta._select('relacion_subpregunta', null, null)
-  const transformedResult = {};
+
+  const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg] = await Promise.all([
+    gen_consulta._select('tipo_preguntas', null, null),
+    gen_consulta._select('opciones', null, null),
+    gen_consulta._call('obtener_Opinion'),
+    gen_consulta._select('opciones_x_preguntas', null, null),
+    gen_consulta._select('relacion_subpregunta', null, null)
+  ]);
+
+  const transformedResult = [];
 
   all_preguntas[0].forEach(item => {
-
     if (item.id_seccion) {
+      let seccion = transformedResult.findIndex(elemento => elemento.id_seccion === item.id_seccion)
 
       // Verificar si la sección ya existe en el objeto transformado
-      if (!transformedResult[item.nombre_seccion.toLowerCase()]) {
+      if (seccion === -1) {
         // Si no existe, crear un nuevo objeto de sección
-        transformedResult[item.nombre_seccion.toLowerCase()] = {
+        seccion = transformedResult.push({ //devuelve la nueva longitud del array
+          name: item.nombre_seccion.toLowerCase(),
           id_seccion: item.id_seccion,
           preguntas: []
-        };
+        }) - 1;
       }
-
 
       const { tipo_preg, opciones_item } = tipo_and_opciones(item, tipos_preguntas, opciones, opciones_x_preguntas)
 
-      transformedResult[item.nombre_seccion.toLowerCase()].preguntas.push({
+      transformedResult[seccion].preguntas.push({
         id_pregunta: item.id_pregunta,
         enunciado_pregunta: item.enunciado_pregunta,
         tipo_pregunta: tipo_preg,
