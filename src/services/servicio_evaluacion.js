@@ -70,11 +70,11 @@ const getEvaluacion = async (id_proyecto, id_evaluador) => {
 
     if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
       if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
-        const webform = await get_eval_proyecto()
+        const webform = await getProjectEval()
         return { tipo: 'evaluacion', webform }
       } else {
         if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
-          const webform = await get_opinion_proyecto()
+          const webform = await getProjectSurvey()
           return { tipo: 'opinion', webform }
         }
         return 'no hay mas por evaluar capo'
@@ -101,7 +101,7 @@ const tipo_and_opciones = (item, tipos_preguntas, opciones, opciones_x_preguntas
   return { tipo_preg, opciones_item }
 }
 
-const get_opinion_proyecto = async () => {
+const getProjectSurvey = async () => {
 
   const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg] = await Promise.all([
     gen_consulta._select('tipo_preguntas', null, null),
@@ -115,44 +115,44 @@ const get_opinion_proyecto = async () => {
 
   all_preguntas[0].forEach(item => {
     if (item.id_seccion) {
-      let seccion = transformedResult.findIndex(elemento => elemento.id_seccion === item.id_seccion)
+      let section = transformedResult.findIndex(section => section.sectionId === item.id_seccion)
 
       // Verificar si la sección ya existe en el objeto transformado
-      if (seccion === -1) {
+      if (section === -1) {
         // Si no existe, crear un nuevo objeto de sección
-        seccion = transformedResult.push({ //devuelve la nueva longitud del array
+        section = transformedResult.push({ //devuelve la nueva longitud del array
           name: item.nombre_seccion.toLowerCase(),
-          id_seccion: item.id_seccion,
-          preguntas: []
+          sectionId: item.id_seccion,
+          questions: []
         }) - 1;
       }
 
       const { tipo_preg, opciones_item } = tipo_and_opciones(item, tipos_preguntas, opciones, opciones_x_preguntas)
 
-      transformedResult[seccion].preguntas.push({
-        id_pregunta: item.id_pregunta,
-        enunciado_pregunta: item.enunciado_pregunta,
-        tipo_pregunta: tipo_preg,
-        opciones: opciones_item,
-        subpreguntas: []
+      transformedResult[section].questions.push({
+        questionId: item.id_pregunta,
+        label: item.enunciado_pregunta,
+        type: tipo_preg,
+        options: opciones_item,
+        subQuestions: []
       });
 
     } else {
       const id_padre = rel_subpreg.filter(elemento => elemento.id_subpregunta === item.id_pregunta)[0].id_pregunta_padre
       const { tipo_preg, opciones_item } = tipo_and_opciones(item, tipos_preguntas, opciones, opciones_x_preguntas)
 
-      const subpregunta = {
+      const subQuestion = {
         id_pregunta: item.id_pregunta,
-        enunciado_pregunta: item.enunciado_pregunta,
-        tipo_pregunta: tipo_preg,
-        opciones: opciones_item
+        label: item.enunciado_pregunta,
+        type: tipo_preg,
+        options: opciones_item
       }
 
-      for (const seccion in transformedResult) {
-        const preguntas = transformedResult[seccion].preguntas;
-        for (const pregunta of preguntas) {
-          if (pregunta.id_pregunta === id_padre) {
-            pregunta.subpreguntas.push(subpregunta);
+      for (const section in transformedResult) {
+        const questions = transformedResult[section].questions;
+        for (const question of questions) {
+          if (question.id_pregunta === id_padre) {
+            question.subQuestions.push(subQuestion);
           }
         }
       }
@@ -161,7 +161,7 @@ const get_opinion_proyecto = async () => {
   return transformedResult
 }
 
-const get_eval_proyecto = async () => {
+const getProjectEval = async () => {
   const resultadosTransformados = {};
   const indicadores = await gen_consulta._call('obtener_Evaluacion')
 
