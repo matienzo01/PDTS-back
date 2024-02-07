@@ -191,18 +191,26 @@ const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
+  const resultados_a_insertar = respuestas
+    .map(rta => [
+        rta.id_indicador,
+        id_evaluador,
+        id_proyecto,
+        rta.answer,
+        rta.value
+    ]);
+
+  resultados_a_insertar.forEach( res => {
+    if (res[4] === undefined) {
+      res.pop();
+    }
+  })
+
   if (evaluado.length === 1) {
     if (evaluado[0].fecha_fin_eval === null) {
       try {
         const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,calificacion)'
         const tabla = `respuestas_evaluacion${atributos}`
-        const resultados_a_insertar = respuestas.map(rta => [
-          rta.id_indicador,
-          id_evaluador,
-          id_proyecto,
-          rta.answer,
-          rta.value
-        ]);
         const res_insert_rtas = await gen_consulta._insert(tabla, resultados_a_insertar)
   
         const tabla2 = 'evaluadores_x_proyectos'
@@ -223,7 +231,7 @@ const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
       if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
         
 
-
+        //hay que hacer esta logica
 
 
       } else {
