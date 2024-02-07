@@ -1,72 +1,21 @@
 const gen_consulta = require('../database/gen_consulta')
-const TABLA = ''
 
-const preguntas = {
-  tipo: 'evaluacion',
-  id_evaluador: 1,
-  id_proyecto: 2,
-  entidad: [
-    {
-      id_dimension: 1,
-      dimension: 'Avance cognitivo',
-      indicadores: [
-        {
-          id_indicador: 1,
-          indicador: 'esta es la pregunta 1?',
-          fundamentacion: '',
-          determinante: true
-        },
-        {
-          id_indicador: 2,
-          indicador: 'que dia es hoy?',
-          fundamentacion: '',
-          determinante: true
-        }
-      ]
-    },
-    {
-      id_dimension: 2,
-      dimension: 'Novedad local',
-      indicadores: [
-        {
-          id_indicador: 3,
-          indicador: 'esta es la pregunta de la dimension Novedad local?',
-          fundamentacion: '',
-          determinante: true
-        }
-      ]
-    },
-  ],
-  proposito: [
-    {
-      id_dimension: 3,
-      dimension: 'Calidad del desempeño',
-      indicadores: [
-        {
-          id_indicador: 4,
-          indicador: 'esta es la pregunta 1 del proposito?',
-          fundamentacion: '',
-          determinante: true
-        }
-      ]
-    }
+const verify_date = async(id_proyecto, id_evaluador) => {
+  const tabla = 'evaluadores_x_proyectos'
+  const condiciones = [
+    `id_proyecto = ${id_proyecto}`,
+    `id_evaluador = ${id_evaluador}`
   ]
+  const existe = await gen_consulta._select(tabla, null, condiciones)
+
+  return existe;
 }
 
-const getEvaluacion = async (id_proyecto, id_evaluador) => {
-  /*
-  preguntas.id_evaluador = id_evaluador
-  preguntas.id_proyecto = parseInt(id_proyecto)
-  return preguntas; */
 
+const getEvaluacion = async (id_proyecto, id_evaluador) => {
   try {
 
-    const tabla = 'evaluadores_x_proyectos'
-    const condiciones = [
-      `id_proyecto = ${id_proyecto}`,
-      `id_evaluador = ${id_evaluador}`
-    ]
-    const existe = await gen_consulta._select(tabla, null, condiciones)
+    const existe = await verify_date(id_proyecto, id_evaluador)
 
     if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
       if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
@@ -236,38 +185,53 @@ const getProjectEval = async () => {
 
 }
 
+
 const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
-  const flag_eval = true //esto vuela despues
+  const evaluado = await verify_date(id_proyecto, id_evaluador) 
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
-  if (flag_eval) {
-    try {
-      const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,calificacion)'
-      const tabla = `respuestas_evaluacion${atributos}`
-      const resultados_a_insertar = respuestas.map(rta => [
-        rta.id_indicador,
-        id_evaluador,
-        id_proyecto,
-        rta.answer,
-        rta.value
-      ]);
-      const res_insert_rtas = await gen_consulta._insert(tabla, resultados_a_insertar)
+  console.log(evaluado)
 
-      const tabla2 = 'evaluadores_x_proyectos'
-      const set = 'fecha_fin_eval = ?'
-      const condiciones = [
-        `id_proyecto = ${id_proyecto}`,
-        `id_evaluador = ${id_evaluador}`]
-      const res_put_fecha = await gen_consulta._update(tabla2, fecha_respuesta, set, condiciones)
+  if (evaluado.length === 1) {
+    if (evaluado[0].fecha_fin_eval === null) {
+      try {
+        const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,calificacion)'
+        const tabla = `respuestas_evaluacion${atributos}`
+        const resultados_a_insertar = respuestas.map(rta => [
+          rta.id_indicador,
+          id_evaluador,
+          id_proyecto,
+          rta.answer,
+          rta.value
+        ]);
+        const res_insert_rtas = await gen_consulta._insert(tabla, resultados_a_insertar)
+  
+        const tabla2 = 'evaluadores_x_proyectos'
+        const set = 'fecha_fin_eval = ?'
+        const condiciones = [
+          `id_proyecto = ${id_proyecto}`,
+          `id_evaluador = ${id_evaluador}`]
+        
+        // actualizo la tabla evaluadores_x_proyectos con la fecha de finalizacion de la evaluacion 
+        // para asi posteriormente verificar si el proyecto ya fue evaluado
+        const res_put_fecha = await gen_consulta._update(tabla2, fecha_respuesta, set, condiciones)
+  
+        return res_insert_rtas
+      } catch (error) {
+        throw error
+      }
+    } else { // aca se entraria si fueran las repsuestas de la opinion
+      if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
+        
 
-      return res_insert_rtas
-    } catch (error) {
-      throw error
+
+
+
+      } else {
+        return 'no hay mas por evaluar capo'
+      }    
     }
-
-  } else {
-    // aca se entraria si fueran las repsuestas de la opinion
   }
 
 }
