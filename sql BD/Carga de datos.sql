@@ -175,6 +175,16 @@ INSERT into indicadores(pregunta, id_dimension, determinante, fundamentacion)
         10, true,
         'Debe fundamentarse el grado de satisfacción consignado respecto de la contribución del proyecto a metas u objetivos políticos definidos en el marco de las demandas sociales nacionales o globales.');
 
+INSERT INTO opciones_evaluacion (opcion,peso,id_instancia) VALUES
+    ('Cumple',1,1),
+    ('Cumple parcial',0.5,1),
+    ('No cumple',0,1),
+    ('Nulo',0,2),
+    ('Bajo',1,2),
+    ('Medio',2,2),
+    ('Alto',3,2),
+    ('Muy alto',4,2);
+
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 -- pREGUNTAS DE ENCUESTA //////////////////////////////////////////////////////////////////////////////////////
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////

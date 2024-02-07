@@ -168,6 +168,14 @@ CREATE TABLE indicadores (
     FOREIGN KEY (id_dimension) REFERENCES dimensiones(id)
 );
 
+CREATE TABLE opciones_evaluacion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    opcion varchar(255),
+    peso DECIMAL(5,2),
+    id_instancia INT,
+    FOREIGN KEY (id_instancia) REFERENCES instancias(id)
+);
+
 CREATE TABLE respuestas_evaluacion (
     id_indicador INT,
     id_evaluador INT,
