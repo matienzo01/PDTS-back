@@ -191,8 +191,6 @@ const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
-  console.log(evaluado)
-
   if (evaluado.length === 1) {
     if (evaluado[0].fecha_fin_eval === null) {
       try {
