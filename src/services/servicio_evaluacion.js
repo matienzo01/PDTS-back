@@ -133,7 +133,7 @@ const getProjectSurvey = async () => {
         questionId: item.id_pregunta,
         label: item.enunciado_pregunta,
         type: tipo_preg,
-        options: opciones_item,
+        options: opciones_item.map((opcion, i) => ({ label: opcion, value: opcion, id: i })), //va a ser necesario cambiar el id
         subQuestions: []
       });
 
