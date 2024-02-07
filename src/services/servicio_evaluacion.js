@@ -163,8 +163,26 @@ const getProjectSurvey = async () => {
 
 const getProjectEval = async () => {
   const resultadosTransformados = {};
-  const indicadores = await gen_consulta._call('obtener_Evaluacion')
+  const [indicadores, options, instancias] = await Promise.all([
+    gen_consulta._call('obtener_Evaluacion'),
+    gen_consulta._select('opciones_evaluacion',null,null),
+    gen_consulta._select('instancias',null,null)
+  ])
 
+  const newOptions = {}
+  options.forEach( element => {
+    const newOption = {
+      id : element.id,
+      option: element.opcion,
+      value: element.peso
+    }
+
+    if(!newOptions[element.id_instancia]) {
+      newOptions[element.id_instancia] = []
+    }
+    newOptions[element.id_instancia].push(newOption)
+  })
+  
   indicadores[0].forEach(row => {
 
     const dimension = {
@@ -204,6 +222,16 @@ const getProjectEval = async () => {
       }];
     }
   });
+
+  Object.keys(resultadosTransformados).forEach(instancia => {
+    
+    
+    resultadosTransformados[instancia] = {
+      dimensiones: resultadosTransformados[instancia],
+      opciones_instancia: newOptions[instancias.find(item => item.nombre === instancia).id]
+    };
+  });
+
   return { name: 'Evaluación de proyecto', sections: resultadosTransformados }
 
 }
