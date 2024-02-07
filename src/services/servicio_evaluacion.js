@@ -71,11 +71,11 @@ const getEvaluacion = async (id_proyecto, id_evaluador) => {
     if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
       if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
         const webform = await getProjectEval()
-        return { tipo: 'evaluacion', webform }
+        return { tipo: 'evaluacion', ...webform }
       } else {
         if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
           const webform = await getProjectSurvey()
-          return { tipo: 'opinion', webform }
+          return { tipo: 'opinion', ...webform }
         }
         return 'no hay mas por evaluar capo'
       }
@@ -158,7 +158,7 @@ const getProjectSurvey = async () => {
       }
     }
   });
-  return transformedResult
+  return { name: 'Encuesta de opinion', sections: transformedResult }
 }
 
 const getProjectEval = async () => {
@@ -204,7 +204,8 @@ const getProjectEval = async () => {
       }];
     }
   });
-  return resultadosTransformados
+  return { name: 'Evaluación de proyecto', sections: resultadosTransformados }
+
 }
 
 const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
