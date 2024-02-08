@@ -1,28 +1,28 @@
-const servicio = require('../services/servicio_dimensiones')
+const servicio = require('../services/dimensionService')
 
-const getAllDimensiones = async (req,res) => {
+const getAllDimensions = async (req,res) => {
     try {
-        res.status(200).json(await servicio.getAllDimensiones())
+        res.status(200).json(await servicio.getAllDimensions())
     } catch {
         console.error('Error al obtener todas las dimensiones', error)
         res.status(500).json({ error: 'Error al obtener todas las dimensiones'})
     }
 }
 
-const getOneDimensiones = async (req,res) => {
+const getOneDimension = async (req,res) => {
     const { params: { id_dimension }} = req
 
     if (!id_dimension) return;
 
     try {
-        res.status(200).json(await servicio.getOneDimensiones(id_dimension))
+        res.status(200).json(await servicio.getOneDimension(id_dimension))
     } catch {
         console.error('Error al obtener la dimensione', error)
         res.status(500).json({ error: 'Error al obtener todas la dimension'})
     }
 }
 
-const createDimensiones = async (req,res) => {
+const createDimension = async (req,res) => {
     const { body } = req
 
     if (
@@ -32,14 +32,14 @@ const createDimensiones = async (req,res) => {
 
     try {
         const params = Object.values(body)
-        res.status(201).json( await servicio.createDimensiones(params))
+        res.status(201).json( await servicio.createDimension(params))
     } catch(error) {
         console.error('Error al insertar', error)
         res.status(500).json({ error: 'Error al insertar la dimension'})
     }
 }
 
-const deleteDimensiones = async (req,res) => {
+const deleteDimension = async (req,res) => {
     const {
         body,
         params: { id_dimension }
@@ -48,7 +48,7 @@ const deleteDimensiones = async (req,res) => {
     if (!id_dimension) return;
 
     try {
-        res.status(200).json(await servicio.deleteDimensiones(id_dimension))
+        res.status(200).json(await servicio.deleteDimension(id_dimension))
     } catch {
         console.error('Error al eliminar', error)
         res.status(500).json({ error: 'Error al eliminar el elemento'})
@@ -56,8 +56,8 @@ const deleteDimensiones = async (req,res) => {
 }
 
 module.exports = {
-    getAllDimensiones,
-    getOneDimensiones,
-    createDimensiones,
-    deleteDimensiones
+    getAllDimensions,
+    getOneDimension,
+    createDimension,
+    deleteDimension
 }

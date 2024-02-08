@@ -1,7 +1,7 @@
 const gen_consulta = require('../database/gen_consulta')
 const TABLA = 'dimensiones'
 
-const getAllDimensiones = async () => {
+const getAllDimensions = async () => {
     try {
         return await gen_consulta._select(TABLA, null, null);
     } catch (error) {
@@ -10,7 +10,7 @@ const getAllDimensiones = async () => {
 }
 
 
-const getOneDimensiones = async(id) => { 
+const getOneDimension = async(id) => { 
     try {
         const condiciones = [`id = ${id}`]
         return await gen_consulta._select(TABLA,null,condiciones)
@@ -19,7 +19,7 @@ const getOneDimensiones = async(id) => {
     }
 }
 
-const createDimensiones = async (params) => {
+const createDimension = async (params) => {
     try {
         return await gen_consulta._insert(TABLA.concat('(nombre,id_instancia)'),params)
     } catch(error) {
@@ -28,7 +28,7 @@ const createDimensiones = async (params) => {
 
 }
 
-const deleteDimensiones = async (id) => {
+const deleteDimension = async (id) => {
     try {
         const condiciones = [`id = ${id}`]
         return await gen_consulta._delete(TABLA,condiciones)
@@ -38,8 +38,8 @@ const deleteDimensiones = async (id) => {
 }
 
 module.exports = {
-    getAllDimensiones,
-    getOneDimensiones,
-    createDimensiones,
-    deleteDimensiones
+    getAllDimensions,
+    getOneDimension,
+    createDimension,
+    deleteDimension
 }

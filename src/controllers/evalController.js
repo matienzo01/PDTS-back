@@ -1,11 +1,11 @@
-const servicio = require('../services/servicio_evaluacion')
+const servicio = require('../services/evalService')
 
-const getEvaluacion = async (req, res) => {
+const getNextEval = async (req, res) => {
   const { id_proyecto } = req.query
   const id_evaluador = 1
 
   try {
-    const data = await servicio.getEvaluacion(id_proyecto, id_evaluador)
+    const data = await servicio.getNextEval(id_proyecto, id_evaluador)
     const { tipo, ...webform } = data
     res.status(200).json({ id_proyecto, type: tipo, webform })
   } catch (error) {
@@ -14,11 +14,11 @@ const getEvaluacion = async (req, res) => {
   }
 }
 
-const postEvaluacion = async (req, res) => {
+const postEval = async (req, res) => {
   const { respuestas, id_proyecto } = req.body
   const id_evaluador = 1
   try {
-    res.status(200).json(await servicio.postEvaluacion(id_proyecto, id_evaluador, respuestas))
+    res.status(200).json(await servicio.postEval(id_proyecto, id_evaluador, respuestas))
   } catch {
     console.error('Error al insertar las respuetas', error)
     res.status(500).json({ error: `Error ` })
@@ -26,6 +26,6 @@ const postEvaluacion = async (req, res) => {
 }
 
 module.exports = {
-  getEvaluacion,
-  postEvaluacion
+  getNextEval,
+  postEval
 }

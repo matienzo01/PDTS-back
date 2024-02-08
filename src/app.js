@@ -1,7 +1,7 @@
 const express = require('express');
 const database = require('./database/database.js')
-const routerDimensiones = require('./routes/rutas_dimensiones.js')
-const routerEvaluacion = require('./routes/rutas_evaluacion.js')
+const routerDimensions = require('./routes/dimensionRoutes.js')
+const routerEval = require('./routes/evalRoutes.js')
 const cors = require('cors')
 
 const app = express();
@@ -9,8 +9,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json())
 app.use(cors())
-app.use('/api/dimensiones', routerDimensiones)
-app.use('/api/evaluacion', routerEvaluacion)
+app.use('/api/dimensiones', routerDimensions)
+app.use('/api/evaluacion', routerEval)
 
 app.listen(PORT, () => {
   database.connect_BD()

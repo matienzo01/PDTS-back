@@ -12,7 +12,7 @@ const verify_date = async(id_proyecto, id_evaluador) => {
 }
 
 
-const getEvaluacion = async (id_proyecto, id_evaluador) => {
+const getNextEval = async (id_proyecto, id_evaluador) => {
   try {
 
     const existe = await verify_date(id_proyecto, id_evaluador)
@@ -35,7 +35,7 @@ const getEvaluacion = async (id_proyecto, id_evaluador) => {
   }
 }
 
-const tipo_and_opciones = (item, tipos_preguntas, opciones, opciones_x_preguntas) => {
+const type_and_options = (item, tipos_preguntas, opciones, opciones_x_preguntas) => {
   const tipo_preg = tipos_preguntas[item.id_tipo_pregunta - 1].tipo
   let opciones_item = []
   if (tipo_preg === 'opcion multiple') {
@@ -76,7 +76,7 @@ const getProjectSurvey = async () => {
         }) - 1;
       }
 
-      const { tipo_preg, opciones_item } = tipo_and_opciones(item, tipos_preguntas, opciones, opciones_x_preguntas)
+      const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas)
 
       transformedResult[section].questions.push({
         questionId: item.id_pregunta,
@@ -88,7 +88,7 @@ const getProjectSurvey = async () => {
 
     } else {
       const id_padre = rel_subpreg.filter(elemento => elemento.id_subpregunta === item.id_pregunta)[0].id_pregunta_padre
-      const { tipo_preg, opciones_item } = tipo_and_opciones(item, tipos_preguntas, opciones, opciones_x_preguntas)
+      const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas)
 
       const subQuestion = {
         id_pregunta: item.id_pregunta,
@@ -186,7 +186,7 @@ const getProjectEval = async () => {
 }
 
 
-const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
+const postEval = async (id_proyecto, id_evaluador, respuestas) => {
   const evaluado = await verify_date(id_proyecto, id_evaluador) 
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
@@ -243,6 +243,6 @@ const postEvaluacion = async (id_proyecto, id_evaluador, respuestas) => {
 }
 
 module.exports = {
-  getEvaluacion,
-  postEvaluacion
+  getNextEval,
+  postEval
 }
