@@ -1,4 +1,4 @@
-const servicio = require('../services/servicio_instituciones')
+const servicio = require('../services/institutionService.js')
 
 const getOneInstitucion = async(req,res) => {
     
