@@ -12,6 +12,10 @@ const getAllInstitutionUsers = async (id_institucion) => {
         const idsString = ids.map(row => row.id_evaluador);
         const conds2 = [`id IN (${idsString.join(',')})`];
         const users = await gen_consulta._select('evaluadores',null,conds2)
+        users.forEach(user => {
+            delete user.password
+        });
+
         return {users: users}
     } catch(error) {
         throw error;
