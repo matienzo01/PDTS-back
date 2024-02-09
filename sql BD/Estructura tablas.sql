@@ -137,6 +137,7 @@ CREATE TABLE evaluadores_x_instituciones (
 CREATE TABLE evaluadores_x_proyectos (
     id_proyecto INT,
     id_evaluador INT,
+    rol varchar(255),
     fecha_inicio_eval date,
     fecha_fin_eval date DEFAULT null,
     fecha_fin_op date DEFAULT null,
