@@ -1,4 +1,4 @@
-const servicio = require('../services/institutionService.js')
+const service = require('../services/institutionService.js')
 
 const getOneInstitucion = async(req,res) => {
     const { params: { id_institucion }} = req
@@ -12,7 +12,7 @@ const getOneInstitucion = async(req,res) => {
     }
     
     try {
-        res.status(200).json(await servicio.getOneInstitucion(id_institucion))
+        res.status(200).json(await service.getOneInstitucion(id_institucion))
       } catch (error) {
         res.status(500).json({error: `Error al obtener la institucion con id ${id_institucion}`})
       }
@@ -21,7 +21,7 @@ const getOneInstitucion = async(req,res) => {
 
 const getAllInstituciones = async(req,res) => {
     try {
-        res.status(200).json(await servicio.getAllInstituciones())
+        res.status(200).json(await service.getAllInstituciones())
       } catch (error) {
         res.status(500).json({error: 'Error al obtener las instituciones'})
       }
@@ -56,9 +56,9 @@ const createInstitucion = async(req,res) => {
     }
 
     try {
-        res.status(200).json(await servicio.createInstitucion(admin,institucion))
+      res.status(200).json(await service.createInstitucion(admin,institucion))
     } catch(error) {
-
+      res.status(500).json({error: `Error al crear la institucion`})
     }
     return;
 }

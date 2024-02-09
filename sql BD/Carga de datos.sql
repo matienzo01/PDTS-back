@@ -362,8 +362,8 @@ INSERT INTO proyectos (
     obligatoriedad_opinion
 ) VALUES (
     'Proyecto Ejemplo',
-    1, 
-    1,
+    1, -- Reemplaza con el ID correcto de estado_eval
+    1, -- Reemplaza con el ID correcto de evaluadores (director)
     1, -- Reemplaza con el ID correcto de instituciones
     '2024-02-05',
     '2024-12-31',
@@ -377,7 +377,27 @@ INSERT INTO proyectos (
     'Muy pertinente',
     'Alta',
     NOW(),
-    1, 
+    1, -- true para obligatoriedad_proposito
+    1  -- true para obligatoriedad_opinion
+),
+(
+    'Proyecto de Investigación en Biología Marina',
+    1, -- Reemplaza con el ID correcto de estado_eval
+    1, -- Reemplaza con el ID correcto de evaluadores (director)
+    1, -- Reemplaza con el ID correcto de instituciones
+    '2024-03-15',
+    '2025-03-15',
+    'Biología Marina',
+    'Conservación de Especies Marinas',
+    'Estudio sobre el impacto del cambio climático en el ecosistema marino',
+    'Generación de informes científicos y propuestas de conservación',
+    'Resumen detallado del proyecto de investigación',
+    'Propuesta innovadora para abordar la conservación marina',
+    'Alto',
+    'Muy pertinente',
+    'Alta',
+    NOW(), 
+    1, -- true para obligatoriedad_proposito
     1  -- true para obligatoriedad_opinion
 );
 

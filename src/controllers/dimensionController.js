@@ -1,8 +1,8 @@
-const servicio = require('../services/dimensionService')
+const service = require('../services/dimensionService')
 
 const getAllDimensions = async (req,res) => {
     try {
-        res.status(200).json(await servicio.getAllDimensions())
+        res.status(200).json(await service.getAllDimensions())
     } catch {
         res.status(500).json({ error: 'Error al obtener todas las dimensiones'})
     }
@@ -20,7 +20,7 @@ const getOneDimension = async (req,res) => {
     }
 
     try {
-        res.status(200).json(await servicio.getOneDimension(id_dimension))
+        res.status(200).json(await service.getOneDimension(id_dimension))
     } catch {
         res.status(500).json({ error: 'Error al obtener todas la dimension'})
     }
@@ -40,7 +40,7 @@ const createDimension = async (req,res) => {
     }
 
     try {
-        res.status(201).json( await servicio.createDimension(Object.values(body)))
+        res.status(201).json( await service.createDimension(Object.values(body)))
     } catch(error) {
         res.status(500).json({ error: 'Error al insertar la dimension'})
     }
@@ -58,7 +58,7 @@ const deleteDimension = async (req,res) => {
     }
 
     try {
-        res.status(200).json(await servicio.deleteDimension(id_dimension))
+        res.status(200).json(await service.deleteDimension(id_dimension))
     } catch {
         res.status(500).json({ error: 'Error al eliminar el elemento'})
     }
