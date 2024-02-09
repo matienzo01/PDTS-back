@@ -4,7 +4,6 @@ const getAllDimensions = async (req,res) => {
     try {
         res.status(200).json(await servicio.getAllDimensions())
     } catch {
-        console.error('Error al obtener todas las dimensiones', error)
         res.status(500).json({ error: 'Error al obtener todas las dimensiones'})
     }
 }
@@ -12,12 +11,17 @@ const getAllDimensions = async (req,res) => {
 const getOneDimension = async (req,res) => {
     const { params: { id_dimension }} = req
 
-    if (!id_dimension) return;
+    if (isNaN(id_dimension)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':id_dimension' should be a number"}
+        })
+        return ;
+    }
 
     try {
         res.status(200).json(await servicio.getOneDimension(id_dimension))
     } catch {
-        console.error('Error al obtener la dimensione', error)
         res.status(500).json({ error: 'Error al obtener todas la dimension'})
     }
 }
@@ -27,30 +31,35 @@ const createDimension = async (req,res) => {
 
     if (
         !body.nombre ||
-        !body.id_instancia
-    ) return ;
+        !body.id_instancia) {
+            res.status(400).send({
+                status: 'FAILED',
+                data : { error: "Missing fields"}
+            })
+            return ;
+    }
 
     try {
-        const params = Object.values(body)
-        res.status(201).json( await servicio.createDimension(params))
+        res.status(201).json( await servicio.createDimension(Object.values(body)))
     } catch(error) {
-        console.error('Error al insertar', error)
         res.status(500).json({ error: 'Error al insertar la dimension'})
     }
 }
 
 const deleteDimension = async (req,res) => {
-    const {
-        body,
-        params: { id_dimension }
-    } = req
+    const { params: { id_dimension } } = req
 
-    if (!id_dimension) return;
+    if (isNaN(id_dimension)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':id_dimension' should be a number"}
+        })
+        return ;
+    }
 
     try {
         res.status(200).json(await servicio.deleteDimension(id_dimension))
     } catch {
-        console.error('Error al eliminar', error)
         res.status(500).json({ error: 'Error al eliminar el elemento'})
     }
 }

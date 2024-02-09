@@ -1,7 +1,7 @@
 
 
 const getAllProjects = async () => {
-    console.log("getAllProjects")
+    
 }
 
 const getOneProject = async () => {
