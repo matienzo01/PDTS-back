@@ -21,6 +21,25 @@ const getOneProject = async (id_institucion,id_proyecto) => {
     }
 }
 
+const asignDirector = async(id_director,id_proyecto,fecha_carga) => {
+    const tabla = 'evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_eval)'
+    const director2 = {
+        id_proyecto: id_proyecto,
+        id_director: id_director,
+        rol: 'director',
+        fecha_carga: fecha_carga}
+
+
+    const director = [id_proyecto,id_director,'director',fecha_carga]
+    console.log(director)
+    try {
+        return await gen_consulta._insert(tabla,director)
+    } catch {
+        throw error;
+    }
+
+}
+
 const createProject = async (proyecto) => {
 
     const insert_table = TABLE.concat('(titulo,id_director,FechaInicio,FechaFin,area_conocim,subarea_conocim,problema_a_resolver,producto_a_generar,resumen,novedad_u_originalidad,grado_relevancia,grado_pertinencia,grado_demanda,obligatoriedad_proposito,obligatoriedad_opinion,id_institucion,fecha_carga,id_estado_eval)')
@@ -29,9 +48,11 @@ const createProject = async (proyecto) => {
     proyecto.push(fecha_carga)
     proyecto.push(1) // este es el id del estado de la evaluacion. id = 1 ==> Sin evaluar
 
-    console.log(proyecto)
     try {
-        return await gen_consulta._insert(insert_table,[proyecto])
+        const projectInsert = await gen_consulta._insert(insert_table,[proyecto])
+        const directorInsert = await asignDirector(proyecto[1],projectInsert.insertId,fecha_carga)
+        
+        return {directorInsert:directorInsert, projectInsert:projectInsert }
     } catch(error) {
         throw error
     }
