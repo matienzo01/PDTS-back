@@ -320,11 +320,13 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
 INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
-    ('Juan','Administrador','admin@mail.com','');
+    ('Juan','Administrador','admin1@mail.com',''),
+    ('Jorge','Administrador','admin2@mail.com','');
 
 INSERT INTO instituciones (id_admin, id_tipo, nombre, pais, provincia, localidad, telefono_institucional, mail_institucional) 
 VALUES 
-(1, 1, 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com');
+(1, 1, 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
+(2, 1, 'UTN', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com');
 
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 
@@ -338,8 +340,8 @@ INSERT INTO evaluadores_x_instituciones(id_institucion,id_evaluador) VALUES
     (1,1),
     (1,2),
     (1,3),
-    (1,4),
-    (1,5);
+    (2,4),
+    (2,5);
 
 INSERT INTO proyectos (
     titulo,
