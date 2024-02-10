@@ -34,7 +34,12 @@ const createIndicator = async(indicator) => {
 }
 
 const deleteIndicator = async(id_indicador) => {
-    return ;
+    try {
+        const conds = [`id = ${id_indicador}`]
+        return await gen_consulta._delete('indicadores',conds)
+    } catch(error) {
+        throw error
+    }
 }
 
 module.exports = {

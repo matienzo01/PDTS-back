@@ -37,7 +37,21 @@ const createIndicator = async(req,res) => {
 }
 
 const deleteIndicator = async(req,res) => {
-    return ;
+    const { params: { id_indicador } } = req
+
+    if (isNaN(id_indicador)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':id_indicador' should be a number"}
+        })
+        return ;
+    }
+
+    try {
+        res.status(200).json(await service.deleteIndicator(id_indicador))
+    } catch {
+        res.status(500).json({ error: 'Error al eliminar el elemento'})
+    }
 }
 
 module.exports = {
