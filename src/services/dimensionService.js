@@ -3,12 +3,8 @@ const TABLA = 'dimensiones'
 
 const getAllDimensions = async (id_instancia) => {
     try {
-        if (id_instancia) {
-            return await gen_consulta._select(TABLA, null, [`id_instancia = ${id_instancia}`]);
-        } else {
-            return await gen_consulta._select(TABLA, null, null);
-        }
-        
+        const conds = id_instancia ? [`id_instancia = ${id_instancia}`] : null;
+        return {dimensiones: await gen_consulta._select(TABLA, null, conds)};
     } catch (error) {
         throw error;
     }
@@ -18,7 +14,7 @@ const getAllDimensions = async (id_instancia) => {
 const getOneDimension = async(id) => { 
     try {
         const condiciones = [`id = ${id}`]
-        return await gen_consulta._select(TABLA,null,condiciones)
+        return {dimension: await gen_consulta._select(TABLA,null,condiciones)}
     } catch(error) {
         throw error;
     }
@@ -26,7 +22,8 @@ const getOneDimension = async(id) => {
 
 const createDimension = async (params) => {
     try {
-        return await gen_consulta._insert(TABLA.concat('(nombre,id_instancia)'),params)
+        const insert = await gen_consulta._insert(TABLA.concat('(nombre,id_instancia)'),params)
+        return {dimension: await gen_consulta._select(TABLA,null,[`id = ${insert.insertId}`])}
     } catch(error) {
         throw error
     }   
@@ -35,8 +32,8 @@ const createDimension = async (params) => {
 
 const deleteDimension = async (id) => {
     try {
-        const condiciones = [`id = ${id}`]
-        return await gen_consulta._delete(TABLA,condiciones)
+        const conds = [`id = ${id}`]
+        return await gen_consulta._delete(TABLA,conds)
     } catch(error) {
         throw error
     }

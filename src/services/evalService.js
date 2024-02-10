@@ -2,13 +2,12 @@ const gen_consulta = require('../database/gen_consulta')
 
 const verify_date = async(id_proyecto, id_evaluador) => {
   const tabla = 'evaluadores_x_proyectos'
-  const condiciones = [
+  const conds = [
     `id_proyecto = ${id_proyecto}`,
     `id_evaluador = ${id_evaluador}`
   ]
-  const existe = await gen_consulta._select(tabla, null, condiciones)
 
-  return existe;
+  return await gen_consulta._select(tabla, null, conds);
 }
 
 
