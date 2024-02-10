@@ -22,8 +22,9 @@ const getOneDimension = async(id) => {
 
 const createDimension = async (params) => {
     try {
-        const insert = await gen_consulta._insert(TABLA.concat('(nombre,id_instancia)'),params)
-        return {dimension: await gen_consulta._select(TABLA,null,[`id = ${insert.insertId}`])}
+        const insertData = await gen_consulta._insert(TABLA.concat('(nombre,id_instancia)'),params)
+        const insertedDimension = await gen_consulta._select(TABLA,null,[`id = ${insertData.insertId}`])
+        return {dimension: insertedDimension[0]}
     } catch(error) {
         throw error
     }   

@@ -5,7 +5,7 @@ const getAllIndicators = async(req,res) => {
     try {
         res.status(200).json(await service.getAllIndicators(id_instancia, id_dimension))
     } catch(error) {
-        res.status(500).json({ error: 'Error getting all the indicators'})
+        res.status(500).json({ error: 'Error getting the indicators'})
     }
 }
 
@@ -23,13 +23,17 @@ const getOneIndicator = async(req,res) => {
     try {
         res.status(200).json(await service.getOneIndicator(id_indicador))
     } catch(error) {
-        res.status(500).json({ error: 'Error getting all the indicators'})
+        res.status(500).json({ error: 'Error getting the indicator'})
     }
-    return ;
 }
 
 const createIndicator = async(req,res) => {
-    return ;
+    const {body} = req
+    try {
+        res.status(200).json(await service.createIndicator(body))
+    } catch {
+        res.status(500).json({ error: 'Error creating the indicator'})
+    }
 }
 
 const deleteIndicator = async(req,res) => {
