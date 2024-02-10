@@ -30,11 +30,11 @@ const getOneDimension = async (req,res) => {
 }
 
 const createDimension = async (req,res) => {
-    const { body } = req
+    const { dimension } = req.body
 
     if (
-        !body.nombre ||
-        !body.id_instancia) {
+        !dimension.nombre ||
+        !dimension.id_instancia) {
             res.status(400).send({
                 status: 'FAILED',
                 data : { error: "Missing fields"}
@@ -43,7 +43,7 @@ const createDimension = async (req,res) => {
     }
 
     try {
-        res.status(201).json( await service.createDimension(Object.values(body)))
+        res.status(201).json( await service.createDimension(Object.values(dimension)))
     } catch(error) {
         res.status(500).json({ error: 'Error al insertar la dimension'})
     }

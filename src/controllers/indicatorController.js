@@ -28,9 +28,9 @@ const getOneIndicator = async(req,res) => {
 }
 
 const createIndicator = async(req,res) => {
-    const {body} = req
+    const {indicador} = req.body
     try {
-        res.status(200).json(await service.createIndicator(body))
+        res.status(200).json(await service.createIndicator(indicador))
     } catch {
         res.status(500).json({ error: 'Error creating the indicator'})
     }
