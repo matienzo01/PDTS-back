@@ -1,8 +1,11 @@
 const service = require('../services/dimensionService')
 
 const getAllDimensions = async (req,res) => {
+
+    const {id_instancia} = req.query
+
     try {
-        res.status(200).json(await service.getAllDimensions())
+        res.status(200).json(await service.getAllDimensions(id_instancia))
     } catch {
         res.status(500).json({ error: 'Error al obtener todas las dimensiones'})
     }

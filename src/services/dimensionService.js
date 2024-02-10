@@ -1,9 +1,14 @@
 const gen_consulta = require('../database/gen_consulta')
 const TABLA = 'dimensiones'
 
-const getAllDimensions = async () => {
+const getAllDimensions = async (id_instancia) => {
     try {
-        return await gen_consulta._select(TABLA, null, null);
+        if (id_instancia) {
+            return await gen_consulta._select(TABLA, null, [`id_instancia = ${id_instancia}`]);
+        } else {
+            return await gen_consulta._select(TABLA, null, null);
+        }
+        
     } catch (error) {
         throw error;
     }

@@ -23,12 +23,6 @@ const getOneProject = async (id_institucion,id_proyecto) => {
 
 const asignDirector = async(id_director,id_proyecto,fecha_carga) => {
     const tabla = 'evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_eval)'
-    const director2 = {
-        id_proyecto: id_proyecto,
-        id_director: id_director,
-        rol: 'director',
-        fecha_carga: fecha_carga}
-
 
     const director = [id_proyecto,id_director,'director',fecha_carga]
     console.log(director)
