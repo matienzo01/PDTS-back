@@ -1,4 +1,5 @@
 const service = require('../services/institutionService.js')
+const knex = require('../database/knex.js')
 
 const getOneInstitucion = async (req, res) => {
   const { params: { id_institucion } } = req
@@ -64,7 +65,12 @@ const createInstitucion = async (req, res) => {
 }
 
 const deleteInstitucion = async (req, res) => {
-
+  const { params: { id_institucion } } = req
+  try {
+    res.status(200).json(await service.deleteInstitucion(id_institucion))
+  } catch (error) {
+    res.status(500).json({ error: `Error al eliminar la institucion con id ${id_institucion}` })
+  }
   return;
 }
 

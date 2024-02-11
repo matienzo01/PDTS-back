@@ -58,8 +58,11 @@ const createInstitucion = async (newAdmin, institucion) => {
   return 'ya existe esa institucion';
 }
 
-const deleteInstitucion = async () => {
-
+const deleteInstitucion = async (id) => {
+  knex.transaction(async (trx) => {
+    await trx('instituciones').where({ id }).del()
+    await trx('admins_cyt').where({ id }).del()
+  })
   return;
 }
 
