@@ -14,7 +14,7 @@ app.use(cors())
 app.use('/api/dimensiones', routerDimensions)
 app.use('/api/evaluacion', routerEval)
 app.use('/api/instituciones', routerInst)
-app.use('/api/indicadores',routerIndicators)
+app.use('/api/indicadores', routerIndicators)
 
 app.listen(PORT, () => {
   database.connect_BD()
