@@ -1,45 +1,43 @@
-const gen_consulta = require('../database/gen_consulta')
+const knex = require('../database/knex.js')
+const TABLE = 'indicadores'
 
 const getAllIndicators = async(id_instancia, id_dimension) => {
 
-    const table = (!id_dimension && id_instancia) ? 'instancias ins JOIN dimensiones dim ON ins.id = dim.id_instancia JOIN indicadores ind ON dim.id = ind.id_dimension' : 'indicadores ind';
-    const conds = id_dimension ? [`id_dimension = ${id_dimension}`] : id_instancia ? [`ins.id = ${id_instancia}`] : null;
-    const columns = 'ind.id,pregunta,fundamentacion,id_dimension,determinante,fecha_elim'
+    const query = knex(TABLE)
 
-    try {
-        return {indicadores: await gen_consulta._select(table,columns,conds)}
-    } catch(error) {
-        throw error
+    if (id_dimension) {
+        query.where({ id_dimension });
+    } else if (id_instancia) {
+        query.join('dimensiones', 'indicadores.id_dimension', 'dimensiones.id')
+             .join('instancias', 'dimensiones.id_instancia', 'instancias.id')
+             .select('indicadores.id', 'pregunta', 'fundamentacion', 'id_dimension', 'determinante', 'fecha_elim')
+             .where('instancias.id', '=', id_instancia);
     }
-    
+
+    return { indicadores: await query };    
 }
 
-const getOneIndicator = async(id_indicador) => {
-
-    try {
-        return {indicador: await gen_consulta._select('indicadores',null,[`id = ${id_indicador}`])}
-    } catch (error) {
-        throw error
-    }
+const getOneIndicator = async(id) => {
+    const indicator = await knex(TABLE).select().where({id})
+    return {indicador: indicator[0]}
 }
 
 const createIndicator = async(indicator) => {
-    try {
-        const insertData = await gen_consulta._insert('indicadores(pregunta,fundamentacion,id_dimension,determinante)',Object.values(indicator))
-        const insertedIndicator = await gen_consulta._select('indicadores',null,[`id = ${insertData.insertId}`])
-        return {newIndicator : insertedIndicator[0]}
-    } catch(error) {
-        throw error;
+
+    const newIndicator = {
+        pregunta: indicator.nombre,
+        fundamentacion: indicator.id_instancia,
+        id_dimension: indicator.id_dimension,
+        determinante: indicator.determinante,
     }
+
+    const insertId = parseInt(await knex(TABLE).insert(newIndicator))
+    return await getOneIndicator(insertId) 
+
 }
 
-const deleteIndicator = async(id_indicador) => {
-    try {
-        const conds = [`id = ${id_indicador}`]
-        return await gen_consulta._delete('indicadores',conds)
-    } catch(error) {
-        throw error
-    }
+const deleteIndicator = async(id) => {
+    return await knex(TABLE).del().where({id})
 }
 
 module.exports = {
