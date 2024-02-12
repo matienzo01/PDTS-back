@@ -31,7 +31,7 @@ CREATE TABLE admins_CyT (
     password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE roles_institcuciones(
+CREATE TABLE roles_instituciones(
 	id INT AUTO_INCREMENT PRIMARY KEY,
     rol varchar(255)
 );
@@ -104,7 +104,7 @@ CREATE TABLE participación_instituciones(
     id_inst_participante INT,
     PRIMARY KEY (id_inst_participante,id_rol,id_proyecto),
     FOREIGN KEY (id_inst_participante) REFERENCES instituciones_participantes(id),
-    FOREIGN KEY (id_rol) REFERENCES roles_institcuciones(id),
+    FOREIGN KEY (id_rol) REFERENCES roles_instituciones(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
