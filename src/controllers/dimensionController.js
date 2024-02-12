@@ -43,7 +43,7 @@ const createDimension = async (req,res) => {
     }
 
     try {
-        res.status(201).json( await service.createDimension(Object.values(dimension)))
+        res.status(201).json( await service.createDimension(dimension))
     } catch(error) {
         res.status(500).json({ error: 'Error al insertar la dimension'})
     }

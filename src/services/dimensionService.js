@@ -1,30 +1,32 @@
-const gen_consulta = require('../database/gen_consulta')
-const TABLA = 'dimensiones'
+const knex = require('../database/knex.js')
+const TABLE = 'dimensiones'
 
 const getAllDimensions = async (id_instancia) => {
     try {
-        const conds = id_instancia ? [`id_instancia = ${id_instancia}`] : null;
-        return {dimensiones: await gen_consulta._select(TABLA, null, conds)};
+        const conds = id_instancia ? {id_instancia: id_instancia} : {};
+        return {dimensiones: await knex.select().where(conds).from(TABLE)};
     } catch (error) {
         throw error;
     }
 }
 
-
 const getOneDimension = async(id) => { 
     try {
-        const condiciones = [`id = ${id}`]
-        return {dimension: await gen_consulta._select(TABLA,null,condiciones)}
+        const dim = await knex.select().where({id}).from(TABLE)
+        return {dimension: dim[0]}
     } catch(error) {
         throw error;
     }
 }
 
-const createDimension = async (params) => {
+const createDimension = async (dimension) => {
     try {
-        const insertData = await gen_consulta._insert(TABLA.concat('(nombre,id_instancia)'),params)
-        const insertedDimension = await gen_consulta._select(TABLA,null,[`id = ${insertData.insertId}`])
-        return {dimension: insertedDimension[0]}
+        const NewDimension = {
+            nombre: dimension.nombre,
+            id_instancia: dimension.id_instancia
+        }
+        const insertId = parseInt(await knex(TABLE).insert(NewDimension))
+        return await getOneDimension(insertId)
     } catch(error) {
         throw error
     }   
@@ -33,8 +35,7 @@ const createDimension = async (params) => {
 
 const deleteDimension = async (id) => {
     try {
-        const conds = [`id = ${id}`]
-        return await gen_consulta._delete(TABLA,conds)
+        return await knex(TABLE).del().where({id})
     } catch(error) {
         throw error
     }
