@@ -19,25 +19,38 @@ const getAllIndicators = async(id_instancia, id_dimension) => {
 
 const getOneIndicator = async(id) => {
     const indicator = await knex(TABLE).select().where({id})
+    if(indicator[0]   === undefined) {
+        const _error = new Error('There is no indicator with the provided id ')
+        _error.status = 404
+        throw _error
+    }
     return {indicador: indicator[0]}
 }
 
 const createIndicator = async(indicator) => {
 
     const newIndicator = {
-        pregunta: indicator.nombre,
-        fundamentacion: indicator.id_instancia,
+        pregunta: indicator.pregunta,
+        fundamentacion: indicator.fundamentacion,
         id_dimension: indicator.id_dimension,
         determinante: indicator.determinante,
     }
 
     const insertId = parseInt(await knex(TABLE).insert(newIndicator))
-    return await getOneIndicator(insertId) 
+    
+    //aca habria que agregar una pregunta a la encuesta de opinion con el indicador insertado
 
+    return await getOneIndicator(insertId) 
 }
 
 const deleteIndicator = async(id) => {
-    return await knex(TABLE).del().where({id})
+
+    if (!await knex(TABLE).del().where({id})){
+        const _error = new Error('There is no indicator with the provided id ')
+        _error.status = 404
+        throw _error
+    }
+    return ;
 }
 
 module.exports = {
