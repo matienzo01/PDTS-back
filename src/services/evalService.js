@@ -1,13 +1,9 @@
 const gen_consulta = require('../database/gen_consulta')
+const knex = require('../database/knex.js')
 
 const verify_date = async(id_proyecto, id_evaluador) => {
-  const tabla = 'evaluadores_x_proyectos'
-  const conds = [
-    `id_proyecto = ${id_proyecto}`,
-    `id_evaluador = ${id_evaluador}`
-  ]
-
-  return await gen_consulta._select(tabla, null, conds);
+  return await knex('evaluadores_x_proyectos').select()
+    .where({id_proyecto: id_proyecto, id_evaluador: id_evaluador})
 }
 
 
@@ -15,7 +11,7 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
   try {
 
     const existe = await verify_date(id_proyecto, id_evaluador)
-
+    console.log(existe)
     if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
       if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
         const webform = await getProjectEval()
@@ -27,6 +23,8 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
         }
         return 'no hay mas por evaluar capo'
       }
+    } else {
+      return 'el eval no esta asign al proyecto'
     }
 
   } catch (error) {
@@ -50,13 +48,12 @@ const type_and_options = (item, tipos_preguntas, opciones, opciones_x_preguntas)
 }
 
 const getProjectSurvey = async () => {
-
   const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg] = await Promise.all([
-    gen_consulta._select('tipo_preguntas', null, null),
-    gen_consulta._select('opciones', null, null),
+    knex('tipo_preguntas').select(),
+    knex('opciones').select(),
     gen_consulta._call('obtener_Opinion'),
-    gen_consulta._select('opciones_x_preguntas', null, null),
-    gen_consulta._select('relacion_subpregunta', null, null)
+    knex('opciones_x_preguntas').select(),
+    knex('relacion_subpregunta').select()
   ]);
 
   const transformedResult = [];
@@ -93,13 +90,13 @@ const getProjectSurvey = async () => {
         id_pregunta: item.id_pregunta,
         label: item.enunciado_pregunta,
         type: tipo_preg,
-        options: opciones_item
+        options: opciones_item.map((opcion, i) => ({ label: opcion, value: opcion, id: i }))
       }
 
       for (const section in transformedResult) {
         const questions = transformedResult[section].questions;
         for (const question of questions) {
-          if (question.id_pregunta === id_padre) {
+          if (question.questionId === id_padre) {
             question.subQuestions.push(subQuestion);
           }
         }
@@ -113,8 +110,8 @@ const getProjectEval = async () => {
   const resultadosTransformados = {};
   const [indicadores, options, instancias] = await Promise.all([
     gen_consulta._call('obtener_Evaluacion'),
-    gen_consulta._select('opciones_evaluacion',null,null),
-    gen_consulta._select('instancias',null,null)
+    knex('opciones_evaluacion').select(),
+    knex('instancias').select()
   ])
 
   const newOptions = {}
@@ -190,39 +187,33 @@ const postEval = async (id_proyecto, id_evaluador, respuestas) => {
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
-  const resultados_a_insertar = respuestas
-    .map(rta => [
-        rta.id_indicador,
-        id_evaluador,
-        id_proyecto,
-        rta.answer,
-        rta.value
-    ]);
+  respuestas.forEach(rta => {
+    rta.id_evaluador = id_evaluador
+    rta.id_proyecto = id_proyecto
+    rta.respuesta = rta.answer
+    if (rta.value !== undefined)
+      rta.calificacion = rta.value
 
-  resultados_a_insertar.forEach( res => {
-    if (res[4] === undefined) {
-      res.pop();
-    }
+    delete rta.value
+    delete rta.answer
   })
 
   if (evaluado.length === 1) {
     if (evaluado[0].fecha_fin_eval === null) {
       try {
-        const atributos = '(id_indicador,id_evaluador,id_proyecto,respuesta,calificacion)'
-        const tabla = `respuestas_evaluacion${atributos}`
-        const res_insert_rtas = await gen_consulta._insert(tabla, resultados_a_insertar)
-  
-        const tabla2 = 'evaluadores_x_proyectos'
-        const set = 'fecha_fin_eval = ?'
-        const condiciones = [
-          `id_proyecto = ${id_proyecto}`,
-          `id_evaluador = ${id_evaluador}`]
-        
+        //aca habria que verificar que se intenten insertar un numero de respuestas iguales al total de preguntas 
+        //de la evaluacion
+
+        await knex('respuestas_evaluacion').insert(respuestas)
+
+
         // actualizo la tabla evaluadores_x_proyectos con la fecha de finalizacion de la evaluacion 
         // para asi posteriormente verificar si el proyecto ya fue evaluado
-        const res_put_fecha = await gen_consulta._update(tabla2, fecha_respuesta, set, condiciones)
-  
-        return res_insert_rtas
+        await knex('evaluadores_x_proyectos')
+          .where({id_proyecto: id_proyecto, id_evaluador:id_evaluador})
+          .update({fecha_fin_eval: fecha_respuesta})
+
+        return {response: 'respuestas guardadas'}
       } catch (error) {
         throw error
       }

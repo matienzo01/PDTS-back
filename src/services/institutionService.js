@@ -1,61 +1,57 @@
-const gen_consulta = require('../database/gen_consulta')
 const knex = require('../database/knex')
-const TABLA = 'instituciones'
+const TABLE = 'instituciones'
 
 const getOneInstitucion = async (id_institucion) => {
-  const condiciones = [`id = ${id_institucion}`]
-  try {
-    return await gen_consulta._select(TABLA, null, condiciones)
-  } catch (error) {
-    throw error;
+  const inst = await knex(TABLE).select().where({id: id_institucion})
+  const tipos_inst = await knex('tipos_instituciones').select()
+
+  const tipoCorrespondiente = tipos_inst.find(tipo => tipo.id === inst[0].id_tipo);
+  if (tipoCorrespondiente) {
+    inst[0].tipo = tipoCorrespondiente.tipo;
+    delete inst[0].id_tipo;
   }
+
+  return {institucion: inst[0]}
 }
 
 const getAllInstituciones = async () => {
-  try {
-    return await gen_consulta._select(TABLA, null, null)
-  } catch (error) {
-    throw error;
-  }
+  const inst = await knex(TABLE).select()
+  const tipos_inst = await getTiposInstituciones()
+  
+  inst.forEach(institucion => {
+    const tipoCorrespondiente = tipos_inst.find(tipo => tipo.id === institucion.id_tipo);
+    if (tipoCorrespondiente) {
+      institucion.tipo = tipoCorrespondiente.tipo;
+      delete institucion.id_tipo;
+    }
+  });
+
+  return {instituciones: inst}
+}
+
+const getTiposInstituciones = async() => {
+  return await knex('tipos_instituciones').select()
 }
 
 const createInstitucion = async (newAdmin, institucion) => {
 
-  const institutions_table = `instituciones`
-  const admins_table = 'admins_cyt(nombre,apellido,email,password)'
-  const conds = [
-    `nombre = '${institucion.nombre}'`,
-    `pais = '${institucion.pais}'`,
-    `provincia = '${institucion.provincia}'`,
-    `localidad = '${institucion.localidad}'`,
-  ]
+  const exists = await knex(TABLE).select()
+    .where({nombre: institucion.nombre,
+            pais: institucion.pais,
+            provincia: institucion.provincia,
+            localidad: institucion.localidad})
 
-  const exists = await gen_consulta._select(institutions_table, null, conds)
   if (exists[0] === undefined) //no existe todavia la institucion
-  {
-    try {
-      const admin = await gen_consulta._insert(admins_table, Object.values(newAdmin))
+  { 
+    const adminId = await knex('admins_cyt').insert(newAdmin)
+    institucion.id_admin = adminId[0]
 
-      const newInstitution = {
-        id_tipo: institucion.id_tipo, //esto habria que cambiarlo creo
-        id_admin: admin.insertId,
-        nombre: institucion.nombre,
-        pais: institucion.pais,
-        provincia: institucion.provincia,
-        localidad: institucion.localidad,
-        telefono_institucional: institucion.telefono_institucional,
-        mail_institucional: institucion.mail_institucional
-      }
-
-      return await gen_consulta._insert(institutions_table
-        .concat('(id_tipo,id_Admin,nombre,pais,provincia,localidad,telefono_institucional,mail_institucional)'),
-        Object.values(newInstitution))
-
-    } catch (error) {
-      throw error;
-    }
+    const instId = await knex(TABLE).insert(institucion)
+    const inst = await knex(TABLE).select().where({id: instId[0]})
+    return {institucion: inst[0]}
+  } else {
+    throw new Error('The institution already exists in the system')
   }
-  return 'ya existe esa institucion';
 }
 
 const deleteInstitucion = async (id) => {

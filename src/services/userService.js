@@ -1,4 +1,3 @@
-const gen_consulta = require('../database/gen_consulta')
 const knex = require('../database/knex')
 
 const getAllInstitutionUsers = async (id_institucion) => {

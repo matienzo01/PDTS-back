@@ -1,5 +1,4 @@
 const service = require('../services/institutionService.js')
-const knex = require('../database/knex.js')
 
 const getOneInstitucion = async (req, res) => {
   const { params: { id_institucion } } = req
@@ -59,7 +58,7 @@ const createInstitucion = async (req, res) => {
   try {
     res.status(200).json(await service.createInstitucion(admin, institucion))
   } catch (error) {
-    res.status(500).json({ error: `Error al crear la institucion` })
+    res.status(409).json({ error: error.message })
   }
   return;
 }
