@@ -11,6 +11,7 @@ router
   .get('/:id_institucion/proyectos', project_controller.getAllProjects)
   .get('/:id_institucion/proyectos/:id_proyecto', project_controller.getOneProject)
   .get('/:id_institucion/usuarios', user_controller.getAllInstitutionUsers)
+  .get('/:id_institucion/usuarios/:dni', user_controller.getUserByDni)
 
   .post('/', institution_controller.createInstitucion)
   .post('/:id_institucion/proyectos', project_controller.createProject)

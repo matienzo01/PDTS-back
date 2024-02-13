@@ -18,6 +18,24 @@ const getAllInstitutionUsers = async(req,res) => {
     }
 }
 
+const getUserByDni = async(req,res) => {
+    const {params: {id_institucion, dni}} = req
+
+    if (isNaN(dni)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':dni' should be a number"}
+        })
+        return ;
+    }
+
+    try {
+        res.status(200).json({usuario: await service.getUserByDni(dni)})
+    } catch(error) {
+        res.status(500).json({error: `Error getting the user`})
+    }
+}
+
 const createUser = async(req,res) => {
     const {params: { id_institucion }} = req
     const { type } = req.body
@@ -48,5 +66,6 @@ const createUser = async(req,res) => {
 
 module.exports = {
     getAllInstitutionUsers,
+    getUserByDni,
     createUser
 }

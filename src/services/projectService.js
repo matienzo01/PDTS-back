@@ -1,4 +1,3 @@
-const gen_consulta = require('../database/gen_consulta')
 const TABLE = 'proyectos'
 const knex = require('../database/knex')
 

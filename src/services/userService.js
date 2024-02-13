@@ -1,73 +1,71 @@
 const gen_consulta = require('../database/gen_consulta')
+const knex = require('../database/knex')
 
 const getAllInstitutionUsers = async (id_institucion) => {
 
-    const table = 'evaluadores_x_instituciones'
-    const conds = [`id_institucion = ${id_institucion}`]
-    const columns = '(id_evaluador)'
-
-    try {
-        const ids = await gen_consulta._select(table,columns,conds)
+    const ids = await knex('evaluadores_x_instituciones')
+            .select('id_evaluador')
+            .where({id_institucion: id_institucion})
         
-        const idsString = ids.map(row => row.id_evaluador);
-        const conds2 = [`id IN (${idsString.join(',')})`];
-        const users = await gen_consulta._select('evaluadores',null,conds2)
-        users.forEach(user => {
-            delete user.password
-        });
+    const arrayIds = ids.map(row => row.id_evaluador);
+    const users = await knex('evaluadores')
+            .whereIn('id',arrayIds)
+    
+    users.forEach(user => {
+        delete user.password
+    });
 
-        return {users: users}
-    } catch(error) {
-        throw error;
-    }
-
+    return {users: users}
 }
 
-
+const getOneUser = async(id) => {
+    const user = await knex('evaluadores').select().where({id})
+    return {usuario: user[0]}
+}
 
 const createUser = async (newUser,institutionId) => {
     
-    try {
-        const user = await getUserByDni(newUser.dni)
-        if (user !== undefined) {// existe un usuario con ese dni
-            throw new Error('There is already a user with that DNI')
-        }
-        const table1 = 'evaluadores(email,nombre,apellido,dni,celular,especialidad,institucion_origen,pais_residencia,provincia_residencia,localidad_residencia)'
-        const insertData = await gen_consulta._insert(table1,Object.values(newUser))
-        return await linkUserToInstitution(newUser.dni,institutionId)
-
-    } catch(error){
-        throw new Error(error.message)
+    const user = await getUserByDni(newUser.dni)
+    if (user !== undefined) {// existe un usuario con ese dni
+        throw new Error('There is already a user with that DNI')
     }
+
+    const institution_name = await knex('instituciones').select('nombre').where({id: institutionId})
+    newUser.institucion_origen = Object.values(institution_name[0])[0]
+
+    const insertId = await knex('evaluadores').insert(newUser)
+    await linkUserToInstitution(newUser.dni,institutionId,insertId)
+    return await getOneUser(insertId[0])
 }
 
 const getUserByDni = async (dni) => {
-    try {
-        const user = await gen_consulta._select('evaluadores',null,[`dni = ${dni}`])
-        return user[0]
-    } catch(error) {
-        throw error
-    }
+    const user = await knex('evaluadores').select().where({dni})
+    return user[0]
 }
 
-const linkUserToInstitution = async(userDni, institutionId) => {
+const linkUserToInstitution = async(userDni, institutionId, userId = null) => {
     
-    const table = 'evaluadores_x_instituciones(id_institucion,id_evaluador)'
-    const user = await getUserByDni(userDni)
-    
-    if (user === undefined) {
-        throw new Error('There is no user with the provided DNI');
+    let evaluatorId = userId;
+    let user
+
+    if (!evaluatorId) {
+        user = await getUserByDni(userDni);
+        if (!user) {
+            throw new Error('There is no user with the provided DNI');
+        }
+        evaluatorId = user.id;
     }
 
-    try {
-        return await gen_consulta._insert(table,[institutionId,user.id])
-    } catch(error) {
-        throw error
-    }
+    await knex('evaluadores_x_instituciones')
+        .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
+    
+    if (!userId)
+        return {usuario: user}
 }
 
 module.exports = {
     getAllInstitutionUsers,
+    getUserByDni,
     createUser,
     linkUserToInstitution
 }
