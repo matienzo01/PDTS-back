@@ -385,7 +385,7 @@ INSERT INTO proyectos (
 (
     'Proyecto de Investigación en Biología Marina',
     1, -- Reemplaza con el ID correcto de estado_eval
-    1, -- Reemplaza con el ID correcto de evaluadores (director)
+    3, -- Reemplaza con el ID correcto de evaluadores (director)
     1, -- Reemplaza con el ID correcto de instituciones
     '2024-03-15',
     '2025-03-15',

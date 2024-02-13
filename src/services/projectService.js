@@ -1,56 +1,55 @@
 const gen_consulta = require('../database/gen_consulta')
 const TABLE = 'proyectos'
+const knex = require('../database/knex')
 
 const getAllProjects = async (id_institucion) => {
-    try {
-        const conds = [`id_institucion = ${id_institucion}`]
-        return await gen_consulta._select(TABLE,null,conds)
-    } catch(error) {
-        throw error
-    }
+    return {proyectos: await knex(TABLE).select().where({id_institucion: id_institucion})}
 }
 
-const getOneProject = async (id_institucion,id_proyecto) => {
-    try {
-        const conds = [
-            `id_institucion = ${id_institucion}`,
-            `id = ${id_proyecto}`]
-        return await gen_consulta._select(TABLE,null,conds)
-    } catch(error) {
-        throw error
-    }
+const getOneProject = async (id_institucion,id_proyecto,trx= null) => {
+    const queryBuilder = trx || knex;
+
+    const project = await queryBuilder(TABLE)
+        .select()
+        .where({ id: id_proyecto, id_institucion: id_institucion });
+
+    return { proyecto: project[0] };
+    
 }
 
-const asignDirector = async(id_director,id_proyecto,fecha_carga) => {
-    const tabla = 'evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_eval)'
-
-    const director = [id_proyecto,id_director,'director',fecha_carga]
-    console.log(director)
-    try {
-        return await gen_consulta._insert(tabla,director)
-    } catch {
-        throw error;
+const asignEvaluador = async(id_director,id_proyecto,fecha_carga,rol,trx = null) => {
+    const data = {
+        id_evaluador: id_director,
+        id_proyecto: id_proyecto,
+        fecha_inicio_eval: fecha_carga,
+        rol: rol
     }
 
+    const queryBuilder = trx || knex;
+    await queryBuilder('evaluadores_x_proyectos').insert(data)
 }
 
-const createProject = async (proyecto) => {
+const createProject = async (id_institucion,proyecto) => {
 
-    const insert_table = TABLE.concat('(titulo,id_director,FechaInicio,FechaFin,area_conocim,subarea_conocim,problema_a_resolver,producto_a_generar,resumen,novedad_u_originalidad,grado_relevancia,grado_pertinencia,grado_demanda,obligatoriedad_proposito,obligatoriedad_opinion,id_institucion,fecha_carga,id_estado_eval)')
     const fecha = new Date()
     const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
-    proyecto.push(fecha_carga)
-    proyecto.push(1) // este es el id del estado de la evaluacion. id = 1 ==> Sin evaluar
 
-    try {
-        const projectInsert = await gen_consulta._insert(insert_table,[proyecto])
-        const directorInsert = await asignDirector(proyecto[1],projectInsert.insertId,fecha_carga)
-        
-        return {directorInsert:directorInsert, projectInsert:projectInsert }
-    } catch(error) {
-        throw error
-    }
+    proyecto.fecha_carga = fecha_carga
+    proyecto.id_institucion = id_institucion
+    proyecto.id_estado_eval = 1 //sin evaluar
 
+
+    //habria que chequear si el director corresponde a la institucion
+    const result = await knex.transaction(async (trx) => {
+
+        const insertId = await trx.insert(proyecto).into(TABLE)
+        const newProject = await getOneProject(id_institucion,insertId[0],trx)
+        const {id_director} = newProject.proyecto
+        await asignEvaluador(id_director,insertId[0],fecha_carga,'director',trx)
+        return newProject
+    })
+    
+    return result
 }
 
 const deleteProject = async () => {

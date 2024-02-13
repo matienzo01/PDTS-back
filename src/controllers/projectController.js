@@ -79,11 +79,8 @@ const createProject = async (req,res) => {
             return ;
         }
     
-    const newProject = Object.values(proyecto)
-    newProject.push(id_institucion)
-
     try {
-        res.status(200).json(await service.createProject(newProject))
+        res.status(200).json(await service.createProject(id_institucion,proyecto))
     } catch(error) {
         res.status(500).json({error: `Error al crear el proyecto`})
     }
