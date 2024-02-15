@@ -4,36 +4,31 @@ use pdts;
 
 CREATE TABLE admin (
 	email VARCHAR(255) NOT NULL PRIMARY KEY,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255)
 );
 
 CREATE TABLE evaluadores (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-	nombre VARCHAR(255) NOT NULL,
-    apellido VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    password VARCHAR(255),
+	nombre VARCHAR(255),
+    apellido VARCHAR(255),
     dni int, -- no lo usamos como clave primaria, pero nos va a ser de utilidad para verificar si un
-    		 -- evaluador existe en el sistema cuando una institucion quisiera vincularlo a un proyecto
-    celular  VARCHAR(255) NOT NULL,
-    especialidad  VARCHAR(255) NOT NULL,
-    institucion_origen  VARCHAR(255) NOT NULL,
-    pais_residencia VARCHAR(255) NOT NULL,
-    provincia_residencia VARCHAR(255) NOT NULL,
-    localidad_residencia VARCHAR(255) NOT NULL
+    		 -- evaluador existe en el sistema cuando una institucion quisiera vincularlo a ella
+    celular  VARCHAR(255),
+    especialidad  VARCHAR(255),
+    institucion_origen  VARCHAR(255),
+    pais_residencia VARCHAR(255),
+    provincia_residencia VARCHAR(255),
+    localidad_residencia VARCHAR(255)  
 );
 
 CREATE TABLE admins_CyT (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    apellido VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE roles_instituciones(
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    rol varchar(255)
+    nombre VARCHAR(255),
+    apellido VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255)
 );
 
 CREATE TABLE tipos_instituciones(
@@ -45,27 +40,31 @@ CREATE TABLE instituciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_admin INT,
     id_tipo INT,
-    nombre VARCHAR(255) NOT NULL,
-    pais VARCHAR(255) NOT NULL,
-    provincia VARCHAR(255) NOT NULL,
-    localidad VARCHAR(255) NOT NULL,
-    telefono_institucional VARCHAR(255) NOT NULL,
-    mail_institucional VARCHAR(255) NOT NULL,
+    nombre VARCHAR(255),
+    rubro varchar(255),
+    pais VARCHAR(255),
+    provincia VARCHAR(255),
+    localidad VARCHAR(255),
+    telefono_institucional VARCHAR(255),
+    mail_institucional VARCHAR(255),
+    nombre_referente VARCHAR(255),
+    apellido_referente VARCHAR(255),
+    cargo_referente VARCHAR(255),
+    telefono_referente VARCHAR(255),
+    mail_referente VARCHAR(255),
     FOREIGN KEY (id_admin) REFERENCES admins_CyT(id),
     FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
 );
-
+ 
 CREATE TABLE instituciones_participantes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE instituciones_x_inst_participantes(
-    id_institucion INT,
-    id_inst_participante INT,
-    PRIMARY KEY (id_institucion,id_inst_participante),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id),
-    FOREIGN KEY (id_inst_participante) REFERENCES instituciones_participantes(id)
+    nombre VARCHAR(255),
+    rubro varchar(255),
+    pais VARCHAR(255),
+    provincia VARCHAR(255),
+    localidad VARCHAR(255),
+    telefono_institucional VARCHAR(255),
+    mail_institucional VARCHAR(255)
 );
 
 CREATE TABLE estado_eval(
@@ -75,7 +74,7 @@ CREATE TABLE estado_eval(
 
 CREATE TABLE proyectos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
+    titulo VARCHAR(255),
     id_estado_eval int,
     id_director INT,
     id_institucion INT,
@@ -100,30 +99,28 @@ CREATE TABLE proyectos (
 
 CREATE TABLE participación_instituciones(
     id_proyecto INT,
-    id_rol INT,
     id_inst_participante INT,
-    PRIMARY KEY (id_inst_participante,id_rol,id_proyecto),
+    rol varchar(255), -- ejecutora, financiadora, adoptante, demandante o promotora
+    PRIMARY KEY (id_inst_participante,id_proyecto,rol),
     FOREIGN KEY (id_inst_participante) REFERENCES instituciones_participantes(id),
-    FOREIGN KEY (id_rol) REFERENCES roles_instituciones(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
--- no estoy seguro que esta tabla necesariamente exista, podria usarse la de usuarios, pero no se si es que los participantes realmente
--- son usuarios del sistema. Asi que provisoriamente lo dejo asi
+-- estos son los integrantes del grupo de trabajo del pdts
 CREATE TABLE participantes(
     id INT AUTO_INCREMENT PRIMARY KEY,
+    id_institucion INT, 
     nombre varchar(255),
-    apellido varchar(255)
+    apellido varchar(255),
+    FOREIGN KEY (id_institucion) REFERENCES instituciones_participantes(id)
 );
 
 CREATE TABLE participantes_x_proyectos(
 	id_proyecto INT,
     id_participante INT,
-    id_institucion INT, -- no necesariamente sea el mismo id que el del proyecto supongo
-    funcion varchar(255),
+    funcion varchar(255), -- la funcion que tomaron dentro del grupo de trabajo
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
-    FOREIGN KEY (id_participante) REFERENCES participantes(id),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id)
+    FOREIGN KEY (id_participante) REFERENCES participantes(id)
 );
 
 CREATE TABLE evaluadores_x_instituciones (

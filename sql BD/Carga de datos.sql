@@ -3,13 +3,6 @@
 -- CARGA DE DATOS BUENOS ////////////////////////////////////////////////////////////////////////////
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
-INSERT INTO roles_instituciones(rol) VALUES
-    ('Ejecutora'),
-    ('Financiadora'),
-    ('Adoptante'),
-    ('Demandante'),
-    ('Promotora');
-
 INSERT INTO secciones(nombre) VALUES
 	('Sistema de evaluacion'),				-- id 1
     ('Instancias e indicadores'),			-- id 2
@@ -328,6 +321,11 @@ VALUES
 (1, 1, 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
 (2, 8, 'UTN', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com');
 
+INSERT INTO instituciones_participantes (nombre, rubro, pais, provincia, localidad, telefono_institucional, mail_institucional) 
+VALUES 
+('Universidad XYZ','rubroA', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
+('UTN','rubroA', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com');
+
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 
 ('evaluador1@example.com', 'contrasena123', 'Juan', 'Pérez', 123456789, '555-1234', 'Informática', 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A'),
@@ -408,3 +406,9 @@ INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_ev
     (1,2,'evaluador',NOW()),
 	(2,3,'director',NOW());
 
+insert INTO participación_instituciones(id_proyecto,id_inst_participante,rol) VALUES
+    (1,1,'Ejecutora'),
+    (1,1,'Promotora'),
+    (1,1,'Demandante'),
+    (1,1,'Financiadora'),
+    (1,1,'Adoptante')
