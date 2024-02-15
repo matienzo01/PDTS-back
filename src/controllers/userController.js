@@ -36,36 +36,56 @@ const getUserByDni = async(req,res) => {
     }
 }
 
-const createUser = async(req,res) => {
+const linkUserToInstitution = async(req,res) => {
     const {params: { id_institucion }} = req
-    const { type } = req.body
-    if (type === 'dni') {
+    const { dni } = req.body
 
-        const { dni } = req.body
-        try {
-            res.status(200).json(await service.linkUserToInstitution(dni,id_institucion))
-        } catch(error) {
-            res.status(500).json({error: error.message})
-        }
-
-    } else if (type === 'user') {
-        const { user } = req.body
-        try {
-            res.status(200).json(await service.createUser(user,id_institucion))
-        } catch(error){
-            res.status(500).json({error: error.message})
-        }
-    } else {
-        res.status(400).json({error: 'Bad request'})
+    if (isNaN(id_institucion)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':id_institucion' should be a number"}
+        })
+        return ;
     }
 
+    if (isNaN(dni)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':dni' should be a number"}
+        })
+        return ;
+    }
 
+    try {
+        res.status(200).json(await service.linkUserToInstitution(dni,id_institucion))
+        } catch(error) {
+         res.status(500).json({error: error.message})
+    }
+}
 
+const createUser = async(req,res) => {
+    const {params: { id_institucion }} = req
+    const { user } = req.body
+
+    if (isNaN(id_institucion)) {
+        res.status(400).send({
+          status: "FAILED",
+          data : { error: "Parameter ':id_institucion' should be a number"}
+        })
+        return ;
+    }
+
+    try {
+        res.status(200).json(await service.createUser(user,id_institucion))
+    } catch(error){
+        res.status(500).json({error: error.message})
+    }
     return ;
 }
 
 module.exports = {
     getAllInstitutionUsers,
     getUserByDni,
+    linkUserToInstitution,
     createUser
 }

@@ -4,11 +4,8 @@ const getOneInstitucion = async (req, res) => {
   const { params: { id_institucion } } = req
 
   if (isNaN(id_institucion)) {
-    res.status(400).send({
-      status: "FAILED",
-      data: { error: "Parameter ':id_institucion' should be a number" }
-    })
-    return;
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
+    return ;
   }
 
   try {
@@ -34,10 +31,7 @@ const createInstitucion = async (req, res) => {
     !admin.apellido ||
     !admin.email ||
     !admin.password) {
-    res.status(400).send({
-      status: 'FAILED',
-      data: { error: "Missing fields in the admin" }
-    })
+      res.status(400).json({ error: "Missing fields in the admin"})
     return;
   }
 
@@ -47,11 +41,14 @@ const createInstitucion = async (req, res) => {
     !institucion.provincia ||
     !institucion.localidad ||
     !institucion.telefono_institucional ||
-    !institucion.mail_institucional) {
-    res.status(400).send({
-      status: 'FAILED',
-      data: { error: "Missing fields in the institucion" }
-    })
+    !institucion.mail_institucional||
+    !institucion.nombre_referente||
+    !institucion.apellido_referente||
+    !institucion.cargo_referente||
+    !institucion.telefono_referente||
+    !institucion.mail_referente||
+    !institucion.rubro) {
+      res.status(400).json({ error: "Missing fields in the institucion"})
     return;
   }
 
@@ -65,6 +62,12 @@ const createInstitucion = async (req, res) => {
 
 const deleteInstitucion = async (req, res) => {
   const { params: { id_institucion } } = req
+  
+  if (isNaN(id_institucion)) {
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
+    return ;
+  }
+  
   try {
     res.status(200).json(await service.deleteInstitucion(id_institucion))
   } catch (error) {
