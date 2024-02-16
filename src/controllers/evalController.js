@@ -8,9 +8,9 @@ const getNextEval = async (req, res) => {
     const data = await service.getNextEval(id_proyecto, id_evaluador)
     const { tipo, ...webform } = data
     res.status(200).json({ id_proyecto, type: tipo, webform })
-  } catch (error) {
-    console.error('Error al obtener la evaluacion', error)
-    res.status(500).json({ error: `Error al obtener la evaluacion del evaluador con id: ${id_evaluador} para el proyecto con id: ${id_proyecto}` })
+  } catch (_error) {
+    const statusCode = _error.status || 500
+    res.status(statusCode).json({ error: _error.message})
   }
 }
 

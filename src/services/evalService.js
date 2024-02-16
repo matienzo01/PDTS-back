@@ -1,35 +1,38 @@
 const gen_consulta = require('../database/gen_consulta')
 const knex = require('../database/knex.js')
+const service_projects = require('../services/projectService')
 
 const verify_date = async (id_proyecto, id_evaluador) => {
   return await knex('evaluadores_x_proyectos').select()
     .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
 }
 
+const check_project = async (id_proyecto) => {
+  return await service_projects.getOneProject(id_proyecto)
+}
+
 
 const getNextEval = async (id_proyecto, id_evaluador) => {
-  try {
-
-    const existe = await verify_date(id_proyecto, id_evaluador)
-    console.log(existe)
-    if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
-      if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
-        const webform = await getProjectEval()
-        return { tipo: 'evaluacion', ...webform }
-      } else {
-        if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
-          const webform = await getProjectSurvey()
-          return { tipo: 'opinion', ...webform }
-        }
-        return 'no hay mas por evaluar capo'
-      }
+  
+  await check_project(id_proyecto)
+  const existe = await verify_date(id_proyecto, id_evaluador)
+  
+  if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
+    if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
+      const webform = await getProjectEval()
+      return { tipo: 'evaluacion', ...webform }
     } else {
-      return 'el eval no esta asign al proyecto'
+      if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
+        const webform = await getProjectSurvey()
+        return { tipo: 'opinion', ...webform }
+      }
+      return 'no hay mas por evaluar capo'
     }
-
-  } catch (error) {
-    throw (error)
   }
+    
+  const _error = new Error('The user is not asigned to the project')
+  _error.status = 403
+  throw _error
 }
 
 const type_and_options = (item, tipos_preguntas, opciones, opciones_x_preguntas) => {

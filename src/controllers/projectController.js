@@ -4,10 +4,7 @@ const getAllProjects = async (req,res) => {
     const { params: { id_institucion }} = req
 
     if (isNaN(id_institucion)) {
-        res.status(400).send({
-          status: "FAILED",
-          data : { error: "Parameter ':id_institucion' should be a number"}
-        })
+        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
         return ;
     }
 
@@ -21,26 +18,21 @@ const getAllProjects = async (req,res) => {
 const getOneProject = async (req,res) => {
     const { params: { id_institucion, id_proyecto }} = req
 
-    if (isNaN(id_institucion)) {
-        res.status(400).send({
-          status: "FAILED",
-          data : { error: "Parameter ':id_institucion' should be a number"}
-        })
+    if (isNaN(id_institucion)) { 
+        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
         return ;
     }
 
     if (isNaN(id_proyecto)) {
-        res.status(400).send({
-          status: "FAILED",
-          data : { error: "Parameter ':id_proyecto' should be a number"}
-        })
+        res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
         return ;
     }
 
     try {
-        res.status(200).json(await service.getOneProject(id_institucion,id_proyecto))
-    } catch (error) {
-        res.status(500).json({error: `Error trying to get the project`})
+        res.status(200).json(await service.getOneProject(id_proyecto,id_institucion))
+    } catch (_error) {
+        const statusCode = _error.status || 500
+        res.status(statusCode).json({ error: _error.message})
     }
 }
 
@@ -49,10 +41,7 @@ const createProject = async (req,res) => {
     const {proyecto} = req.body
 
     if (isNaN(id_institucion)) {
-        res.status(400).send({
-          status: "FAILED",
-          data : { error: "Parameter ':id_institucion' should be a number"}
-        })
+        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
         return ;
     }
 
@@ -91,18 +80,12 @@ const deleteProject = async (req,res) => {
     const { params: { id_institucion, id_proyecto }} = req
 
     if (isNaN(id_institucion)) {
-        res.status(400).send({
-          status: "FAILED",
-          data : { error: "Parameter ':id_institucion' should be a number"}
-        })
+        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
         return ;
     }
 
     if (isNaN(id_proyecto)) {
-        res.status(400).send({
-          status: "FAILED",
-          data : { error: "Parameter ':id_proyecto' should be a number"}
-        })
+        res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
         return ;
     }
 

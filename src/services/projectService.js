@@ -5,15 +5,26 @@ const getAllProjects = async (id_institucion) => {
     return {proyectos: await knex(TABLE).select().where({id_institucion: id_institucion})}
 }
 
-const getOneProject = async (id_institucion,id_proyecto,trx= null) => {
+const getOneProject = async (id_proyecto,id_institucion = null, trx = null) => {
     const queryBuilder = trx || knex;
 
     const project = await queryBuilder(TABLE)
         .select()
-        .where({ id: id_proyecto, id_institucion: id_institucion });
+        .where({ id: id_proyecto });
 
+    if (!project[0]) {
+        const _error = new Error('The project does not exist')
+        _error.status = 404
+        throw _error
+    }
+
+    if (id_institucion && project[0].id_institucion != id_institucion) {
+        const _error = new Error('The project is not linked to the institution')
+        _error.status = 403
+        throw _error
+    }
+        
     return { proyecto: project[0] };
-    
 }
 
 const asignEvaluador = async(id_director,id_proyecto,fecha_carga,rol,trx = null) => {
