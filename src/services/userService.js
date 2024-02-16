@@ -50,13 +50,22 @@ const linkUserToInstitution = async(userDni, institutionId, userId = null) => {
     if (!evaluatorId) {
         user = await getUserByDni(userDni);
         if (!user) {
-            throw new Error('There is no user with the provided DNI');
+            const _error = new Error('There is no user with the provided DNI');
+            _error.status = 404
+            throw _error
         }
         evaluatorId = user.id;
     }
 
-    await knex('evaluadores_x_instituciones')
+    try {
+        await knex('evaluadores_x_instituciones')
         .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
+    } catch (error) {
+        const _error = new Error('The user is already linked to the institution')
+        _error.status = 409
+        throw _error
+    }
+    
     
     if (!userId)
         return {usuario: user}

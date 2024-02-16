@@ -13,7 +13,7 @@ const getOneProject = async (id_proyecto,id_institucion = null, trx = null) => {
         .where({ id: id_proyecto });
 
     if (!project[0]) {
-        const _error = new Error('The project does not exist')
+        const _error = new Error('There is no proyect with the provided id')
         _error.status = 404
         throw _error
     }

@@ -59,7 +59,8 @@ const linkUserToInstitution = async(req,res) => {
     try {
         res.status(200).json(await service.linkUserToInstitution(dni,id_institucion))
         } catch(error) {
-         res.status(500).json({error: error.message})
+            const statusCode = error.status || 500
+            res.status(statusCode).json({error: error.message})
     }
 }
 
