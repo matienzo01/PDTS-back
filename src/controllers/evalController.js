@@ -19,7 +19,7 @@ const postEval = async (req, res) => {
   const id_evaluador = 1
   try {
     res.status(200).json(await service.postEval(id_proyecto, id_evaluador, respuestas))
-  } catch {
+  } catch (error) {
     console.error('Error al insertar las respuetas', error)
     res.status(500).json({ error: `Error ` })
   }

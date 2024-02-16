@@ -1,9 +1,9 @@
 const gen_consulta = require('../database/gen_consulta')
 const knex = require('../database/knex.js')
 
-const verify_date = async(id_proyecto, id_evaluador) => {
+const verify_date = async (id_proyecto, id_evaluador) => {
   return await knex('evaluadores_x_proyectos').select()
-    .where({id_proyecto: id_proyecto, id_evaluador: id_evaluador})
+    .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
 }
 
 
@@ -115,19 +115,19 @@ const getProjectEval = async () => {
   ])
 
   const newOptions = {}
-  options.forEach( element => {
+  options.forEach(element => {
     const newOption = {
-      id : element.id,
+      id: element.id,
       option: element.opcion,
       value: element.peso
     }
 
-    if(!newOptions[element.id_instancia]) {
+    if (!newOptions[element.id_instancia]) {
       newOptions[element.id_instancia] = []
     }
     newOptions[element.id_instancia].push(newOption)
   })
-  
+
   indicadores[0].forEach(row => {
 
     const dimension = {
@@ -169,8 +169,8 @@ const getProjectEval = async () => {
   });
 
   Object.keys(resultadosTransformados).forEach(instancia => {
-    
-    
+
+
     resultadosTransformados[instancia] = {
       dimensiones: resultadosTransformados[instancia],
       opciones_instancia: newOptions[instancias.find(item => item.nombre === instancia).id]
@@ -183,7 +183,7 @@ const getProjectEval = async () => {
 
 
 const postEval = async (id_proyecto, id_evaluador, respuestas) => {
-  const evaluado = await verify_date(id_proyecto, id_evaluador) 
+  const evaluado = await verify_date(id_proyecto, id_evaluador)
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
@@ -210,23 +210,23 @@ const postEval = async (id_proyecto, id_evaluador, respuestas) => {
         // actualizo la tabla evaluadores_x_proyectos con la fecha de finalizacion de la evaluacion 
         // para asi posteriormente verificar si el proyecto ya fue evaluado
         await knex('evaluadores_x_proyectos')
-          .where({id_proyecto: id_proyecto, id_evaluador:id_evaluador})
-          .update({fecha_fin_eval: fecha_respuesta})
+          .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
+          .update({ fecha_fin_eval: fecha_respuesta })
 
-        return {response: 'respuestas guardadas'}
+        return { response: 'respuestas guardadas' }
       } catch (error) {
         throw error
       }
     } else { // aca se entraria si fueran las repsuestas de la opinion
       if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
-        
+
 
         //hay que hacer esta logica
 
 
       } else {
         return 'no hay mas por evaluar capo'
-      }    
+      }
     }
   }
 
