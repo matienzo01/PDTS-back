@@ -1,5 +1,9 @@
 const service = require('../services/projectService')
 
+// va a haber que modificarlo para que:
+//- Sos admin general -> te devolvemos todos los proyectos
+//- Sos admin CyT -> los de tu institucion
+//- Sos eval -> a los que estás asignado
 const getAllProjects = async (req,res) => {
     const { params: { id_institucion }} = req
 

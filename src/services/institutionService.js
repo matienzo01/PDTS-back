@@ -1,5 +1,6 @@
 const knex = require('../database/knex')
 const TABLE = 'instituciones'
+const participatingInstService = require('./participatingInstService.js')
 
 const getOneInstitucion = async (id_institucion) => {
   const inst = await knex(TABLE).select().where({id: id_institucion})
@@ -48,6 +49,18 @@ const createInstitucion = async (newAdmin, institucion) => {
 
     const instId = await knex(TABLE).insert(institucion)
     const inst = await knex(TABLE).select().where({id: instId[0]})
+
+    const participatingInst = {
+      nombre: inst[0].nombre,
+      rubro: inst[0].rubro,
+      pais: inst[0].pais,
+      provincia: inst[0].provincia,
+      localidad: inst[0].localidad,
+      telefono_institucional: inst[0].telefono_institucional,
+      mail_institucional: inst[0].mail_institucional
+    }
+    participatingInstService.createParticipatingInst(participatingInst)
+
     return {institucion: inst[0]}
   } else {
     throw new Error('The institution already exists in the system')
