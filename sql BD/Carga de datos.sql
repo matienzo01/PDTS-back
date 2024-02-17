@@ -13,7 +13,7 @@ INSERT INTO tipo_preguntas (tipo) VALUES
 	('opcion multiple'),	-- id 1
     ('texto'),		  		-- id 2
     ('si/no'),	   			-- id 3
-    ('enunciado');			-- id 4
+    ('contenedora');			-- id 4
 
 INSERT INTO tipos_instituciones(tipo) VALUES
 	('Organizacion Gubernamental'),
