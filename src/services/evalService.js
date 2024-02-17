@@ -13,10 +13,10 @@ const check_project = async (id_proyecto) => {
 
 
 const getNextEval = async (id_proyecto, id_evaluador) => {
-  
+
   await check_project(id_proyecto)
   const existe = await verify_date(id_proyecto, id_evaluador)
-  
+
   if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
     if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
       const webform = await getProjectEval()
@@ -29,7 +29,7 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
       return 'no hay mas por evaluar capo'
     }
   }
-    
+
   const _error = new Error('The user is not asigned to the project')
   _error.status = 403
   throw _error
@@ -81,7 +81,7 @@ const getProjectSurvey = async () => {
         questionId: item.id_pregunta,
         label: item.enunciado_pregunta,
         type: tipo_preg,
-        options: opciones_item.map((opcion, i) => ({ label: opcion, value: opcion, id: i })), //va a ser necesario cambiar el id
+        options: opciones_item.map((opcion, i) => ({ option: opcion, value: opcion, id: i })), //va a ser necesario cambiar el id
         subQuestions: []
       });
 
@@ -93,7 +93,7 @@ const getProjectSurvey = async () => {
         id_pregunta: item.id_pregunta,
         label: item.enunciado_pregunta,
         type: tipo_preg,
-        options: opciones_item.map((opcion, i) => ({ label: opcion, value: opcion, id: i }))
+        options: opciones_item.map((opcion, i) => ({ option: opcion, value: opcion, id: i }))
       }
 
       for (const section in transformedResult) {
