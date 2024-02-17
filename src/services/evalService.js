@@ -90,7 +90,7 @@ const getProjectSurvey = async () => {
       const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas)
 
       const subQuestion = {
-        id_pregunta: item.id_pregunta,
+        questionId: item.id_pregunta,
         label: item.enunciado_pregunta,
         type: tipo_preg,
         options: opciones_item.map((opcion, i) => ({ option: opcion, value: opcion, id: i }))
