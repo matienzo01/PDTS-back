@@ -1,7 +1,7 @@
 const service = require('../services/evalService')
 
 const getNextEval = async (req, res) => {
-  const { id_proyecto } = req.query
+  const { params: { id_proyecto } } = req 
   const id_evaluador = 1
 
   try {
@@ -25,7 +25,24 @@ const postEval = async (req, res) => {
   }
 }
 
+const getUserEvaluationAnswers = async (req,res) => {
+  const { params: { id_evaluador, id_proyecto } } = req
+
+  if (isNaN(id_evaluador)) {
+    res.status(400).json({ error: "Parameter ':id_evaluador' should be a number"})
+    return ;
+  }
+
+  if (isNaN(id_proyecto)) {
+    res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
+    return ;
+  }
+
+  return ;
+}
+
 module.exports = {
   getNextEval,
-  postEval
+  postEval,
+  getUserEvaluationAnswers
 }

@@ -235,7 +235,12 @@ const postEval = async (id_proyecto, id_evaluador, respuestas) => {
 
 }
 
+const getUserEvaluationAnswers = async() => {
+  return ;
+}
+
 module.exports = {
   getNextEval,
-  postEval
+  postEval,
+  getUserEvaluationAnswers
 }
