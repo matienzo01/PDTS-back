@@ -232,7 +232,6 @@ CREATE TABLE respuestas_encuesta (
     id_evaluador INT,
     id_proyecto INT,
     respuesta varchar(255), 
-    fecha_respuesta date,
     PRIMARY KEY (id_pregunta, id_evaluador, id_proyecto),
     FOREIGN KEY (id_pregunta) REFERENCES preguntas_seccion(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id),

@@ -26,7 +26,9 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
         const webform = await getProjectSurvey()
         return { tipo: 'opinion', ...webform }
       }
-      return 'no hay mas por evaluar capo'
+      const _error = new Error('There is nothing more to answer for that user')
+      _error.status = 409
+      throw _error
     }
   }
 
@@ -109,7 +111,7 @@ const getProjectSurvey = async () => {
   return { name: 'Encuesta de opinion', sections: transformedResult }
 }
 
-const getProjectEval = async () => {
+const getProjectEval = async (respuestas = null) => {
   const resultadosTransformados = {};
   const [indicadores, options, instancias] = await Promise.all([
     gen_consulta._call('obtener_Evaluacion'),
@@ -118,7 +120,10 @@ const getProjectEval = async () => {
   ])
 
   const newOptions = {}
+  const mapOptionsId = new Map();
   options.forEach(element => {
+    mapOptionsId.set(element.opcion.toLowerCase(), element.id);
+    
     const newOption = {
       id: element.id,
       option: element.opcion,
@@ -130,6 +135,10 @@ const getProjectEval = async () => {
     }
     newOptions[element.id_instancia].push(newOption)
   })
+  
+  console.log(mapOptionsId)
+
+
 
   indicadores[0].forEach(row => {
 
@@ -145,6 +154,20 @@ const getProjectEval = async () => {
       fundamentacion: row.fundamentacion,
       determinante: row.determinante
     };
+
+    if (respuestas) {
+      for (var i = 0; i < respuestas.length; i++) {
+        if (respuestas[i].id_indicador === indicador.id_indicador) {
+          indicador.respuesta = {
+            id: mapOptionsId.get(respuestas[i].respuesta.toLowerCase()),
+            option: respuestas[i].respuesta,
+            value: respuestas[i].calificacion
+          }
+          console.log(indicador)
+          respuestas.splice(i,1) //elimino el elemento del array para reducir las iteraciones a posterior
+        }
+      }
+    }
 
     // Verificar si la dimensión ya existe en el objeto resultadosTransformados
     if (resultadosTransformados[row.nombre_instancia]) {
@@ -173,7 +196,6 @@ const getProjectEval = async () => {
 
   Object.keys(resultadosTransformados).forEach(instancia => {
 
-
     resultadosTransformados[instancia] = {
       dimensiones: resultadosTransformados[instancia],
       opciones_instancia: newOptions[instancias.find(item => item.nombre === instancia).id]
@@ -181,9 +203,7 @@ const getProjectEval = async () => {
   });
 
   return { name: 'Evaluación de proyecto', sections: resultadosTransformados }
-
 }
-
 
 const postEval = async (id_proyecto, id_evaluador, respuestas) => {
   const evaluado = await verify_date(id_proyecto, id_evaluador)
@@ -191,52 +211,71 @@ const postEval = async (id_proyecto, id_evaluador, respuestas) => {
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
   respuestas.forEach(rta => {
-    rta.id_evaluador = id_evaluador
-    rta.id_proyecto = id_proyecto
-    rta.respuesta = rta.answer
-    if (rta.value !== undefined)
-      rta.calificacion = rta.value
-
-    delete rta.value
-    delete rta.answer
-  })
+    rta.id_evaluador = id_evaluador;
+    rta.id_proyecto = id_proyecto;
+    rta.respuesta = rta.answer;
+  
+    if (rta.value !== undefined) {
+      rta.calificacion = rta.value;
+      delete rta.value;
+    } else {
+      rta.id_pregunta = rta.id_indicador;
+      delete rta.id_indicador;
+    }
+  
+    delete rta.answer;
+  });
 
   if (evaluado.length === 1) {
     if (evaluado[0].fecha_fin_eval === null) {
-      try {
-        //aca habria que verificar que se intenten insertar un numero de respuestas iguales al total de preguntas 
-        //de la evaluacion
 
+      const cant_preguntas = await knex('indicadores').count('* as count').whereNull('fecha_elim')
+
+      if(cant_preguntas[0].count === respuestas.length) {
         await knex('respuestas_evaluacion').insert(respuestas)
 
-
-        // actualizo la tabla evaluadores_x_proyectos con la fecha de finalizacion de la evaluacion 
-        // para asi posteriormente verificar si el proyecto ya fue evaluado
         await knex('evaluadores_x_proyectos')
           .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
           .update({ fecha_fin_eval: fecha_respuesta })
 
         return { response: 'respuestas guardadas' }
-      } catch (error) {
-        throw error
+      } else {
+        const _error = new Error('The amount of answers does not match those expected')
+        _error.status = 400
+        throw _error
       }
+
     } else { // aca se entraria si fueran las repsuestas de la opinion
       if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
 
+        await knex('respuestas_encuesta').insert(respuestas)
+        await knex('evaluadores_x_proyectos')
+          .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
+          .update({ fecha_fin_op: fecha_respuesta })
+        
 
-        //hay que hacer esta logica
 
-
+        return { response: 'respuestas guardadas' }
       } else {
-        return 'no hay mas por evaluar capo'
+        const _error = new Error('The user has already evaluated everything he should')
+        _error.status = 409
+        throw _error
       }
     }
   }
 
 }
 
-const getUserEvaluationAnswers = async() => {
-  return ;
+const getUserEvaluationAnswers = async (id_proyecto, id_evaluador) => {
+  const rtas = await knex('respuestas_evaluacion').select('id_indicador','respuesta','calificacion').where({id_evaluador, id_proyecto})
+
+  if(rtas[0]   === undefined) {
+    const _error = new Error('There are no answers from that user for that project')
+    _error.status = 404
+    throw _error
+  }
+
+  return {rtas: await getProjectEval(rtas)};
 }
 
 module.exports = {

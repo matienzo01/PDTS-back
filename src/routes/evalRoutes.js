@@ -4,7 +4,7 @@ const controller = require('../controllers/evalController.js')
 
 router
     .get('/:id_proyecto', controller.getNextEval)
-    .get('/:id_pryecto/:id_evaluador', controller.getUserEvaluationAnswers)
+    .get('/:id_proyecto/respuestas', controller.getUserEvaluationAnswers)
     .post('/', controller.postEval)
 
 module.exports = router

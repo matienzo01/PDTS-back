@@ -205,21 +205,22 @@ INSERT INTO preguntas_seccion(pregunta, id_seccion, id_tipo_pregunta) VALUES
     ('Representante del adoptante',null,1),
     ('Representante de la unidad financiadora',null,1),
     ('Experto disciplinar',null,1);
-    
+
+INSERT INTO preguntas_seccion (pregunta, id_seccion, id_tipo_pregunta) VALUES ('¿Cual?',null,2);
+
 -- en este insert meto todos los indicadores como subpregunta
 INSERT INTO preguntas_seccion (pregunta, id_seccion, id_tipo_pregunta)
 SELECT pregunta, null AS id_seccion, 1 AS id_tipo_pregunta
-FROM indicadores;    
+FROM indicadores;
 
 INSERT INTO relacion_subpregunta(id_pregunta_padre,id_subpregunta) VALUES
 	(7,11),
-	(8,11),
+	(8,17),
 	(9,12),
 	(9,13),
 	(9,14),
 	(9,15),
 	(9,16),
-	(6,17),
 	(6,18),
 	(6,19),
 	(6,20),
@@ -242,7 +243,8 @@ INSERT INTO relacion_subpregunta(id_pregunta_padre,id_subpregunta) VALUES
 	(6,37),
 	(6,38),
 	(6,39),
-	(6,40);
+	(6,40),
+	(6,41);
 
 INSERT INTO opciones(valor) VALUES
 	('nada util'),

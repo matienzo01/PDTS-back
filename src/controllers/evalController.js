@@ -18,16 +18,17 @@ const postEval = async (req, res) => {
   const { respuestas, id_proyecto } = req.body
   const id_evaluador = 1
   try {
-    res.status(200).json(await service.postEval(id_proyecto, id_evaluador, respuestas))
-  } catch (error) {
-    console.error('Error al insertar las respuetas', error)
-    res.status(500).json({ error: `Error ` })
+    res.status(201).json(await service.postEval(id_proyecto, id_evaluador, respuestas))
+  } catch (_error) {
+    const statusCode = _error.status || 500
+    res.status(statusCode).json({ error: _error.message})
   }
 }
 
 const getUserEvaluationAnswers = async (req,res) => {
-  const { params: { id_evaluador, id_proyecto } } = req
-
+  const { params: { id_proyecto } } = req
+  const id_evaluador = 1
+ 
   if (isNaN(id_evaluador)) {
     res.status(400).json({ error: "Parameter ':id_evaluador' should be a number"})
     return ;
@@ -38,7 +39,13 @@ const getUserEvaluationAnswers = async (req,res) => {
     return ;
   }
 
-  return ;
+  try {
+    res.status(200).json(await service.getUserEvaluationAnswers(id_proyecto,id_evaluador))
+  } catch(error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({error: error.message})
+  }
+  
 }
 
 module.exports = {
