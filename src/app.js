@@ -1,9 +1,8 @@
 const express = require('express');
 const database = require('./database/database.js')
-const routerDimensions = require('./routes/dimensionRoutes.js')
+const routerParametrosFormularios = require('./routes/parametrosFormulariosRoutes.js')
 const routerEval = require('./routes/evalRoutes.js')
 const routerInst = require('./routes/institutionRoutes.js')
-const routerIndicators = require('./routes/indicatorRoutes.js')
 const routerParticipatingInst = require('./routes/participatingInstRoutes.js')
 const cors = require('cors')
 
@@ -12,10 +11,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json())
 app.use(cors())
-app.use('/api/dimensiones', routerDimensions)
+app.use('/api/parametros_forms', routerParametrosFormularios)
 app.use('/api/evaluacion', routerEval)
 app.use('/api/instituciones', routerInst)
-app.use('/api/indicadores', routerIndicators)
 app.use('/api/instituciones_participantes',routerParticipatingInst)
 
 app.listen(PORT, () => {
