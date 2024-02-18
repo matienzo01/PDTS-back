@@ -9,7 +9,6 @@ const getAllProjects = async (req,res) => {
 
     if (isNaN(id_institucion)) {
         res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-        return ;
     }
 
     try {
@@ -24,12 +23,10 @@ const getOneProject = async (req,res) => {
 
     if (isNaN(id_institucion)) { 
         res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-        return ;
     }
 
     if (isNaN(id_proyecto)) {
         res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
-        return ;
     }
 
     try {
@@ -46,7 +43,6 @@ const createProject = async (req,res) => {
 
     if (isNaN(id_institucion)) {
         res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-        return ;
     }
 
     if (!proyecto.titulo ||
@@ -85,12 +81,10 @@ const deleteProject = async (req,res) => {
 
     if (isNaN(id_institucion)) {
         res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-        return ;
     }
 
     if (isNaN(id_proyecto)) {
         res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
-        return ;
     }
 
 

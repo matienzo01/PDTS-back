@@ -19,6 +19,13 @@ const getAllInstitutionUsers = async (id_institucion) => {
 
 const getOneUser = async(id) => {
     const user = await knex('evaluadores').select().where({id})
+
+    if (!user[0]) {
+        const _error = new Error('There is no user with the provided id')
+        _error.status = 404
+        throw _error
+    }
+
     return {usuario: user[0]}
 }
 
@@ -26,7 +33,9 @@ const createUser = async (newUser,institutionId) => {
     
     const user = await getUserByDni(newUser.dni)
     if (user !== undefined) {// existe un usuario con ese dni
-        throw new Error('There is already a user with that DNI')
+        const _error = new Error('There is already a user with that DNI')
+        _error.status = 409
+        throw _error
     }
 
     const institution_name = await knex('instituciones').select('nombre').where({id: institutionId})
@@ -39,21 +48,22 @@ const createUser = async (newUser,institutionId) => {
 
 const getUserByDni = async (dni) => {
     const user = await knex('evaluadores').select().where({dni})
+
+    if (!user[0]) {
+        const _error = new Error('There is no user with the provided dni')
+        _error.status = 404
+        throw _error
+    }
+
     return user[0]
 }
 
 const linkUserToInstitution = async(userDni, institutionId, userId = null) => {
-    
     let evaluatorId = userId;
     let user
 
     if (!evaluatorId) {
         user = await getUserByDni(userDni);
-        if (!user) {
-            const _error = new Error('There is no user with the provided DNI');
-            _error.status = 404
-            throw _error
-        }
         evaluatorId = user.id;
     }
 
@@ -61,11 +71,14 @@ const linkUserToInstitution = async(userDni, institutionId, userId = null) => {
         await knex('evaluadores_x_instituciones')
         .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
     } catch (error) {
-        const _error = new Error('The user is already linked to the institution')
-        _error.status = 409
-        throw _error
+        if (error.code === 'ER_DUP_ENTRY') {
+            const _error = new Error('The user is already linked to the institution')
+            _error.status = 409
+            throw _error
+        } else {
+            throw error
+        }
     }
-    
     
     if (!userId)
         return {usuario: user}
