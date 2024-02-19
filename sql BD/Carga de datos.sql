@@ -318,23 +318,22 @@ INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
     ('Juan','Administrador','admin1@mail.com',''),
     ('Jorge','Administrador','admin2@mail.com','');
 
-INSERT INTO instituciones (id_admin, id_tipo, nombre, pais, provincia, localidad, telefono_institucional, mail_institucional) 
-VALUES 
-(1, 1, 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
-(2, 8, 'UTN', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com');
+INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional) VALUES
+    ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
+    ('UTN', 'RUBRO B', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com'),
+    ('Hospital General', 'Salud', 'Argentina', 'Buenos Aires', 'Ciudad C', '2264588978', 'contacto@hospitalgeneral.ar');
 
-INSERT INTO instituciones_participantes (nombre, rubro, pais, provincia, localidad, telefono_institucional, mail_institucional) 
-VALUES 
-('Universidad XYZ','rubroA', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
-('UTN','rubroA', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com');
+INSERT INTO instituciones_cyt(id,id_admin,id_tipo,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
+    (1,1,1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
+    (2,2,8,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
 
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 
 ('evaluador1@example.com', 'contrasena123', 'Juan', 'Pérez', 123456789, '555-1234', 'Informática', 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A'),
-('evaluador2@example.com', 'password456', 'María', 'González', 987654321, '555-5678', 'Biología', 'Instituto ABC', 'México', 'Ciudad B', 'Estado C'),
-('evaluador3@example.com', 'clave789', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'Colegio DEF', 'España', 'Madrid', 'Ciudad D'),
-('evaluador4@example.com', 'segura987', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'Escuela GHI', 'Colombia', 'Bogotá', 'Ciudad E'),
-('evaluador5@example.com', 'miclave123', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Academia JKL', 'Chile', 'Santiago', 'Ciudad F');
+('evaluador2@example.com', 'password456', 'María', 'González', 987654321, '555-5678', 'Biología', 'Universidad XYZ', 'México', 'Ciudad B', 'Estado C'),
+('evaluador3@example.com', 'clave789', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'UTN', 'España', 'Madrid', 'Ciudad D'),
+('evaluador4@example.com', 'segura987', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'UTN', 'Colombia', 'Bogotá', 'Ciudad E'),
+('evaluador5@example.com', 'miclave123', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Hospital General', 'Chile', 'Santiago', 'Ciudad F');
 
 INSERT INTO evaluadores_x_instituciones(id_institucion,id_evaluador) VALUES
     (1,1),
@@ -411,7 +410,7 @@ INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_ev
 
 UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 2 AND id_evaluador = 1;
 
-insert INTO participación_instituciones(id_proyecto,id_inst_participante,rol) VALUES
+insert INTO participación_instituciones(id_proyecto,id_institucion,rol) VALUES
     (1,1,'Ejecutora'),
     (1,1,'Promotora'),
     (1,1,'Demandante'),

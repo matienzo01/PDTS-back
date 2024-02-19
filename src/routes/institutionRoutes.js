@@ -1,24 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const institution_controller = require('../controllers/institutionController.js')
-const project_controller = require('../controllers/projectController.js')
-const user_controller = require('../controllers/userController.js')
+const controller = require('../controllers/institutionController')
 
 router
-  .get('/', institution_controller.getAllInstituciones)
-  .get('/roles', institution_controller.getAllRoles)
-  .get('/:id_institucion', institution_controller.getOneInstitucion)
-  .get('/:id_institucion/proyectos', project_controller.getAllProjects)
-  .get('/:id_institucion/proyectos/:id_proyecto', project_controller.getOneProject)
-  .get('/:id_institucion/usuarios', user_controller.getAllInstitutionUsers)
-  .get('/:id_institucion/usuarios/:dni', user_controller.getUserByDni)
-
-  .post('/', institution_controller.createInstitucion)
-  .post('/:id_institucion/proyectos', project_controller.createProject)
-  .post('/:id_institucion/usuarios', user_controller.createUser)
-  .post('/:id_institucion/usuarios/vincular_usuaro', user_controller.linkUserToInstitution)
-
-  .delete('/:id_institucion', institution_controller.deleteInstitucion)
-  .delete('/:id_institucion/proyectos/:id_proyecto', project_controller.deleteProject)
+    .get('/', controller.getInstituciones)
+    .get('/:inst_id', controller.getOneInstitucion)
+    .post('/', controller.createInstitucion)
 
 module.exports = router

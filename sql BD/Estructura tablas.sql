@@ -17,7 +17,7 @@ CREATE TABLE evaluadores (
     		 -- evaluador existe en el sistema cuando una institucion quisiera vincularlo a ella
     celular  VARCHAR(255),
     especialidad  VARCHAR(255),
-    institucion_origen  VARCHAR(255),
+    institucion_origen VARCHAR(255),
     pais_residencia VARCHAR(255),
     provincia_residencia VARCHAR(255),
     localidad_residencia VARCHAR(255)  
@@ -38,26 +38,6 @@ CREATE TABLE tipos_instituciones(
 
 CREATE TABLE instituciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_admin INT,
-    id_tipo INT,
-    nombre VARCHAR(255),
-    rubro varchar(255),
-    pais VARCHAR(255),
-    provincia VARCHAR(255),
-    localidad VARCHAR(255),
-    telefono_institucional VARCHAR(255),
-    mail_institucional VARCHAR(255),
-    nombre_referente VARCHAR(255),
-    apellido_referente VARCHAR(255),
-    cargo_referente VARCHAR(255),
-    telefono_referente VARCHAR(255),
-    mail_referente VARCHAR(255),
-    FOREIGN KEY (id_admin) REFERENCES admins_CyT(id),
-    FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
-);
- 
-CREATE TABLE instituciones_participantes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255),
     rubro varchar(255),
     pais VARCHAR(255),
@@ -65,6 +45,20 @@ CREATE TABLE instituciones_participantes (
     localidad VARCHAR(255),
     telefono_institucional VARCHAR(255),
     mail_institucional VARCHAR(255)
+);
+
+CREATE TABLE instituciones_cyt (
+    id INT PRIMARY KEY,
+    id_admin INT,
+    id_tipo INT,
+    nombre_referente VARCHAR(255),
+    apellido_referente VARCHAR(255),
+    cargo_referente VARCHAR(255),
+    telefono_referente VARCHAR(255),
+    mail_referente VARCHAR(255),
+    FOREIGN KEY (id) REFERENCES instituciones(id),
+    FOREIGN KEY (id_admin) REFERENCES admins_CyT(id),
+    FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
 );
 
 CREATE TABLE estado_eval(
@@ -94,15 +88,15 @@ CREATE TABLE proyectos (
     obligatoriedad_opinion boolean DEFAULT true,
     FOREIGN KEY (id_estado_eval) REFERENCES estado_eval(id),
     FOREIGN KEY (id_director) REFERENCES evaluadores(id),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id)
+    FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id)
 );
 
 CREATE TABLE participación_instituciones(
     id_proyecto INT,
-    id_inst_participante INT,
+    id_institucion INT,
     rol varchar(255), -- ejecutora, financiadora, adoptante, demandante o promotora
-    PRIMARY KEY (id_inst_participante,id_proyecto,rol),
-    FOREIGN KEY (id_inst_participante) REFERENCES instituciones_participantes(id),
+    PRIMARY KEY (id_institucion,id_proyecto,rol),
+    FOREIGN KEY (id_institucion) REFERENCES instituciones(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
@@ -112,7 +106,7 @@ CREATE TABLE participantes(
     id_institucion INT, 
     nombre varchar(255),
     apellido varchar(255),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones_participantes(id)
+    FOREIGN KEY (id_institucion) REFERENCES instituciones(id)
 );
 
 CREATE TABLE participantes_x_proyectos(
@@ -127,7 +121,7 @@ CREATE TABLE evaluadores_x_instituciones (
     id_institucion INT,
     id_evaluador INT,
     PRIMARY KEY(id_institucion, id_evaluador),
-    FOREIGN KEY (id_institucion) REFERENCES instituciones(id),
+    FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id)
 );
 
