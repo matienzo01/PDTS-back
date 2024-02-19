@@ -123,7 +123,7 @@ const getProjectEval = async (respuestas = null) => {
   const mapOptionsId = new Map();
   options.forEach(element => {
     mapOptionsId.set(element.opcion.toLowerCase(), element.id);
-    
+
     const newOption = {
       id: element.id,
       option: element.opcion,
@@ -135,7 +135,7 @@ const getProjectEval = async (respuestas = null) => {
     }
     newOptions[element.id_instancia].push(newOption)
   })
-  
+
   console.log(mapOptionsId)
 
 
@@ -164,7 +164,7 @@ const getProjectEval = async (respuestas = null) => {
             value: respuestas[i].calificacion
           }
           console.log(indicador)
-          respuestas.splice(i,1) //elimino el elemento del array para reducir las iteraciones a posterior
+          respuestas.splice(i, 1) //elimino el elemento del array para reducir las iteraciones a posterior
         }
       }
     }
@@ -205,33 +205,28 @@ const getProjectEval = async (respuestas = null) => {
   return { name: 'Evaluación de proyecto', sections: resultadosTransformados }
 }
 
-const postEval = async (id_proyecto, id_evaluador, respuestas) => {
+const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
   const evaluado = await verify_date(id_proyecto, id_evaluador)
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
 
-  respuestas.forEach(rta => {
-    rta.id_evaluador = id_evaluador;
-    rta.id_proyecto = id_proyecto;
-    rta.respuesta = rta.answer;
-  
-    if (rta.value !== undefined) {
-      rta.calificacion = rta.value;
-      delete rta.value;
-    } else {
-      rta.id_pregunta = rta.id_indicador;
-      delete rta.id_indicador;
-    }
-  
-    delete rta.answer;
-  });
+  let respuestas;
 
   if (evaluado.length === 1) {
     if (evaluado[0].fecha_fin_eval === null) {
 
       const cant_preguntas = await knex('indicadores').count('* as count').whereNull('fecha_elim')
 
-      if(cant_preguntas[0].count === respuestas.length) {
+      if (cant_preguntas[0].count === respuestas.length) {
+        respuestas = rawRespuestas.map(rta => {
+          return {
+            id_indicador: rta.id_indicador,
+            id_evaluador: id_evaluador,
+            id_proyecto: id_proyecto,
+            respuesta: rta.answer,
+            calificacion: rta.calificacion
+          }
+        })
         await knex('respuestas_evaluacion').insert(respuestas)
 
         await knex('evaluadores_x_proyectos')
@@ -246,14 +241,21 @@ const postEval = async (id_proyecto, id_evaluador, respuestas) => {
       }
 
     } else { // aca se entraria si fueran las repsuestas de la opinion
-      if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
-
+      if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion+
+        respuestas = rawRespuestas.map(rta => {
+          return {
+            id_pregunta: rta.id_indicador,
+            id_evaluador: id_evaluador,
+            id_proyecto: id_proyecto,
+            respuesta: rta.answer
+          }
+        })
+        console.log(respuestas);
         await knex('respuestas_encuesta').insert(respuestas)
+        console.log('aca');
         await knex('evaluadores_x_proyectos')
           .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
           .update({ fecha_fin_op: fecha_respuesta })
-        
-
 
         return { response: 'respuestas guardadas' }
       } else {
@@ -267,15 +269,15 @@ const postEval = async (id_proyecto, id_evaluador, respuestas) => {
 }
 
 const getUserEvaluationAnswers = async (id_proyecto, id_evaluador) => {
-  const rtas = await knex('respuestas_evaluacion').select('id_indicador','respuesta','calificacion').where({id_evaluador, id_proyecto})
+  const rtas = await knex('respuestas_evaluacion').select('id_indicador', 'respuesta', 'calificacion').where({ id_evaluador, id_proyecto })
 
-  if(rtas[0]   === undefined) {
+  if (rtas[0] === undefined) {
     const _error = new Error('There are no answers from that user for that project')
     _error.status = 404
     throw _error
   }
 
-  return {rtas: await getProjectEval(rtas)};
+  return { rtas: await getProjectEval(rtas) };
 }
 
 module.exports = {
