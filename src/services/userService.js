@@ -31,14 +31,20 @@ const getOneUser = async(id) => {
 
 const createUser = async (newUser,institutionId) => {
     
-    const user = await getUserByDni(newUser.dni)
-    if (user !== undefined) {// existe un usuario con ese dni
+    try {
+        const user = await getUserByDni(newUser.dni) //si no existe, va a tirar un 404. por lo que si pasa
+                                                      //de esta linea ya existe un usuario con ese dni
         const _error = new Error('There is already a user with that DNI')
         _error.status = 409
         throw _error
+    } catch (error) {
+        if (error.status !== 404) {
+            throw error
+        }
     }
 
     const institution_name = await knex('instituciones').select('nombre').where({id: institutionId})
+    console.log(institution_name)
     newUser.institucion_origen = Object.values(institution_name[0])[0]
 
     const insertId = await knex('evaluadores').insert(newUser)

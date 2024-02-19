@@ -50,17 +50,15 @@ const createProject = async (id_institucion, proyecto) => {
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
   proyecto.fecha_carga = fecha_carga
-  proyecto.id_institucion = id_institucion
+  proyecto.id_institucion = parseInt(id_institucion)
   proyecto.id_estado_eval = 1 //sin evaluar
-
 
   //habria que chequear si el director corresponde a la institucion
   const result = await knex.transaction(async (trx) => {
 
     const insertId = await trx.insert(proyecto).into(TABLE)
-    const newProject = await getOneProject(id_institucion, insertId[0], trx)
-    const { id_director } = newProject.proyecto
-    await asignEvaluador(id_director, insertId[0], fecha_carga, 'director', trx)
+    await asignEvaluador(proyecto.id_director, insertId[0], fecha_carga, 'director', trx)
+    const newProject = await getOneProject(insertId[0],id_institucion, trx)
     return newProject
   })
 
