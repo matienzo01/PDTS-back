@@ -6,7 +6,7 @@ const user_controller = require('../controllers/userController.js')
 
 router
   .get('/', institution_controller.getAllInstitucionesCYT)
-  .get('/tipos',  institution_controller.getTiposInstituciones)
+  .get('/tipos', institution_controller.getTiposInstituciones)
   .get('/:id_institucion', institution_controller.getOneInstitucionCYT)
   .get('/:id_institucion/proyectos', project_controller.getAllProjects)
   .get('/:id_institucion/proyectos/:id_proyecto', project_controller.getOneProject)
@@ -15,7 +15,7 @@ router
 
   .post('/', institution_controller.createInstitucionCYT)
   .post('/:id_institucion/proyectos', project_controller.createProject)
-  .post('/:id_institucion/proyectos/:id_proyecto/evaluadores', project_controller.asignEvaluador)
+  .post('/:id_institucion/proyectos/:id_proyecto/evaluadores', project_controller.assignEvaluador)
   .post('/:id_institucion/usuarios', user_controller.createUser)
   .post('/:id_institucion/usuarios/vincular_usuaro', user_controller.linkUserToInstitution)
 

@@ -4,125 +4,125 @@ const service = require('../services/projectService')
 //- Sos admin general -> te devolvemos todos los proyectos
 //- Sos admin CyT -> los de tu institucion
 //- Sos eval -> a los que estás asignado
-const getAllProjects = async (req,res) => {
-    const { params: { id_institucion }} = req
+const getAllProjects = async (req, res) => {
+  const { params: { id_institucion } } = req
 
-    if (isNaN(id_institucion)) {
-        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-    }
+  if (isNaN(id_institucion)) {
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
 
-    try {
-        res.status(200).json(await service.getAllProjects(id_institucion))
-    } catch (error) {
-        const statusCode = error.status || 500
-        res.status(statusCode).json({error: error.message})
-    }
+  try {
+    res.status(200).json(await service.getAllProjects(id_institucion))
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
 }
 
-const getOneProject = async (req,res) => {
-    const { params: { id_institucion, id_proyecto }} = req
+const getOneProject = async (req, res) => {
+  const { params: { id_institucion, id_proyecto } } = req
 
-    if (isNaN(id_institucion)) { 
-        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-    }
+  if (isNaN(id_institucion)) {
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
 
-    if (isNaN(id_proyecto)) {
-        res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
-    }
+  if (isNaN(id_proyecto)) {
+    res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
+  }
 
-    try {
-        res.status(200).json(await service.getOneProject(id_proyecto,id_institucion))
-    } catch (_error) {
-        const statusCode = _error.status || 500
-        res.status(statusCode).json({ error: _error.message})
-    }
+  try {
+    res.status(200).json(await service.getOneProject(id_proyecto, id_institucion))
+  } catch (_error) {
+    const statusCode = _error.status || 500
+    res.status(statusCode).json({ error: _error.message })
+  }
 }
 
-const createProject = async (req,res) => {
-    const {params: { id_institucion }} = req
-    const {proyecto} = req.body
+const createProject = async (req, res) => {
+  const { params: { id_institucion } } = req
+  const { proyecto } = req.body
 
-    if (isNaN(id_institucion)) {
-        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-    }
+  if (isNaN(id_institucion)) {
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
 
-    if (!proyecto.titulo ||
-        !proyecto.id_director ||
-        !proyecto.FechaInicio ||
-        !proyecto.FechaFin ||
-        !proyecto.area_conocim ||
-        !proyecto.subarea_conocim ||
-        !proyecto.problema_a_resolver ||
-        !proyecto.producto_a_generar ||
-        !proyecto.resumen ||
-        !proyecto.novedad_u_originalidad ||
-        !proyecto.grado_relevancia ||
-        !proyecto.grado_pertinencia ||
-        !proyecto.grado_demanda ||
-        !proyecto.obligatoriedad_proposito ||
-        !proyecto.obligatoriedad_opinion) {
+  if (!proyecto.titulo ||
+    !proyecto.id_director ||
+    !proyecto.FechaInicio ||
+    !proyecto.FechaFin ||
+    !proyecto.area_conocim ||
+    !proyecto.subarea_conocim ||
+    !proyecto.problema_a_resolver ||
+    !proyecto.producto_a_generar ||
+    !proyecto.resumen ||
+    !proyecto.novedad_u_originalidad ||
+    !proyecto.grado_relevancia ||
+    !proyecto.grado_pertinencia ||
+    !proyecto.grado_demanda ||
+    !proyecto.obligatoriedad_proposito ||
+    !proyecto.obligatoriedad_opinion) {
 
-            res.status(400).send({
-              status: 'FAILED',
-              data : { error: "Missing fields"}
-            })
-            return ;
-        }
-    
-    try {
-        res.status(200).json(await service.createProject(id_institucion,proyecto))
-    } catch(error) {
-        const statusCode = error.status || 500
-        res.status(statusCode).json({error: error.message})
-    }
+    res.status(400).send({
+      status: 'FAILED',
+      data: { error: "Missing fields" }
+    })
     return;
+  }
+
+  try {
+    res.status(200).json(await service.createProject(id_institucion, proyecto))
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+  return;
 }
 
-const deleteProject = async (req,res) => {
-    const { params: { id_institucion, id_proyecto }} = req
+const deleteProject = async (req, res) => {
+  const { params: { id_institucion, id_proyecto } } = req
 
-    if (isNaN(id_institucion)) {
-        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-    }
+  if (isNaN(id_institucion)) {
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
 
-    if (isNaN(id_proyecto)) {
-        res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
-    }
+  if (isNaN(id_proyecto)) {
+    res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
+  }
 
 }
 
-const asignEvaluador = async(req,res) => {
-    const { params: { id_institucion, id_proyecto }} = req
-    const { id_evalaudor } = req.body
+const assignEvaluador = async (req, res) => {
+  const { params: { id_institucion, id_proyecto } } = req
+  const { id_evalaudor } = req.body
 
-    if (isNaN(id_institucion)) {
-        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
-    }
+  if (isNaN(id_institucion)) {
+    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
 
-    if (isNaN(id_proyecto)) {
-        res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
-    }
+  if (isNaN(id_proyecto)) {
+    res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
+  }
 
-    if (isNaN(id_evalaudor)) {
-        res.status(400).json({ error: "Parameter ':id_evalaudor' should be a number"})
-    }
+  if (isNaN(id_evalaudor)) {
+    res.status(400).json({ error: "Parameter ':id_evalaudor' should be a number" })
+  }
 
-    const fecha = new Date()
-    const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
+  const fecha = new Date()
+  const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
-    try {
-        res.status(201).json(await service.asignEvaluador(id_evalaudor,id_proyecto,id_institucion,'evaluador',fecha_carga))
-    } catch (error) {
-        const statusCode = error.status || 500
-        res.status(statusCode).json({error: error.message})
-    }
+  try {
+    res.status(201).json(await service.asignEvaluador(id_evalaudor, id_proyecto, id_institucion, 'evaluador', fecha_carga))
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
 
 }
 
 module.exports = {
-    getAllProjects, 
-    getOneProject,
-    createProject,
-    deleteProject,
-    asignEvaluador
+  getAllProjects,
+  getOneProject,
+  createProject,
+  deleteProject,
+  assignEvaluador
 }
