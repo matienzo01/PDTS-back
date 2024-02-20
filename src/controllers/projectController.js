@@ -89,6 +89,14 @@ const deleteProject = async (req, res) => {
     res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
   }
 
+  try {
+    res.status(204).json(await service.deleteProject(id_institucion, id_proyecto))
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+  return;
+
 }
 
 const assignEvaluador = async (req, res) => {
