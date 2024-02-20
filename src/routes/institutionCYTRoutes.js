@@ -15,6 +15,7 @@ router
 
   .post('/', institution_controller.createInstitucionCYT)
   .post('/:id_institucion/proyectos', project_controller.createProject)
+  .post('/:id_institucion/proyectos/:id_proyecto/evaluadores', project_controller.asignEvaluador)
   .post('/:id_institucion/usuarios', user_controller.createUser)
   .post('/:id_institucion/usuarios/vincular_usuaro', user_controller.linkUserToInstitution)
 

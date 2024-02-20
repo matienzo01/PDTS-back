@@ -14,7 +14,8 @@ const getAllProjects = async (req,res) => {
     try {
         res.status(200).json(await service.getAllProjects(id_institucion))
     } catch (error) {
-        res.status(500).json({error: `Error trying to get all projects`})
+        const statusCode = error.status || 500
+        res.status(statusCode).json({error: error.message})
     }
 }
 
@@ -71,7 +72,8 @@ const createProject = async (req,res) => {
     try {
         res.status(200).json(await service.createProject(id_institucion,proyecto))
     } catch(error) {
-        res.status(500).json({error: `Error al crear el proyecto`})
+        const statusCode = error.status || 500
+        res.status(statusCode).json({error: error.message})
     }
     return;
 }
@@ -87,11 +89,33 @@ const deleteProject = async (req,res) => {
         res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
     }
 
+}
 
+const asignEvaluador = async(req,res) => {
+    const { params: { id_institucion, id_proyecto }} = req
+    const { id_evalaudor } = req.body
 
+    if (isNaN(id_institucion)) {
+        res.status(400).json({ error: "Parameter ':id_institucion' should be a number"})
+    }
 
+    if (isNaN(id_proyecto)) {
+        res.status(400).json({ error: "Parameter ':id_proyecto' should be a number"})
+    }
 
+    if (isNaN(id_evalaudor)) {
+        res.status(400).json({ error: "Parameter ':id_evalaudor' should be a number"})
+    }
 
+    const fecha = new Date()
+    const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
+
+    try {
+        res.status(201).json(await service.asignEvaluador(id_evalaudor,id_proyecto,id_institucion,'evaluador',fecha_carga))
+    } catch (error) {
+        const statusCode = error.status || 500
+        res.status(statusCode).json({error: error.message})
+    }
 
 }
 
@@ -99,5 +123,6 @@ module.exports = {
     getAllProjects, 
     getOneProject,
     createProject,
-    deleteProject
+    deleteProject,
+    asignEvaluador
 }
