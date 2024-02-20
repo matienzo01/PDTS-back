@@ -48,21 +48,21 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
   return { proyecto: project[0], participantes: participants };
 }
 
-const userBelongsToInstitution = async(id_evaluador,id_institucion) => {
+const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
 
-  const inst = await knex('instituciones_cyt').select().where({id: id_institucion})
-  if (inst[0] === undefined){
+  const inst = await knex('instituciones_cyt').select().where({ id: id_institucion })
+  if (inst[0] === undefined) {
     const _error = new Error('There is no institution with the provided id')
     _error.status = 404
     throw _error
   }
-  const a = await knex('evaluadores_x_instituciones').select().where({id_institucion,id_evaluador})
-  
+  const a = await knex('evaluadores_x_instituciones').select().where({ id_institucion, id_evaluador })
+
   return a[0] === undefined ? false : true
 
 }
 
-const asignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_carga, rol, trx = null) => {
+const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_carga, rol, trx = null) => {
   const data = {
     id_evaluador: id_evaluador,
     id_proyecto: id_proyecto,
@@ -70,7 +70,7 @@ const asignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_c
     rol: rol
   }
 
-  if (!await userBelongsToInstitution(id_evaluador,id_institucion)){
+  if (!await userBelongsToInstitution(id_evaluador, id_institucion)) {
     const _error = new Error('The user is not associated with the institution that owns the project')
     _error.status = 409
     throw _error
@@ -88,7 +88,7 @@ const asignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_c
       throw error
     }
   }
-  
+
 }
 
 const createProject = async (id_institucion, proyecto) => {
@@ -102,7 +102,7 @@ const createProject = async (id_institucion, proyecto) => {
   const result = await knex.transaction(async (trx) => {
     const insertId = await trx.insert(proyecto).into(TABLE)
     await asignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
-    const newProject = await getOneProject(insertId[0],id_institucion, trx)
+    const newProject = await getOneProject(insertId[0], id_institucion, trx)
     return newProject
   })
 
@@ -118,5 +118,5 @@ module.exports = {
   getOneProject,
   createProject,
   deleteProject,
-  asignEvaluador
+  assignEvaluador
 }

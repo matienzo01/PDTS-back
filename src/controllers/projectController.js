@@ -111,7 +111,7 @@ const assignEvaluador = async (req, res) => {
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
   try {
-    res.status(201).json(await service.asignEvaluador(id_evalaudor, id_proyecto, id_institucion, 'evaluador', fecha_carga))
+    res.status(201).json(await service.assignEvaluador(id_evalaudor, id_proyecto, id_institucion, 'evaluador', fecha_carga))
   } catch (error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
