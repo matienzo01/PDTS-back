@@ -5,10 +5,7 @@ const getAllProjects = async (id_institucion) => {
   const proyectos = await knex(TABLE).select().where({ id_institucion: id_institucion })
 
   for (let i = 0; i < proyectos.length; i++) {
-    proyectos[i].participantes = await knex('evaluadores_x_proyectos')
-      .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
-      .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
-      .where({ id_proyecto: proyectos[i].id })
+    proyectos[i].participantes = await getParticipants(proyectos[i].id)
   }
 
   /* no se si estoy quemado o que, pero no pude hacer andar esto asi que use el for de arriba
@@ -28,10 +25,7 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
     .select()
     .where({ id: id_proyecto });
 
-  const participants = await queryBuilder('evaluadores_x_proyectos')
-    .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
-    .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
-    .where({ id_proyecto: id_proyecto })
+  const participants = await getParticipants(id_proyecto,queryBuilder)
 
   if (!project[0]) {
     const _error = new Error('There is no project with the provided id')
@@ -46,6 +40,16 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
   }
 
   return { proyecto: project[0], participantes: participants };
+}
+
+const getParticipants = async (id_proyecto, trx = null) => {
+  const queryBuilder = trx || knex;
+  const participantes = await queryBuilder('evaluadores_x_proyectos')
+    .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
+    .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
+    .where({ id_proyecto: id_proyecto })
+  
+  return participantes;
 }
 
 const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
@@ -70,6 +74,8 @@ const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_
     rol: rol
   }
 
+  await getOneProject(id_proyecto,null,trx)
+  
   if (!await userBelongsToInstitution(id_evaluador, id_institucion)) {
     const _error = new Error('The user is not associated with the institution that owns the project')
     _error.status = 409
@@ -91,6 +97,16 @@ const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_
 
 }
 
+const unassignEvaluador = async(id_evaluador, id_proyecto) => {
+  //habria que ver de no eliminar al evaluador director
+  if (!await knex('evaluadores_x_proyectos').del().where({id_evaluador, id_proyecto})){
+    const _error = new Error('The user is not assigned to this project')
+    _error.status = 404
+    throw _error
+  }
+return ;
+}
+
 const createProject = async (id_institucion, proyecto) => {
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
@@ -101,7 +117,7 @@ const createProject = async (id_institucion, proyecto) => {
 
   const result = await knex.transaction(async (trx) => {
     const insertId = await trx.insert(proyecto).into(TABLE)
-    await asignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
+    await assignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
     return newProject
   })
@@ -109,7 +125,11 @@ const createProject = async (id_institucion, proyecto) => {
   return result
 }
 
-const deleteProject = async () => {
+const deleteProject = async (id_institucion, id_proyecto) => {
+  // 1) eliminar las respuestas de los evaluadores
+  // 2) desasignar los evaluadores del proyecto
+  // 3) eliminar el proyecto
+
 
 }
 
@@ -118,5 +138,7 @@ module.exports = {
   getOneProject,
   createProject,
   deleteProject,
-  assignEvaluador
+  assignEvaluador,
+  unassignEvaluador,
+  getParticipants
 }

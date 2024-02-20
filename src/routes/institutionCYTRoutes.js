@@ -10,6 +10,7 @@ router
   .get('/:id_institucion', institution_controller.getOneInstitucionCYT)
   .get('/:id_institucion/proyectos', project_controller.getAllProjects)
   .get('/:id_institucion/proyectos/:id_proyecto', project_controller.getOneProject)
+  .get('/:id_institucion/proyectos/:id_proyecto/evaluadores', project_controller.getParticipants)
   .get('/:id_institucion/usuarios', user_controller.getAllInstitutionUsers)
   .get('/:id_institucion/usuarios/:dni', user_controller.getUserByDni)
 
@@ -21,5 +22,6 @@ router
 
   .delete('/:id_institucion', institution_controller.deleteInstitucionCYT)
   .delete('/:id_institucion/proyectos/:id_proyecto', project_controller.deleteProject)
+  .delete('/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador', project_controller.unassignEvaluador)
 
 module.exports = router
