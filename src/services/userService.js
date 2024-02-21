@@ -43,9 +43,10 @@ const createUser = async (newUser,institutionId) => {
         }
     }
 
+    /*
     const institution_name = await knex('instituciones').select('nombre').where({id: institutionId})
     console.log(institution_name)
-    newUser.institucion_origen = Object.values(institution_name[0])[0]
+    newUser.institucion_origen = Object.values(institution_name[0])[0]*/
 
     const insertId = await knex('evaluadores').insert(newUser)
     await linkUserToInstitution(newUser.dni,institutionId,insertId)
