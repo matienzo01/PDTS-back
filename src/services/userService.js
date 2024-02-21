@@ -33,6 +33,7 @@ const getOneUser = async(id) => {
 const createHash = async(password) => {
     return new Promise((resolve, reject) => {
         bcrypt.hash(password, 10, (err, hash) => {
+            console.log(hash)
             if (err) {
                 reject(err);
             } else {

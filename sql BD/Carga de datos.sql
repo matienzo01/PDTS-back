@@ -3,6 +3,10 @@
 -- CARGA DE DATOS BUENOS ////////////////////////////////////////////////////////////////////////////
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
+INSERT INTO admin(email,password) VALUES
+    -- admingeneral
+    ('admin@mail.com','$2b$10$J2mvegr.LTDM5HgZwZA5IO66dI4xKbLis9qFIn1qXEBUflwmYYgji');
+
 INSERT INTO secciones(nombre) VALUES
 	('Sistema de evaluacion'),				-- id 1
     ('Instancias e indicadores'),			-- id 2
@@ -316,8 +320,10 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
 INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
-    ('Juan','Administrador','admin1@mail.com',''),
-    ('Jorge','Administrador','admin2@mail.com','');
+    -- admin1
+    ('Juan','Administrador','admin1@mail.com','$2b$10$10OasWb3KaI8zuFBxRi8I.W9yBHhQ3axpN1WrWoHbC5Cry69Ku0ki'),
+    -- admin2
+    ('Jorge','Administrador','admin2@mail.com','$2b$10$scPhsXg43dfd0wZSrAuHjeIL3yLQpA4yxeUmsYa8bF7pEl0LhuKA2');
 
 INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional) VALUES
     ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),

@@ -3,22 +3,40 @@ const knex = require('../database/knex')
 const jwt = require('jsonwebtoken')
 
 const login = async (mail,password) => {
-
-    const user = await knex('evaluadores').select('id','email','password').where({email: mail})
-    const passwordCorrect = user[0] === undefined
-        ? false
-        : await bcrypt.compare(password, user[0].password)
     
-    delete user[0].password
-    if (!(user[0] && passwordCorrect)) {
+    const tablesToCheck = [
+        { tableName: 'admin', id: 1, columns: ['email', 'password'] },
+        { tableName: 'admins_cyt', columns: ['id', 'email', 'password'] },
+        { tableName: 'evaluadores', columns: ['id', 'email', 'password'] }
+    ];
+    
+    let user = null;
+    
+    for (const table of tablesToCheck) {
+        user = await knex(table.tableName).select(...table.columns).where({ email: mail }).first();
+        if (user) {
+            console.log(table.tableName)
+            if (table.tableName === 'admin') {
+                user.id = 1;
+            }
+            break;
+        }
+    }
+
+    const passwordCorrect = user === undefined
+        ? false
+        : await bcrypt.compare(password, user.password)
+    
+    delete user.password
+    if (!(user && passwordCorrect)) {
         const _error = new Error('Invalid user or password')
         _error.status = 401
         throw _error
     }
 
     const userForToken = {
-        id: user[0].id,
-        mail: user[0].email
+        id: user.id,
+        mail: user.email
     }
 
     const token = jwt.sign(userForToken, process.env.SECRET || '1234')
