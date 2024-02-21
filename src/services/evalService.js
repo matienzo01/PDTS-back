@@ -136,10 +136,6 @@ const getProjectEval = async (respuestas = null) => {
     newOptions[element.id_instancia].push(newOption)
   })
 
-  console.log(mapOptionsId)
-
-
-
   indicadores[0].forEach(row => {
 
     const dimension = {
@@ -163,7 +159,6 @@ const getProjectEval = async (respuestas = null) => {
             option: respuestas[i].respuesta,
             value: respuestas[i].calificacion
           }
-          console.log(indicador)
           respuestas.splice(i, 1) //elimino el elemento del array para reducir las iteraciones a posterior
         }
       }
@@ -217,7 +212,7 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
 
       const cant_preguntas = await knex('indicadores').count('* as count').whereNull('fecha_elim')
 
-      if (cant_preguntas[0].count === respuestas.length) {
+      if (cant_preguntas[0].count === rawRespuestas.length) {
         respuestas = rawRespuestas.map(rta => {
           return {
             id_indicador: rta.id_indicador,
@@ -250,9 +245,7 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
             respuesta: rta.answer
           }
         })
-        console.log(respuestas);
         await knex('respuestas_encuesta').insert(respuestas)
-        console.log('aca');
         await knex('evaluadores_x_proyectos')
           .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
           .update({ fecha_fin_op: fecha_respuesta })

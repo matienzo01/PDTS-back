@@ -18,7 +18,7 @@ router
   .post('/:id_institucion/proyectos', project_controller.createProject)
   .post('/:id_institucion/proyectos/:id_proyecto/evaluadores', project_controller.assignEvaluador)
   .post('/:id_institucion/usuarios', user_controller.createUser)
-  .post('/:id_institucion/usuarios/vincular_usuaro', user_controller.linkUserToInstitution)
+  .post('/:id_institucion/usuarios/vincular_usuario', user_controller.linkUserToInstitution)
 
   .delete('/:id_institucion', institution_controller.deleteInstitucionCYT)
   .delete('/:id_institucion/proyectos/:id_proyecto', project_controller.deleteProject)
