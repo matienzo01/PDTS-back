@@ -219,7 +219,7 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
             id_evaluador: id_evaluador,
             id_proyecto: id_proyecto,
             respuesta: rta.answer,
-            calificacion: rta.calificacion
+            calificacion: rta.value
           }
         })
         await knex('respuestas_evaluacion').insert(respuestas)

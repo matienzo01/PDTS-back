@@ -1,4 +1,5 @@
 const knex = require('../database/knex')
+const bcrypt = require('bcrypt')
 
 const getAllInstitutionUsers = async (id_institucion) => {
 
@@ -25,8 +26,20 @@ const getOneUser = async(id) => {
         _error.status = 404
         throw _error
     }
-
+    delete user[0].password
     return {usuario: user[0]}
+}
+
+const createHash = async(password) => {
+    return new Promise((resolve, reject) => {
+        bcrypt.hash(password, 10, (err, hash) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(hash);
+            }
+        });
+    });
 }
 
 const createUser = async (newUser,institutionId) => {
@@ -43,14 +56,11 @@ const createUser = async (newUser,institutionId) => {
         }
     }
 
-    /*
-    const institution_name = await knex('instituciones').select('nombre').where({id: institutionId})
-    console.log(institution_name)
-    newUser.institucion_origen = Object.values(institution_name[0])[0]*/
-
+    newUser.password = await createHash(newUser.password)
     const insertId = await knex('evaluadores').insert(newUser)
+    userId = insertId[0]
     await linkUserToInstitution(newUser.dni,institutionId,insertId)
-    return await getOneUser(insertId[0])
+    return await getOneUser(userId)
 }
 
 const getUserByDni = async (dni) => {
@@ -61,7 +71,7 @@ const getUserByDni = async (dni) => {
         _error.status = 404
         throw _error
     }
-
+    delete user[0].password
     return user[0]
 }
 
