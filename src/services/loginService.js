@@ -39,7 +39,7 @@ const login = async (mail,password) => {
         mail: user.email
     }
 
-    const token = jwt.sign(userForToken, process.env.SECRET || '1234')
+    const token = jwt.sign(userForToken, process.env.SECRET || 'clave')
     return { token: token}
 }
 
