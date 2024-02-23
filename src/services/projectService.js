@@ -6,6 +6,8 @@ const getAllProjects = async (id_institucion) => {
 
   for (let i = 0; i < proyectos.length; i++) {
     proyectos[i].participantes = await getParticipants(proyectos[i].id)
+    proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
+    console.log(proyectos[i])
   }
 
   /* no se si estoy quemado o que, pero no pude hacer andar esto asi que use el for de arriba
@@ -26,6 +28,7 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
     .where({ id: id_proyecto });
 
   const participants = await getParticipants(id_proyecto, queryBuilder)
+  const participating_insts = await getInstParticipants(id_proyecto, queryBuilder)
 
   if (!project[0]) {
     const _error = new Error('There is no project with the provided id')
@@ -39,7 +42,7 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
     throw _error
   }
 
-  return { proyecto: project[0], participantes: participants };
+  return { proyecto: project[0], participantes: participants, instituciones_participantes: participating_insts };
 }
 
 const getParticipants = async (id_proyecto, trx = null) => {
@@ -52,9 +55,19 @@ const getParticipants = async (id_proyecto, trx = null) => {
   return participantes;
 }
 
+const getInstParticipants = async (id_proyecto, trx = null) => {
+  const queryBuilder = trx || knex;
+  const participaciones = await queryBuilder('participacion_instituciones')
+  .join('instituciones', 'participacion_instituciones.id_institucion', 'instituciones.id')
+  .select('nombre as institucion','rol')
+  .where('participacion_instituciones.id_proyecto', id_proyecto)
+  //console.log(participaciones)
+  return participaciones
+}
+
 const getProjectsByUser = async (id_usuario) => {
   const proyectos = await knex('evaluadores_x_proyectos').join('proyectos', 'evaluadores_x_proyectos.id_proyecto', 'proyectos.id').select().where({ id_evaluador: id_usuario })
-  return proyectos
+  return {proyectos: proyectos}
 }
 
 const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
@@ -112,7 +125,19 @@ const unassignEvaluador = async (id_evaluador, id_proyecto) => {
   return;
 }
 
-const createProject = async (id_institucion, proyecto) => {
+const assignInstitutionRoles = async (id_proyecto, roles, trx) => {
+  roles.forEach( async (element) => {
+    // hay que verificar que no haya mas de un ¿demandante?
+    const participacion = {
+      id_proyecto: id_proyecto,
+      id_institucion: element.institucion_id,
+      rol: element.rol
+    }
+    await trx('participacion_instituciones').insert(participacion)
+  })
+}
+
+const createProject = async (id_institucion, proyecto, roles) => {
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
@@ -122,6 +147,7 @@ const createProject = async (id_institucion, proyecto) => {
 
   const result = await knex.transaction(async (trx) => {
     const insertId = await trx.insert(proyecto).into(TABLE)
+    await assignInstitutionRoles(insertId[0],roles,trx)
     await assignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
     return newProject

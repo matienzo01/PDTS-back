@@ -91,7 +91,7 @@ CREATE TABLE proyectos (
     FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id)
 );
 
-CREATE TABLE participación_instituciones(
+CREATE TABLE participacion_instituciones(
     id_proyecto INT,
     id_institucion INT,
     rol varchar(255), -- ejecutora, financiadora, adoptante, demandante o promotora

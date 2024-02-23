@@ -60,7 +60,8 @@ const createProject = async (req, res) => {
     !proyecto.grado_pertinencia ||
     !proyecto.grado_demanda ||
     !proyecto.obligatoriedad_proposito ||
-    !proyecto.obligatoriedad_opinion) {
+    !proyecto.obligatoriedad_opinion ||
+    !proyecto.roles) {
 
     res.status(400).send({
       status: 'FAILED',
@@ -70,7 +71,9 @@ const createProject = async (req, res) => {
   }
 
   try {
-    res.status(200).json(await service.createProject(id_institucion, proyecto))
+    const roles = proyecto.roles
+    delete proyecto.roles
+    res.status(200).json(await service.createProject(id_institucion, proyecto, roles))
   } catch (error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
