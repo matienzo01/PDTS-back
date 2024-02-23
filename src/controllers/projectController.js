@@ -127,8 +127,8 @@ const assignEvaluador = async (req, res) => {
 
 }
 
-const getParticipants = async(req,res) => {
-  const { params: { id_institucion, id_proyecto }} = req
+const getParticipants = async (req, res) => {
+  const { params: { id_institucion, id_proyecto } } = req
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
@@ -139,14 +139,14 @@ const getParticipants = async(req,res) => {
   }
 
   try {
-    res.status(200).json({participantes: await service.getParticipants(id_proyecto)})
+    res.status(200).json({ participantes: await service.getParticipants(id_proyecto) })
   } catch (error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
   }
 }
 
-const unassignEvaluador = async (req,res) => {
+const unassignEvaluador = async (req, res) => {
   const { params: { id_institucion, id_proyecto, id_evaluador } } = req
 
   if (isNaN(id_institucion)) {
@@ -170,6 +170,21 @@ const unassignEvaluador = async (req,res) => {
   }
 }
 
+const getProjectsByUser = async (req, res) => {
+  const { params: { id_usuario } } = req
+
+  if (isNaN(id_usuario)) {
+    res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
+  }
+
+  try {
+    res.status(200).json(await service.getProjectsByUser(id_usuario))
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+}
+
 module.exports = {
   getAllProjects,
   getOneProject,
@@ -177,5 +192,6 @@ module.exports = {
   deleteProject,
   assignEvaluador,
   unassignEvaluador,
-  getParticipants
+  getParticipants,
+  getProjectsByUser
 }

@@ -25,7 +25,7 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
     .select()
     .where({ id: id_proyecto });
 
-  const participants = await getParticipants(id_proyecto,queryBuilder)
+  const participants = await getParticipants(id_proyecto, queryBuilder)
 
   if (!project[0]) {
     const _error = new Error('There is no project with the provided id')
@@ -48,8 +48,13 @@ const getParticipants = async (id_proyecto, trx = null) => {
     .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
     .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
     .where({ id_proyecto: id_proyecto })
-  
+
   return participantes;
+}
+
+const getProjectsByUser = async (id_usuario) => {
+  const proyectos = await knex('evaluadores_x_proyectos').join('proyectos', 'evaluadores_x_proyectos.id_proyecto', 'proyectos.id').select().where({ id_evaluador: id_usuario })
+  return proyectos
 }
 
 const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
@@ -74,8 +79,8 @@ const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_
     rol: rol
   }
 
-  await getOneProject(id_proyecto,null,trx)
-  
+  await getOneProject(id_proyecto, null, trx)
+
   if (!await userBelongsToInstitution(id_evaluador, id_institucion)) {
     const _error = new Error('The user is not associated with the institution that owns the project')
     _error.status = 409
@@ -97,14 +102,14 @@ const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_
 
 }
 
-const unassignEvaluador = async(id_evaluador, id_proyecto) => {
+const unassignEvaluador = async (id_evaluador, id_proyecto) => {
   //habria que ver de no eliminar al evaluador director
-  if (!await knex('evaluadores_x_proyectos').del().where({id_evaluador, id_proyecto})){
+  if (!await knex('evaluadores_x_proyectos').del().where({ id_evaluador, id_proyecto })) {
     const _error = new Error('The user is not assigned to this project')
     _error.status = 404
     throw _error
   }
-return ;
+  return;
 }
 
 const createProject = async (id_institucion, proyecto) => {
@@ -126,8 +131,8 @@ const createProject = async (id_institucion, proyecto) => {
 }
 
 const deleteProject = async (id_institucion, id_proyecto) => {
-  await getOneProject(id_proyecto,id_institucion)
-  
+  await getOneProject(id_proyecto, id_institucion)
+
   await knex.transaction(async (trx) => {
     // 1) eliminar las respuestas de los evaluadores
     await trx('respuestas_evaluacion').del().where({ id_proyecto })
@@ -154,5 +159,6 @@ module.exports = {
   deleteProject,
   assignEvaluador,
   unassignEvaluador,
-  getParticipants
+  getParticipants,
+  getProjectsByUser
 }
