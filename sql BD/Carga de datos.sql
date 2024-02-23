@@ -425,7 +425,7 @@ INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_ev
 
 UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 2 AND id_evaluador = 1;
 
-insert INTO participación_instituciones(id_proyecto,id_institucion,rol) VALUES
+insert INTO participacion_instituciones(id_proyecto,id_institucion,rol) VALUES
     (1,1,'Ejecutora'),
     (1,1,'Promotora'),
     (1,1,'Demandante'),
