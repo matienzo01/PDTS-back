@@ -19,15 +19,15 @@ const getAllInstitutionUsers = async (id_institucion) => {
 }
 
 const getOneUser = async(id) => {
-    const user = await knex('evaluadores').select().where({id})
+    const user = await knex('evaluadores').select().where({id}).first()
 
-    if (!user[0]) {
+    if (!user) {
         const _error = new Error('There is no user with the provided id')
         _error.status = 404
         throw _error
     }
     delete user[0].password
-    return {usuario: user[0]}
+    return {usuario: user}
 }
 
 const createHash = async(password) => {
@@ -65,15 +65,15 @@ const createUser = async (newUser,institutionId) => {
 }
 
 const getUserByDni = async (dni) => {
-    const user = await knex('evaluadores').select().where({dni})
+    const user = await knex('evaluadores').select().where({dni}).first()
 
-    if (!user[0]) {
+    if (!user) {
         const _error = new Error('There is no user with the provided dni')
         _error.status = 404
         throw _error
     }
-    delete user[0].password
-    return user[0]
+    delete user.password
+    return user
 }
 
 const linkUserToInstitution = async(userDni, institutionId, userId = null) => {

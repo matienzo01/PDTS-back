@@ -8,6 +8,7 @@ router
     .get('/dimensiones/:id_dimension', dimensionController.getOneDimension)
     .post('/dimensiones', dimensionController.createDimension)
     .delete('/dimensiones/:id_dimension', dimensionController.deleteDimension)
+    .put('/dimensiones/:id_dimension', dimensionController.updateDimension)
 
     .get('/indicadores', indicatorcontroller.getAllIndicators)
     .get('/indicadores/:id_indicador', indicatorcontroller.getOneIndicator)

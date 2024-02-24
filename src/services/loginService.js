@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 const login = async (mail,password) => {
     
     const tablesToCheck = [
-        { tableName: 'admin', id: 1, columns: ['email', 'password'] },
+        { tableName: 'admin', columns: ['email', 'password'] },
         { tableName: 'admins_cyt', columns: ['id', 'email', 'password'] },
         { tableName: 'evaluadores', columns: ['id', 'email', 'password'] }
     ];

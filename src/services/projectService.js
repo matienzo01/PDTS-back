@@ -7,16 +7,7 @@ const getAllProjects = async (id_institucion) => {
   for (let i = 0; i < proyectos.length; i++) {
     proyectos[i].participantes = await getParticipants(proyectos[i].id)
     proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
-    console.log(proyectos[i])
   }
-
-  /* no se si estoy quemado o que, pero no pude hacer andar esto asi que use el for de arriba
-  proyectos.forEach(async (proyecto) => {
-    proyecto.participantes = await knex('evaluadores_x_proyectos')
-      .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
-      .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
-      .where({ id_proyecto: proyecto.id })
-  })*/
   return { proyectos: proyectos }
 }
 
@@ -25,24 +16,25 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
 
   const project = await queryBuilder(TABLE)
     .select()
-    .where({ id: id_proyecto });
+    .where({ id: id_proyecto })
+    .first();
 
   const participants = await getParticipants(id_proyecto, queryBuilder)
   const participating_insts = await getInstParticipants(id_proyecto, queryBuilder)
 
-  if (!project[0]) {
+  if (!project) {
     const _error = new Error('There is no project with the provided id')
     _error.status = 404
     throw _error
   }
 
-  if (id_institucion && project[0].id_institucion != id_institucion) {
+  if (id_institucion && project.id_institucion != id_institucion) {
     const _error = new Error('The project is not linked to the institution')
     _error.status = 403
     throw _error
   }
 
-  return { proyecto: { ...project[0], participantes: participants, instituciones_participantes: participating_insts } };
+  return { proyecto: { ...project, participantes: participants, instituciones_participantes: participating_insts } };
 }
 
 const getParticipants = async (id_proyecto, trx = null) => {
@@ -61,7 +53,6 @@ const getInstParticipants = async (id_proyecto, trx = null) => {
     .join('instituciones', 'participacion_instituciones.id_institucion', 'instituciones.id')
     .select('nombre as institucion', 'rol')
     .where('participacion_instituciones.id_proyecto', id_proyecto)
-  //console.log(participaciones)
   return participaciones
 }
 
@@ -72,16 +63,15 @@ const getProjectsByUser = async (id_usuario) => {
 
 const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
 
-  const inst = await knex('instituciones_cyt').select().where({ id: id_institucion })
-  if (inst[0] === undefined) {
+  const inst = await knex('instituciones_cyt').select().where({ id: id_institucion }).first()
+  if (inst === undefined) {
     const _error = new Error('There is no institution with the provided id')
     _error.status = 404
     throw _error
   }
-  const a = await knex('evaluadores_x_instituciones').select().where({ id_institucion, id_evaluador })
-
-  return a[0] === undefined ? false : true
-
+  return await knex('evaluadores_x_instituciones').select().where({ id_institucion, id_evaluador }).first() === undefined
+    ? false 
+    : true
 }
 
 const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_carga, rol, trx = null) => {

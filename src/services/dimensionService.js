@@ -7,13 +7,13 @@ const getAllDimensions = async (id_instancia) => {
 }
 
 const getOneDimension = async(id) => { 
-    const dim = await knex.select().where({id}).from(TABLE)
-    if(dim[0]   === undefined) {
+    const dim = await knex.select().where({id}).from(TABLE).first();
+    if(dim === undefined) {
         const _error = new Error('There is no dimension with the provided id ')
         _error.status = 404
         throw _error
     }
-    return {dimension: dim[0]}
+    return {dimension: dim}
 }
 
 const createDimension = async (dimension) => {
@@ -35,9 +35,15 @@ const deleteDimension = async (id) => {
     return ;
 }
 
+const updateDimension = async (id, updatedFields ) => {
+    await knex(TABLE).where({ id: id }).update(updatedFields)
+    return await getOneDimension(id)
+}
+
 module.exports = {
     getAllDimensions,
     getOneDimension,
     createDimension,
-    deleteDimension
+    deleteDimension,
+    updateDimension
 }

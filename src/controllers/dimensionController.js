@@ -67,9 +67,28 @@ const deleteDimension = async (req,res) => {
     }
 }
 
+const updateDimension = async (req,res) => {
+    const { params: { id_dimension } } = req
+    const {dimension} = req.body
+
+    if (isNaN(id_dimension)) {
+        res.status(400).json({ error: "Parameter ':id_dimension' should be a number"})
+        return ;
+    }
+    
+    try {
+        res.status(200).json(await service.updateDimension(id_dimension,dimension))
+    } catch (error) {
+        const statusCode = error.status || 500
+        const message = error.status ? error.message : 'Error deleting the dimension'
+        res.status(statusCode).json({ error: message})
+    }
+}
+
 module.exports = {
     getAllDimensions,
     getOneDimension,
     createDimension,
-    deleteDimension
+    deleteDimension,
+    updateDimension
 }

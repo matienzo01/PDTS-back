@@ -53,7 +53,8 @@ const createIndicator = async(req,res) => {
 
     try {
         res.status(201).json(await service.createIndicator(indicador))
-    } catch {
+    } catch (error){
+        console.log(error)
         const statusCode = error.status || 500
         const message = error.status ? error.message : 'Error creating the indicator'
         res.status(statusCode).json({ error: message})

@@ -17,14 +17,15 @@ const getAllIndicators = async(id_instancia, id_dimension) => {
     return { indicadores: await query };    
 }
 
-const getOneIndicator = async(id) => {
-    const indicator = await knex(TABLE).select().where({id})
-    if(indicator[0]   === undefined) {
+const getOneIndicator = async(id,trx = null) => {
+    const queryBuilder = trx || knex
+    const indicator = await queryBuilder(TABLE).select().where({id}).first();
+    if(indicator   === undefined) {
         const _error = new Error('There is no indicator with the provided id ')
         _error.status = 404
         throw _error
     }
-    return {indicador: indicator[0]}
+    return {indicador: indicator}
 }
 
 const createIndicator = async(indicator) => {
@@ -35,12 +36,21 @@ const createIndicator = async(indicator) => {
         id_dimension: indicator.id_dimension,
         determinante: indicator.determinante,
     }
-
-    const insertId = parseInt(await knex(TABLE).insert(newIndicator))
+    try {
+        return await knex.transaction(async(trx) => {
+            const indicator_id = parseInt(await trx(TABLE).insert(newIndicator))
+            //aca habria que agregar una pregunta a la encuesta de opinion con el indicador insertado
+            return await getOneIndicator(indicator_id,trx) 
+        })
+    } catch (error) {
+        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+            const _error = new Error('There is no dimension with the provided id')
+            _error.status = 404
+            throw _error
+        }
+        throw error;
+    }
     
-    //aca habria que agregar una pregunta a la encuesta de opinion con el indicador insertado
-
-    return await getOneIndicator(insertId) 
 }
 
 const deleteIndicator = async(id) => {
