@@ -42,7 +42,7 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
     throw _error
   }
 
-  return { proyecto: project[0], participantes: participants, instituciones_participantes: participating_insts };
+  return { proyecto: { ...project[0], participantes: participants, instituciones_participantes: participating_insts } };
 }
 
 const getParticipants = async (id_proyecto, trx = null) => {
@@ -58,16 +58,16 @@ const getParticipants = async (id_proyecto, trx = null) => {
 const getInstParticipants = async (id_proyecto, trx = null) => {
   const queryBuilder = trx || knex;
   const participaciones = await queryBuilder('participacion_instituciones')
-  .join('instituciones', 'participacion_instituciones.id_institucion', 'instituciones.id')
-  .select('nombre as institucion','rol')
-  .where('participacion_instituciones.id_proyecto', id_proyecto)
+    .join('instituciones', 'participacion_instituciones.id_institucion', 'instituciones.id')
+    .select('nombre as institucion', 'rol')
+    .where('participacion_instituciones.id_proyecto', id_proyecto)
   //console.log(participaciones)
   return participaciones
 }
 
 const getProjectsByUser = async (id_usuario) => {
   const proyectos = await knex('evaluadores_x_proyectos').join('proyectos', 'evaluadores_x_proyectos.id_proyecto', 'proyectos.id').select().where({ id_evaluador: id_usuario })
-  return {proyectos: proyectos}
+  return { proyectos: proyectos }
 }
 
 const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
@@ -126,7 +126,7 @@ const unassignEvaluador = async (id_evaluador, id_proyecto) => {
 }
 
 const assignInstitutionRoles = async (id_proyecto, roles, trx) => {
-  roles.forEach( async (element) => {
+  roles.forEach(async (element) => {
     // hay que verificar que no haya mas de un ¿demandante?
     const participacion = {
       id_proyecto: id_proyecto,
@@ -147,7 +147,7 @@ const createProject = async (id_institucion, proyecto, roles) => {
 
   const result = await knex.transaction(async (trx) => {
     const insertId = await trx.insert(proyecto).into(TABLE)
-    await assignInstitutionRoles(insertId[0],roles,trx)
+    await assignInstitutionRoles(insertId[0], roles, trx)
     await assignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
     return newProject
