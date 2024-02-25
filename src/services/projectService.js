@@ -70,7 +70,7 @@ const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
     throw _error
   }
   return await knex('evaluadores_x_instituciones').select().where({ id_institucion, id_evaluador }).first() === undefined
-    ? false 
+    ? false
     : true
 }
 
@@ -102,7 +102,7 @@ const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_
       throw error
     }
   }
-
+  return { ...data };
 }
 
 const unassignEvaluador = async (id_evaluador, id_proyecto) => {
