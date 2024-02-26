@@ -1,5 +1,6 @@
 const knex = require('../database/knex')
 const bcrypt = require('bcrypt')
+const mailer = require('./mailer')
 
 const getAllInstitutionUsers = async (id_institucion) => {
 
@@ -33,7 +34,6 @@ const getOneUser = async (id) => {
 const createHash = async (password) => {
   return new Promise((resolve, reject) => {
     bcrypt.hash(password, 10, (err, hash) => {
-      console.log(hash)
       if (err) {
         reject(err);
       } else {
@@ -46,8 +46,7 @@ const createHash = async (password) => {
 const createUser = async (newUser, institutionId) => {
 
   try {
-    const user = await getUserByDni(newUser.dni) //si no existe, va a tirar un 404. por lo que si pasa
-    //de esta linea ya existe un usuario con ese dni
+    await getUserByDni(newUser.dni) // debe dar un 404 para asegurarnos de que no exista previamente el usuario
     const _error = new Error('There is already a user with that DNI')
     _error.status = 409
     throw _error
@@ -56,11 +55,12 @@ const createUser = async (newUser, institutionId) => {
       throw error
     }
   }
-
-  newUser.password = await createHash(newUser.password)
+  const oldpass = newUser.password
+  newUser.password = await createHash(oldpass)
   const insertId = await knex('evaluadores').insert(newUser)
   userId = insertId[0]
   await linkUserToInstitution(newUser.dni, institutionId, insertId)
+  //mailer.newUser(newUser, oldpass)
   return await getOneUser(userId)
 }
 
