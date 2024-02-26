@@ -4,16 +4,15 @@ const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
 
 const getOneInstitucionCYT = async (id) => {
 
-  const [tipos_inst,inst] = await Promise.all([
+  const [tipos_inst, inst] = await Promise.all([
     knex('tipos_instituciones').select(),
     knex(TABLE_INSTITUCIONES)
       .select('*')
       .innerJoin(TABLE_INSTITUCIONES_CYT, 'instituciones.id', 'instituciones_cyt.id')
-      .where('instituciones.id',id)
+      .where('instituciones.id', id)
       .first()
   ])
 
-  console.log(inst)
   if (inst === undefined) {
     const _error = new Error('There is no institution with that id')
     _error.status = 404
@@ -26,11 +25,11 @@ const getOneInstitucionCYT = async (id) => {
     delete inst.id_tipo;
   }
 
-  return {institucion_CYT: inst}
+  return { institucion_CYT: inst }
 }
 
 const getAllInstitucionesCYT = async () => {
-  const [tipos_inst,inst] = await Promise.all([
+  const [tipos_inst, inst] = await Promise.all([
     knex('tipos_instituciones').select(),
     knex(TABLE_INSTITUCIONES)
       .select('*')
@@ -44,24 +43,26 @@ const getAllInstitucionesCYT = async () => {
       delete institucion.id_tipo;
     }
   });
-  return {instituciones_CYT: inst}
+  return { instituciones_CYT: inst }
 }
 
-const getTiposInstituciones = async() => {
+const getTiposInstituciones = async () => {
   const tipos = await knex('tipos_instituciones').select()
-  return {tipos: tipos}
+  return { tipos: tipos }
 }
 
 const createInstitucionCYT = async (newAdmin, institucion) => {
 
   const exists = await knex(TABLE_INSTITUCIONES).select()
-    .where({nombre: institucion.nombre,
-            pais: institucion.pais,
-            provincia: institucion.provincia,
-            localidad: institucion.localidad})
+    .where({
+      nombre: institucion.nombre,
+      pais: institucion.pais,
+      provincia: institucion.provincia,
+      localidad: institucion.localidad
+    })
 
   if (exists[0] === undefined) //no existe todavia la institucion
-  { 
+  {
     const id_inst = await knex.transaction(async (trx) => {
       const adminId = (await trx('admins_cyt').insert(newAdmin))[0];
 
@@ -99,8 +100,8 @@ const createInstitucionCYT = async (newAdmin, institucion) => {
 
 const deleteInstitucionCYT = async (id) => {
   knex.transaction(async (trx) => {
-    const {id_admin} = await trx(TABLE_INSTITUCIONES_CYT).select('id_admin').where({id}).first()
-    await trx(TABLE_INSTITUCIONES_CYT).where({id}).del()
+    const { id_admin } = await trx(TABLE_INSTITUCIONES_CYT).select('id_admin').where({ id }).first()
+    await trx(TABLE_INSTITUCIONES_CYT).where({ id }).del()
     await trx(TABLE_INSTITUCIONES).where({ id }).del()
     await trx('admins_cyt').where({ id: id_admin }).del()
   })
