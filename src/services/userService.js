@@ -1,6 +1,7 @@
 const knex = require('../database/knex')
 const bcrypt = require('bcrypt')
 const mailer = require('./mailer')
+const TABLE_EVALUADORES = 'evaluadores'
 
 const getAllInstitutionUsers = async (id_institucion) => {
 
@@ -9,7 +10,7 @@ const getAllInstitutionUsers = async (id_institucion) => {
     .where({ id_institucion: id_institucion })
 
   const arrayIds = ids.map(row => row.id_evaluador);
-  const users = await knex('evaluadores')
+  const users = await knex(TABLE_EVALUADORES)
     .whereIn('id', arrayIds)
 
   users.forEach(user => {
@@ -19,8 +20,9 @@ const getAllInstitutionUsers = async (id_institucion) => {
   return { users: users }
 }
 
-const getOneUser = async (id) => {
-  const user = await knex('evaluadores').select().where({ id }).first()
+const getOneUser = async (id, trx = null) => {
+  const queryBuilder = trx || knex
+  const user = await queryBuilder(TABLE_EVALUADORES).select().where({ id }).first()
 
   if (!user) {
     const _error = new Error('There is no user with the provided id')
@@ -55,17 +57,20 @@ const createUser = async (newUser, institutionId) => {
       throw error
     }
   }
-  const oldpass = newUser.password
-  newUser.password = await createHash(oldpass)
-  const insertId = await knex('evaluadores').insert(newUser)
-  userId = insertId[0]
-  await linkUserToInstitution(newUser.dni, institutionId, insertId)
-  //mailer.sendNewUser(newUser, oldpass)
-  return await getOneUser(userId)
+
+  return await knex.transaction(async(trx) => {
+    const oldpass = newUser.password
+    newUser.password = await createHash(oldpass)
+    const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0]
+    await linkUserToInstitution(newUser.dni, institutionId, insertId, trx)
+    //mailer.sendNewUser(newUser, oldpass)
+    return await getOneUser(insertId, trx)
+  })
+  
 }
 
 const getUserByDni = async (dni) => {
-  const user = await knex('evaluadores').select().where({ dni }).first()
+  const user = await knex(TABLE_EVALUADORES).select().where({ dni }).first()
 
   if (!user) {
     const _error = new Error('There is no user with the provided dni')
@@ -76,7 +81,8 @@ const getUserByDni = async (dni) => {
   return user
 }
 
-const linkUserToInstitution = async (userDni, institutionId, userId = null) => {
+const linkUserToInstitution = async (userDni, institutionId, userId = null, trx = null) => {
+  const queryBuilder = trx || knex
   let evaluatorId = userId;
   let user
 
@@ -86,7 +92,7 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null) => {
   }
 
   try {
-    await knex('evaluadores_x_instituciones')
+    await queryBuilder('evaluadores_x_instituciones')
       .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
   } catch (error) {
     console.log(error);
@@ -103,9 +109,15 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null) => {
     return { usuario: user }
 }
 
+const updateUser = async(id, user) => {
+  await knex(TABLE_EVALUADORES).where({ id: id }).update(user)
+  return await getOneUser(id)
+}
+
 module.exports = {
   getAllInstitutionUsers,
   getUserByDni,
   createUser,
-  linkUserToInstitution
+  linkUserToInstitution,
+  updateUser
 }

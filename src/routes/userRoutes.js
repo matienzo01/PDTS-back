@@ -7,6 +7,7 @@ const project_controller = require('../controllers/projectController.js')
 router
   .get('/:dni', user_controller.getUserByDni)
   .get('/:id_usuario/proyectos', project_controller.getProjectsByUser)
+  .put('/:id_usuario', user_controller.updateUser)
 
 
 module.exports = router

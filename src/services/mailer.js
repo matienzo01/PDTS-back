@@ -18,7 +18,7 @@ const sendNewUser = async(user, oldpass) => {
 A continuación, encontrarás algunos detalles importantes sobre tu nueva cuenta:
     
 Correo electrónico asociado: ${user.email}
-Contraseña provisional ${oldpass}
+Contraseña provisional: ${oldpass}
     
 Te recordamos que tu seguridad es nuestra prioridad. Por favor, asegúrate de mantener tus credenciales de inicio de sesión de forma segura y no compartirlas con terceros. Recomendamos encarecidamente que actualices tu contraseña en tu primera sesión por razones de seguridad. Puedes hacerlo accediendo a la sección de configuración de tu cuenta una vez que inicies sesión.`
     sendMail(user.email, subject, text)
