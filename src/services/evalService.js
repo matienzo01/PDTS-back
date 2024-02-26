@@ -1,4 +1,3 @@
-const gen_consulta = require('../database/gen_consulta')
 const knex = require('../database/knex.js')
 const service_projects = require('../services/projectService')
 
@@ -56,14 +55,15 @@ const getProjectSurvey = async () => {
   const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg] = await Promise.all([
     knex('tipo_preguntas').select(),
     knex('opciones').select(),
-    gen_consulta._call('obtener_Opinion'),
+    knex.raw('CALL obtener_Opinion()'),
     knex('opciones_x_preguntas').select(),
     knex('relacion_subpregunta').select()
   ]);
 
   const transformedResult = [];
 
-  all_preguntas[0].forEach(item => {
+
+  all_preguntas[0][0].forEach(item => {
     if (item.id_seccion) {
       let section = transformedResult.findIndex(section => section.sectionId === item.id_seccion)
 
@@ -114,7 +114,7 @@ const getProjectSurvey = async () => {
 const getProjectEval = async (respuestas = null) => {
   const resultadosTransformados = {};
   const [indicadores, options, instancias] = await Promise.all([
-    gen_consulta._call('obtener_Evaluacion'),
+    knex.raw('CALL obtener_Evaluacion()'),
     knex('opciones_evaluacion').select(),
     knex('instancias').select()
   ])
@@ -136,7 +136,7 @@ const getProjectEval = async (respuestas = null) => {
     newOptions[element.id_instancia].push(newOption)
   })
 
-  indicadores[0].forEach(row => {
+  indicadores[0][0].forEach(row => {
 
     const dimension = {
       id_dimension: row.id_dimension,

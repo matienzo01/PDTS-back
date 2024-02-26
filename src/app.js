@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const database = require('./database/database.js')
 const routerParametrosFormularios = require('./routes/parametrosFormulariosRoutes.js')
 const routerEval = require('./routes/evalRoutes.js')
 const routerInstCYT = require('./routes/institutionCYTRoutes.js')
@@ -22,6 +21,5 @@ app.use('/api/instituciones', routerInst)
 app.use('/api/usuarios', routerUser)
 
 app.listen(PORT, () => {
-  database.connect_BD()
   console.log('funciona el server')
 })
