@@ -27,11 +27,13 @@ const createDimension = async (dimension) => {
 
 const deleteDimension = async (id) => {
 
-    if (!await knex(TABLE).del().where({id})){
-        const _error = new Error('There is no dimension with the provided id ')
-        _error.status = 404
-        throw _error
-    }
+    await knex.transaction(async(trx) => {
+        if (!await trx(TABLE).del().where({id})){
+            const _error = new Error('There is no dimension with the provided id ')
+            _error.status = 404
+            throw _error
+        }
+    })
     return ;
 }
 

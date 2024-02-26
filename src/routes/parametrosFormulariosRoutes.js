@@ -14,5 +14,6 @@ router
     .get('/indicadores/:id_indicador', indicatorcontroller.getOneIndicator)
     .post('/indicadores', indicatorcontroller.createIndicator)
     .delete('/indicadores/:id_indicador', indicatorcontroller.deleteIndicator)
+    .put('/indicadores/:id_indicador', indicatorcontroller.updateIndicator)
 
 module.exports = router

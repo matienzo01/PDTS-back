@@ -36,6 +36,7 @@ const createIndicator = async(indicator) => {
         id_dimension: indicator.id_dimension,
         determinante: indicator.determinante,
     }
+
     try {
         return await knex.transaction(async(trx) => {
             const indicator_id = parseInt(await trx(TABLE).insert(newIndicator))
@@ -63,9 +64,16 @@ const deleteIndicator = async(id) => {
     return ;
 }
 
+const updateIndicator = async (id, updatedFields ) => {
+    console.log(updatedFields)
+    await knex(TABLE).where({ id }).update(updatedFields)
+    return await getOneIndicator(id)
+}
+
 module.exports = {
     getAllIndicators,
     getOneIndicator,
     createIndicator,
-    deleteIndicator
+    deleteIndicator,
+    updateIndicator
 }

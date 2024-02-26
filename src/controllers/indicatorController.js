@@ -78,9 +78,24 @@ const deleteIndicator = async(req,res) => {
     }
 }
 
+const updateIndicator = async(req, res) => {
+    const { params: { id_indicador } } = req
+    const { indicador } = req.body
+    console.log(indicador, id_indicador)
+    try {
+        res.status(200).json(await service.updateIndicator(id_indicador, indicador))
+    } catch (error){
+        console.log(error)
+        const statusCode = error.status || 500
+        const message = error.status ? error.message : 'Error updating the indicator'
+        res.status(statusCode).json({ error: message})
+    }
+}
+
 module.exports = {
     getAllIndicators,
     getOneIndicator,
     createIndicator,
-    deleteIndicator
+    deleteIndicator,
+    updateIndicator
 }
