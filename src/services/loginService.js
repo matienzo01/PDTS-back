@@ -37,6 +37,7 @@ const login = async (mail, password) => {
   const userForToken = {
     id: user.id,
     mail: user.email,
+    rol: 'admin',
     institutionId: 1
   }
 
