@@ -60,7 +60,7 @@ const createUser = async (newUser, institutionId) => {
   const insertId = await knex('evaluadores').insert(newUser)
   userId = insertId[0]
   await linkUserToInstitution(newUser.dni, institutionId, insertId)
-  //mailer.newUser(newUser, oldpass)
+  //mailer.sendNewUser(newUser, oldpass)
   return await getOneUser(userId)
 }
 
