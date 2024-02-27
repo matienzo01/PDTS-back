@@ -276,5 +276,6 @@ const getUserEvaluationAnswers = async (id_proyecto, id_evaluador) => {
 module.exports = {
   getNextEval,
   postEval,
-  getUserEvaluationAnswers
+  getUserEvaluationAnswers,
+  getProjectSurvey
 }

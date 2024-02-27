@@ -1,11 +1,12 @@
-const service = require('../services/seccionService')
+const service = require('../services/sectionService')
 
 const getAllSecciones = async (req,res) => {
 
     try {
         res.status(200).json(await service.getAllSecciones())
     } catch(error){
-        res.status(500).json({ error: 'Error getting all dimensions'})
+        const statusCode = error.status || 500
+        res.status(statusCode).json({ error: error.message})
     }
 }
 

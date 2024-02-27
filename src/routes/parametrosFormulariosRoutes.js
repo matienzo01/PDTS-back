@@ -2,7 +2,8 @@ const express = require('express')
 const router = express.Router()
 const dimensionController = require('../controllers/dimensionController')
 const indicatorcontroller = require('../controllers/indicatorController')
-const seccionController = require('../controllers/seccionController')
+const seccionController = require('../controllers/sectionController')
+const questionController = require('../controllers/questionController')
 
 router
     .get('/dimensiones', dimensionController.getAllDimensions)
@@ -22,5 +23,11 @@ router
     .post('/secciones', seccionController.createSeccion)
     .delete('/secciones/:id_seccion', seccionController.deleteSeccion)
     .put('/secciones/:id_seccion', seccionController.updateSeccion)
+
+    .get('/preguntas_encuesta', questionController.getAllQuestions)
+    .get('/preguntas_encuesta/:id_pregunta', questionController.getOneQuestion)
+    .post('/preguntas_encuesta', questionController.creteQuestion)
+    .delete('/preguntas_encuesta/:id_pregunta', questionController.deleteQuestion)
+    .put('/preguntas_encuesta/:id_pregunta', questionController.updateQuestion)
 
 module.exports = router
