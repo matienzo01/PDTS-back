@@ -25,7 +25,14 @@ const getOneQuestion = async(req, res) => {
 }
 
 const creteQuestion = async(req, res) => {
+    const { pregunta } = req.body
 
+    try {
+        res.status(200).json(await service.creteQuestion(pregunta))
+    } catch(error){
+        const statusCode = error.status || 500
+        res.status(statusCode).json({ error: error.message})
+    }
 }
 
 const deleteQuestion = async(req, res) => {

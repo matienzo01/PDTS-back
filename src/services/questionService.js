@@ -9,15 +9,16 @@ const getAllQuestions = async(sectionId = null) => {
     return sections
 }
 
-const getOneQuestion = async(id) => {
-    const question = await knex('preguntas_seccion').where({id}).first()
-    const opciones = await knex('opciones')
+const getOneQuestion = async(id, trx = null) => {
+    const queryBuilder = trx || knex
+    const question = await queryBuilder('preguntas_seccion').where({id}).first()
+    const opciones = await queryBuilder('opciones')
         .join('opciones_x_preguntas', 'opciones_x_preguntas.id_opcion', 'opciones.id')
         .select('id_opcion','valor')
         .where({id_preguntas_seccion: question.id})
     if (question.id_seccion === null) {
         delete question.id_seccion
-        question.id_padre = (await knex('relacion_subpregunta')
+        question.id_padre = (await queryBuilder('relacion_subpregunta')
             .select('id_pregunta_padre')
             .where({id_subpregunta: question.id}))[0].id_pregunta_padre
     }
@@ -25,8 +26,34 @@ const getOneQuestion = async(id) => {
     return { question: question }
 }
 
-const creteQuestion = async() => {
+const creteQuestion = async(questionData) => {
+    const newQuestion = {
+        pregunta: questionData.pregunta,
+        id_seccion: questionData.id_seccion,
+        id_tipo_pregunta: questionData.id_tipo_pregunta
+    }
 
+    return knex.transaction( async(trx) => {
+        const insertId = (await trx('preguntas_seccion').insert(newQuestion))[0]
+        
+        if (!questionData.id_seccion) { // es subpregunta
+            const subpreg = {
+                id_pregunta_padre: questionData.id_padre,
+                id_subpregunta: insertId
+            }
+            await trx('relacion_subpregunta')
+            .insert({ id_pregunta_padre: questionData.id_padre, id_subpregunta: insertId })
+        }
+
+        if (questionData.id_tipo_pregunta == 1) { // opcion multiple
+            questionData.opciones.forEach(async(opcion) => {
+                await trx('opciones_x_preguntas')
+                .insert({ id_opcion: opcion.id_opcion, id_preguntas_seccion: insertId})
+            });
+        }
+
+        return await getOneQuestion(insertId, trx)
+    })
 }
 
 const deleteQuestion = async() => {

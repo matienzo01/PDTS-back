@@ -1,4 +1,5 @@
 const knex = require('../database/knex.js')
+const questionService = require('./questionService')
 const TABLE = 'indicadores'
 
 const getAllIndicators = async(id_instancia, id_dimension) => {
@@ -40,6 +41,20 @@ const createIndicator = async(indicator) => {
     try {
         return await knex.transaction(async(trx) => {
             const indicator_id = parseInt(await trx(TABLE).insert(newIndicator))
+
+            const question = {
+                pregunta: newIndicator.pregunta,
+                id_seccion: null,
+                id_padre: 6,
+                id_tipo_pregunta: 1,
+                opciones: [
+                    { id_opcion: 5},
+                    { id_opcion: 6},
+                    { id_opcion: 7},
+                    { id_opcion: 8}
+                ]
+            }
+            await questionService.creteQuestion(question)
             //aca habria que agregar una pregunta a la encuesta de opinion con el indicador insertado
             return await getOneIndicator(indicator_id,trx) 
         })
