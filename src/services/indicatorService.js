@@ -55,7 +55,6 @@ const createIndicator = async(indicator) => {
                 ]
             }
             await questionService.creteQuestion(question)
-            //aca habria que agregar una pregunta a la encuesta de opinion con el indicador insertado
             return await getOneIndicator(indicator_id,trx) 
         })
     } catch (error) {
@@ -70,7 +69,12 @@ const createIndicator = async(indicator) => {
 }
 
 const deleteIndicator = async(id) => {
-
+    /*
+    const fecha = new Date()
+    await knex(TABLE)
+        .where({ id })
+        .update({ fecha_elim: `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`})
+    */
     if (!await knex(TABLE).del().where({id})){
         const _error = new Error('There is no indicator with the provided id ')
         _error.status = 404
@@ -80,7 +84,6 @@ const deleteIndicator = async(id) => {
 }
 
 const updateIndicator = async (id, updatedFields ) => {
-    console.log(updatedFields)
     await knex(TABLE).where({ id }).update(updatedFields)
     return await getOneIndicator(id)
 }

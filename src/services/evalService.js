@@ -18,7 +18,7 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
 
   if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
     if (existe[0].fecha_fin_eval === null) { //el evaluador todavia no respondio la evaluacion del proyecto
-      const webform = await getProjectEval()
+      const webform = await getProjectEval(id_proyecto)
       return { tipo: 'evaluacion', ...webform }
     } else {
       if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
@@ -55,7 +55,15 @@ const getProjectSurvey = async () => {
   const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg] = await Promise.all([
     knex('tipo_preguntas').select(),
     knex('opciones').select(),
-    knex.raw('CALL obtener_Opinion()'),
+    knex.select(
+      'preguntas_seccion.id as id_pregunta',
+      'preguntas_seccion.pregunta as enunciado_pregunta',
+      'preguntas_seccion.id_seccion',
+      'secciones.nombre as nombre_seccion',
+      'preguntas_seccion.id_tipo_pregunta'
+    )
+      .from('preguntas_seccion')
+      .leftJoin('secciones', 'preguntas_seccion.id_seccion', 'secciones.id'),
     knex('opciones_x_preguntas').select(),
     knex('relacion_subpregunta').select()
   ]);
@@ -63,7 +71,7 @@ const getProjectSurvey = async () => {
   const transformedResult = [];
 
 
-  all_preguntas[0][0].forEach(item => {
+  all_preguntas.forEach(item => {
     if (item.id_seccion) {
       let section = transformedResult.findIndex(section => section.sectionId === item.id_seccion)
 
@@ -111,12 +119,26 @@ const getProjectSurvey = async () => {
   return { name: 'Encuesta de opinion', sections: transformedResult }
 }
 
-const getProjectEval = async (respuestas = null) => {
+const getProjectEval = async (id_proyecto, respuestas = null) => {
   const resultadosTransformados = {};
-  const [indicadores, options, instancias] = await Promise.all([
-    knex.raw('CALL obtener_Evaluacion()'),
+  const [indicadores, options, instancias, fecha_proyecto] = await Promise.all([
+    knex.select(
+      'i.id as id_indicador',
+      'i.pregunta',
+      'i.fundamentacion',
+      'd.id as id_dimension',
+      'd.nombre as nombre_dimension',
+      'ins.id as id_instancia',
+      'ins.nombre as nombre_instancia',
+      'i.determinante',
+      'i.fecha_elim'
+    )
+      .from('indicadores as i')
+      .join('dimensiones as d', 'i.id_dimension', 'd.id')
+      .join('instancias as ins', 'd.id_instancia', 'ins.id'),
     knex('opciones_evaluacion').select(),
-    knex('instancias').select()
+    knex('instancias').select(),
+    knex('proyectos').select('fecha_carga').where({ id: id_proyecto})
   ])
 
   const newOptions = {}
@@ -136,7 +158,10 @@ const getProjectEval = async (respuestas = null) => {
     newOptions[element.id_instancia].push(newOption)
   })
 
-  indicadores[0][0].forEach(row => {
+  indicadores.forEach(row => {
+    /*
+    if ( row.fecha_elim && fecha_proyecto[0].fecha_carga <= row.fecha_elim)
+      console.log(row.fecha_elim, fecha_proyecto[0].fecha_carga)*/
 
     const dimension = {
       id_dimension: row.id_dimension,
@@ -210,7 +235,8 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
   if (evaluado.length === 1) {
     if (evaluado[0].fecha_fin_eval === null) {
 
-      const cant_preguntas = await knex('indicadores').count('* as count').whereNull('fecha_elim')
+      // aca habria que verificar que la fecha de eliminacion sea null o que sea posterior a la carga del proyecto
+      const cant_preguntas = await knex('indicadores').count('* as count').whereNull('fecha_elim') //
 
       if (cant_preguntas[0].count === rawRespuestas.length) {
         respuestas = rawRespuestas.map(rta => {
@@ -270,7 +296,7 @@ const getUserEvaluationAnswers = async (id_proyecto, id_evaluador) => {
     throw _error
   }
 
-  return { rtas: await getProjectEval(rtas) };
+  return { rtas: await getProjectEval(id_proyecto, rtas) };
 }
 
 module.exports = {

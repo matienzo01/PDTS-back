@@ -9,7 +9,6 @@ const getNextEval = async (req, res) => {
     const { tipo, ...webform } = data
     res.status(200).json({ id_proyecto, type: tipo, webform })
   } catch (_error) {
-    console.log(_error);
     const statusCode = _error.status || 500
     res.status(statusCode).json({ error: _error.message })
   }
