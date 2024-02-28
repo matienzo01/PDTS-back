@@ -13,8 +13,9 @@ const authUser = (req, res, next) => {
         if (!token || !decodedToken.id) {
             res.status(401).json({ error: 'Token missing or invalid'})
         }
-    
-        req.body.id = decodedToken.id
+
+        req.body.id_usuario = decodedToken.id
+        req.body.rol = decodedToken.rol
         next();
     } catch (error) {
         res.status(401).json({ error: 'Token missing or invalid'})

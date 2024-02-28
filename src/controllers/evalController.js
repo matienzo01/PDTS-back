@@ -2,7 +2,7 @@ const service = require('../services/evalService')
 
 const getNextEval = async (req, res) => {
   const { params: { id_proyecto } } = req
-  const id_evaluador = req.body.id
+  const id_evaluador = req.body.id_usuario
 
   try {
     const data = await service.getNextEval(id_proyecto, id_evaluador)
@@ -16,8 +16,7 @@ const getNextEval = async (req, res) => {
 
 const postEval = async (req, res) => {
   const { respuestas, id_proyecto } = req.body
-  const id_evaluador = req.body.id
-  //const { id_evaluador } = req.body
+  const id_evaluador = req.body.id_usuario
   try {
     res.status(201).json(await service.postEval(id_proyecto, id_evaluador, respuestas))
   } catch (_error) {
