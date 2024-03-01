@@ -59,8 +59,8 @@ const createProject = async (req, res) => {
     !proyecto.grado_relevancia ||
     !proyecto.grado_pertinencia ||
     !proyecto.grado_demanda ||
-    !proyecto.obligatoriedad_proposito ||
-    !proyecto.obligatoriedad_opinion ||
+    !proyecto.hasOwnProperty('obligatoriedad_proposito') ||
+    !proyecto.hasOwnProperty('obligatoriedad_opinion') ||
     !proyecto.roles) {
 
     res.status(400).send({

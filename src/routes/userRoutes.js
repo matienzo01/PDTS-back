@@ -6,7 +6,7 @@ const authUser = require('../middlewares/authUser.js')
 const checkRol = require('../middlewares/checkRol.js')
 
 router
-  .get('/:dni',authUser, checkRol(['admin', 'admin general']), user_controller.getUserByDni)
+  .get('/:dni',authUser, checkRol(['evaluador', 'admin', 'admin general']), user_controller.getUserByDni)
   .get('/:id_usuario/proyectos',authUser, checkRol(['evaluador','admin','admin general']), project_controller.getProjectsByUser)
   .put('/:id_usuario',authUser, checkRol(['evaluador']), user_controller.updateUser)
 

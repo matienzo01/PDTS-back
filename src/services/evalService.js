@@ -1,3 +1,4 @@
+const res = require('express/lib/response.js')
 const knex = require('../database/knex.js')
 const service_projects = require('../services/projectService')
 
@@ -6,14 +7,8 @@ const verify_date = async (id_proyecto, id_evaluador) => {
     .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
 }
 
-const check_project = async (id_proyecto) => {
-  return await service_projects.getOneProject(id_proyecto)
-}
-
-
 const getNextEval = async (id_proyecto, id_evaluador) => {
-
-  await check_project(id_proyecto)
+  const { proyecto } = await service_projects.getOneProject(id_proyecto)
   const existe = await verify_date(id_proyecto, id_evaluador)
 
   if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
@@ -21,11 +16,11 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
       const webform = await getProjectEval(id_proyecto)
       return { tipo: 'evaluacion', ...webform }
     } else {
-      if (existe[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion
+      if (existe[0].fecha_fin_op === null && proyecto.obligatoriedad_opinion) { //el evaluador todavia no respondio la encuesta de opinion o no se debe responder
         const webform = await getProjectSurvey()
         return { tipo: 'opinion', ...webform }
       }
-      const _error = new Error('There is nothing more to answer for that user')
+      const _error = new Error('There is nothing more to answer')
       _error.status = 409
       throw _error
     }
@@ -175,20 +170,21 @@ const getProjectEval = async (id_proyecto, respuestas = null) => {
       fundamentacion: row.fundamentacion,
       determinante: row.determinante
     };
-
+    
     if (respuestas) {
-      for (var i = 0; i < respuestas.length; i++) {
-        if (respuestas[i].id_indicador === indicador.id_indicador) {
-          indicador.respuesta = {
-            id: mapOptionsId.get(respuestas[i].respuesta.toLowerCase()),
-            option: respuestas[i].respuesta,
-            value: respuestas[i].calificacion
-          }
-          respuestas.splice(i, 1) //elimino el elemento del array para reducir las iteraciones a posterior
-        }
-      }
-    }
+      indicador.respuestas = respuestas.filter(rta => {
+        return rta.id_indicador === indicador.id_indicador;
+      })
 
+      indicador.respuestas.forEach(respuesta => {
+        respuesta.option = respuesta.respuesta
+        respuesta.value = respuesta.calificacion
+        delete respuesta.respuesta
+        delete respuesta.calificacion
+        delete respuesta.id_indicador
+      })
+
+    }
     // Verificar si la dimensión ya existe en el objeto resultadosTransformados
     if (resultadosTransformados[row.nombre_instancia]) {
       // Verificar si la dimensión ya existe en la instancia
@@ -226,6 +222,7 @@ const getProjectEval = async (id_proyecto, respuestas = null) => {
 }
 
 const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
+  const { proyecto } = await service_projects.getOneProject(id_proyecto)
   const evaluado = await verify_date(id_proyecto, id_evaluador)
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
@@ -262,7 +259,7 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
       }
 
     } else { // aca se entraria si fueran las repsuestas de la opinion
-      if (evaluado[0].fecha_fin_op === null) { //el evaluador todavia no respondio la encuesta de opinion+
+      if (evaluado[0].fecha_fin_op === null && proyecto.obligatoriedad_opinion) { //el evaluador todavia no respondio la encuesta de opinion+
         respuestas = rawRespuestas.map(rta => {
           return {
             id_pregunta: rta.id_indicador,
@@ -287,16 +284,31 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
 
 }
 
-const getUserEvaluationAnswers = async (id_proyecto, id_evaluador) => {
-  const rtas = await knex('respuestas_evaluacion').select('id_indicador', 'respuesta', 'calificacion').where({ id_evaluador, id_proyecto })
+const getRtas = async(arrayIdsEvaluadores, id_proyecto) => {
+  const rtas = await knex('respuestas_evaluacion')
+    .select('id_evaluador','id_indicador', 'respuesta', 'calificacion')
+    .where({ id_proyecto })
+    .whereIn('id_evaluador', arrayIdsEvaluadores)
 
-  if (rtas[0] === undefined) {
-    const _error = new Error('There are no answers from that user for that project')
-    _error.status = 404
-    throw _error
+  if (rtas[0] !== undefined) {
+    return { respuestas: await getProjectEval(id_proyecto, rtas) }
   }
+  return { respuestas: []}
+}
 
-  return { rtas: await getProjectEval(id_proyecto, rtas) };
+const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
+  if (rol === 'admin'){
+    const arrayIds = []
+    const participantes  = await service_projects.getParticipants(id_proyecto)
+    participantes.forEach( async(participante) => {
+      arrayIds.push(participante.id)
+    })
+    return { respuestas: await getRtas(arrayIds, id_proyecto)}
+
+  } else if (rol === 'evaluador') {
+    return { respuestas: await getRtas([id_evaluador], id_proyecto) };
+  }
+    
 }
 
 module.exports = {
