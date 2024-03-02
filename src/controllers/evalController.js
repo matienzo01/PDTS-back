@@ -1,4 +1,5 @@
 const service = require('../services/evalService')
+const pdfService = require('../services/pdfService')
 
 const getNextEval = async (req, res) => {
   const { params: { id_proyecto } } = req
@@ -49,8 +50,23 @@ const getUserEvaluationAnswers = async (req, res) => {
 
 }
 
+const generatePDF = async (req, res) => {
+  const { params: { id_proyecto } } = req
+  
+  try {
+    const pdfBuffer = await pdfService.generatePDF();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
+    res.send(pdfBuffer); 
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+};
+
 module.exports = {
   getNextEval,
   postEval,
-  getUserEvaluationAnswers
+  getUserEvaluationAnswers,
+  generatePDF
 }
