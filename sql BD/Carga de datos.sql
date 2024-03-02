@@ -423,6 +423,33 @@ INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_ev
 	(2,3,'director',NOW()),
     (2,1,'evaluador',NOW());
 
+
+INSERT INTO respuestas_evaluacion (id_proyecto, id_evaluador, id_indicador, respuesta, calificacion) VALUES
+    (2,1,1, 'No cumple', 0),
+    (2,1,2, 'No cumple', 0),
+    (2,1,3, 'cumple parcial', 0.5),
+    (2,1,4, 'cumple parcial', 0.5),
+    (2,1,5, 'cumple parcial', 0.5),
+    (2,1,6, 'cumple parcial', 0.5),
+    (2,1,7, 'cumple parcial', 0.5),
+    (2,1,8, 'cumple parcial', 0.5),
+    (2,1,9, 'cumple parcial', 0.5),
+    (2,1,10, 'cumple parcial', 0.5),
+    (2,1,11, 'cumple parcial', 0.5),
+    (2,1,12, 'cumple parcial', 0.5),
+    (2,1,13, 'Alto', 3),
+    (2,1,14, 'Alto', 3),
+    (2,1,15, 'Alto', 3),
+    (2,1,16, 'Alto', 3),
+    (2,1,17, 'Alto', 3),
+    (2,1,18, 'Alto', 3),
+    (2,1,19, 'Alto', 3),
+    (2,1,20, 'Alto', 3),
+    (2,1,21, 'Alto', 3),
+    (2,1,22, 'Alto', 3),
+    (2,1,23, 'Alto', 3),
+    (2,1,24, 'Alto', 3);
+
 UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 2 AND id_evaluador = 1;
 
 insert INTO participacion_instituciones(id_proyecto,id_institucion,rol) VALUES

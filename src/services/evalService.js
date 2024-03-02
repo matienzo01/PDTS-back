@@ -293,7 +293,10 @@ const getRtas = async(arrayIdsEvaluadores, id_proyecto) => {
   if (rtas[0] !== undefined) {
     return { respuestas: await getProjectEval(id_proyecto, rtas) }
   }
-  return { respuestas: []}
+  
+  const _error = new Error('There are no answers for the project')
+  _error.status = 404
+  throw _error
 }
 
 const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
@@ -303,10 +306,10 @@ const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
     participantes.forEach( async(participante) => {
       arrayIds.push(participante.id)
     })
-    return { respuestas: await getRtas(arrayIds, id_proyecto)}
+    return await getRtas(arrayIds, id_proyecto)
 
   } else if (rol === 'evaluador') {
-    return { respuestas: await getRtas([id_evaluador], id_proyecto) };
+    return await getRtas([id_evaluador], id_proyecto) ;
   }
     
 }
