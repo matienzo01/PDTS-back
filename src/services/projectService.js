@@ -1,5 +1,6 @@
 const TABLE = 'proyectos'
 const knex = require('../database/knex')
+const mailer = require('./mailer')
 
 const getAllProjects = async (id_institucion) => {
   const proyectos = await knex(TABLE).select().where({ id_institucion: id_institucion })
@@ -140,6 +141,9 @@ const createProject = async (id_institucion, proyecto, roles) => {
     await assignInstitutionRoles(insertId[0], roles, trx)
     await assignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
+    
+    const director = await trx('evaluadores').select().where({ id: newProject.proyecto.id_director }).first()
+    //mailer.notifyReviewer(newProject.proyecto.titulo, director )
     return newProject
   })
 

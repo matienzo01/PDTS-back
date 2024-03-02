@@ -251,6 +251,15 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
           .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
           .update({ fecha_fin_eval: fecha_respuesta })
 
+        if (proyecto.id_director == id_evaluador) {
+          proyecto.participantes.forEach( async(participante) => {
+            if (participante.rol !== 'director'){
+              const user = await knex('evaluadores').select().where({ id: participante.id }).first()
+              //mailer.notifyReviewer(newProject.proyecto.titulo, user )
+            }
+          })
+        }
+
         return { response: 'respuestas guardadas' }
       } else {
         const _error = new Error('The amount of answers does not match those expected')

@@ -26,10 +26,26 @@ Te recordamos que tu seguridad es nuestra prioridad. Por favor, asegúrate de ma
 }
 
 const sendNewEval = async(user, proyecto) => {
-    const subject = 'Evaluacion de proyectos'
+    const subject = 'Evaluación de proyectos'
     const text = `Estimado ${user.nombre} ${user.apellido},
 
 Ha sido seleccionado para llevar adelante la evaluacion del proyecto ${proyecto.nombre}.`
+    sendMail(user.email, subject, text)
+}
+
+const linkUser = async (user) => {
+    const subject = 'Vinculación a Insitutción de Ciencia y Tecnología'
+    const text = `Estimado ${user.nombre} ${user.apellido},
+
+Ha sido vinculado a una institucion`
+    sendMail(user.email, subject, text)
+}
+
+const notifyReviewer = async(titulo, user) => {
+    const subject = 'Asignacion a la evaluacion de un proyecto'
+    const text = `Estimado ${user.nombre} ${user.apellido},
+
+Ha sido asignado para realizar la evaluacion del proyecto ${titulo}`
     sendMail(user.email, subject, text)
 }
 
@@ -53,5 +69,7 @@ async function sendMail(to, subject, text) {
 module.exports = {
     sendMail,
     sendNewUser,
-    sendNewEval
+    sendNewEval,
+    linkUser,
+    notifyReviewer
 };

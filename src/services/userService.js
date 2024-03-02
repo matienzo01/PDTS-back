@@ -94,6 +94,9 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
   try {
     await queryBuilder('evaluadores_x_instituciones')
       .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
+    if(!trx){
+      //mailer.linkUser(user)
+    }
   } catch (error) {
     console.log(error);
     if (error.code === 'ER_DUP_ENTRY') {
