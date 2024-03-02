@@ -5,7 +5,7 @@
 
 INSERT INTO admin(email,password) VALUES
     -- admingeneral
-    ('admin@mail.com','$2b$10$J2mvegr.LTDM5HgZwZA5IO66dI4xKbLis9qFIn1qXEBUflwmYYgji');
+    ('admin@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
 INSERT INTO secciones(nombre) VALUES
 	('Sistema de evaluacion'),				-- id 1
@@ -321,9 +321,9 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
 
 INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
     -- admin1
-    ('Juan','Administrador','admin1@mail.com','$2b$10$10OasWb3KaI8zuFBxRi8I.W9yBHhQ3axpN1WrWoHbC5Cry69Ku0ki'),
+    ('Juan','Administrador','admin1@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq'),
     -- admin2
-    ('Jorge','Administrador','admin2@mail.com','$2b$10$scPhsXg43dfd0wZSrAuHjeIL3yLQpA4yxeUmsYa8bF7pEl0LhuKA2');
+    ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
 INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional) VALUES
     ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
@@ -336,11 +336,11 @@ INSERT INTO instituciones_cyt(id,id_admin,id_tipo,nombre_referente,apellido_refe
 
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 
-('evaluador1@example.com', '$2b$10$n.9Kp/c2HVb3NHZPEghhZexbnxUbBkx4HB8DNt.HybXIf0cmdvcRS', 'Juan', 'Pérez', 123456789, '555-1234', 'Informática', 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A'),
-('evaluador2@example.com', '$2b$10$TP1hLvKr6UPcl3OAwMNShO7Bn5m1QFVBx0rtGBXOBOZi.2TkH0Qp2', 'María', 'González', 987654321, '555-5678', 'Biología', 'Universidad XYZ', 'México', 'Ciudad B', 'Estado C'),
-('evaluador3@example.com', '$2b$10$6Gnwisv9u8o51o8ydvdrSOsTHaGFPRE18Qi13BRgy2Z1C81juHJZq', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'UTN', 'España', 'Madrid', 'Ciudad D'),
-('evaluador4@example.com', '$2b$10$NVwHa5Hr/E9qsQ1Aa8UXSORkEBo5UbTPBBU4PO8ux8aBoavX8bDSG', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'UTN', 'Colombia', 'Bogotá', 'Ciudad E'),
-('evaluador5@example.com', '$2b$10$oX5NGdk20/sYU6ckg45J2uM/gootNxP1LV1FnvONK3/3ivinQrox.', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Hospital General', 'Chile', 'Santiago', 'Ciudad F');
+('evaluador1@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Juan', 'Pérez', 123456789, '555-1234', 'Informática', 'Universidad XYZ', 'Argentina', 'Buenos Aires', 'Ciudad A'),
+('evaluador2@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'María', 'González', 987654321, '555-5678', 'Biología', 'Universidad XYZ', 'México', 'Ciudad B', 'Estado C'),
+('evaluador3@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'UTN', 'España', 'Madrid', 'Ciudad D'),
+('evaluador4@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'UTN', 'Colombia', 'Bogotá', 'Ciudad E'),
+('evaluador5@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Hospital General', 'Chile', 'Santiago', 'Ciudad F');
 
 -- contraseñas:
 -- 
