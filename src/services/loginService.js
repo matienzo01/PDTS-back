@@ -7,7 +7,7 @@ const login = async (mail, password) => {
   const tablesToCheck = [
     { rol: 'admin general', tableName: 'admin', columns: ['email', 'password'] },
     { rol: 'admin', tableName: 'admins_cyt', columns: ['id', 'email', 'password'] },
-    { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password'] }
+    { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido'] }
   ];
 
   let user = null;
@@ -19,8 +19,8 @@ const login = async (mail, password) => {
       if (table.tableName === 'admin') {
         user.id = 1;
       } else if (table.tableName === 'admins_cyt') {
-        user.institutionId = (await knex('instituciones_cyt').select('id').where({id_admin: user.id}).first()).id
-      } 
+        user.institutionId = (await knex('instituciones_cyt').select('id').where({ id_admin: user.id }).first()).id
+      }
       break;
     }
   }
@@ -40,8 +40,12 @@ const login = async (mail, password) => {
     id: user.id,
     mail: user.email,
     rol: user.rol,
-    institutionId: user.institutionId
+    institutionId: user.institutionId,
+    nombre: user.nombre,
+    apellido: user.apellido
   }
+
+  console.log('userForToken', userForToken);
 
   const token = jwt.sign(userForToken, process.env.SECRET || 'clave')
   return { token: token, user: userForToken }
