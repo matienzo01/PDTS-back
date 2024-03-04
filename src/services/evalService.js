@@ -8,7 +8,7 @@ const verify_date = async (id_proyecto, id_evaluador) => {
 }
 
 const getNextEval = async (id_proyecto, id_evaluador) => {
-  const { proyecto } = await service_projects.getOneProject(id_proyecto)
+  await service_projects.getOneProject(id_proyecto)
   const existe = await verify_date(id_proyecto, id_evaluador)
 
   if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
@@ -16,8 +16,8 @@ const getNextEval = async (id_proyecto, id_evaluador) => {
       const webform = await getProjectEval(id_proyecto)
       return { tipo: 'evaluacion', ...webform }
     } else {
-      if (existe[0].fecha_fin_op === null && proyecto.obligatoriedad_opinion) { //el evaluador todavia no respondio la encuesta de opinion o no se debe responder
-        const webform = await getProjectSurvey()
+      if (existe[0].fecha_fin_op === null && existe[0].obligatoriedad_opinion) { //el evaluador todavia no respondio la encuesta de opinion o no se debe responder
+        const webform = await getProjectSurvey(existe[0].id_modelo_encuesta)
         return { tipo: 'opinion', ...webform }
       }
       const _error = new Error('There is nothing more to answer')
@@ -46,8 +46,8 @@ const type_and_options = (item, tipos_preguntas, opciones, opciones_x_preguntas)
   return { tipo_preg, opciones_item }
 }
 
-const getProjectSurvey = async () => {
-  const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg] = await Promise.all([
+const getProjectSurvey = async (id_modelo_encuesta) => {
+  const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg, modelo] = await Promise.all([
     knex('tipo_preguntas').select(),
     knex('opciones').select(),
     knex.select(
@@ -60,35 +60,42 @@ const getProjectSurvey = async () => {
       .from('preguntas_seccion')
       .leftJoin('secciones', 'preguntas_seccion.id_seccion', 'secciones.id'),
     knex('opciones_x_preguntas').select(),
-    knex('relacion_subpregunta').select()
+    knex('relacion_subpregunta').select(),
+    knex('modelos_x_secciones').select('id_seccion').where({ id_modelo: id_modelo_encuesta})
   ]);
 
   const transformedResult = [];
 
-
   all_preguntas.forEach(item => {
     if (item.id_seccion) {
-      let section = transformedResult.findIndex(section => section.sectionId === item.id_seccion)
+      
+      const pertenece = modelo.some(function(seccion) {
+        return seccion.id_seccion === item.id_seccion
+      })
 
-      // Verificar si la sección ya existe en el objeto transformado
-      if (section === -1) {
-        // Si no existe, crear un nuevo objeto de sección
-        section = transformedResult.push({ //devuelve la nueva longitud del array
-          name: item.nombre_seccion.toLowerCase(),
-          sectionId: item.id_seccion,
-          questions: []
-        }) - 1;
+      if (pertenece) { //verifico si la seccion pertenece al modelo
+        let section = transformedResult.findIndex(section => section.sectionId === item.id_seccion)
+
+        // Verificar si la sección ya existe en el objeto transformado
+        if (section === -1) {
+          // Si no existe, crear un nuevo objeto de sección
+          section = transformedResult.push({ //devuelve la nueva longitud del array
+            name: item.nombre_seccion.toLowerCase(),
+            sectionId: item.id_seccion,
+            questions: []
+          }) - 1;
+        }
+
+        const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas)
+
+        transformedResult[section].questions.push({
+          questionId: item.id_pregunta,
+          label: item.enunciado_pregunta,
+          type: tipo_preg,
+          options: opciones_item.map((opcion, i) => ({ option: opcion, value: opcion, id: i })), //va a ser necesario cambiar el id
+          subQuestions: []
+        });
       }
-
-      const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas)
-
-      transformedResult[section].questions.push({
-        questionId: item.id_pregunta,
-        label: item.enunciado_pregunta,
-        type: tipo_preg,
-        options: opciones_item.map((opcion, i) => ({ option: opcion, value: opcion, id: i })), //va a ser necesario cambiar el id
-        subQuestions: []
-      });
 
     } else {
       const id_padre = rel_subpreg.filter(elemento => elemento.id_subpregunta === item.id_pregunta)[0].id_pregunta_padre
