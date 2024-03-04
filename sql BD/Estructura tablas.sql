@@ -2,12 +2,12 @@ drop database pdts;
 CREATE DATABASE pdts;
 use pdts;
 
-CREATE TABLE admin (
+CREATE TABLE admin ( -- administrador general del sistema
 	email VARCHAR(255) NOT NULL PRIMARY KEY,
     password VARCHAR(255)
 );
 
-CREATE TABLE evaluadores (
+CREATE TABLE evaluadores ( -- tabla de evaluadores/directores
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255),
     password VARCHAR(255),
@@ -23,7 +23,7 @@ CREATE TABLE evaluadores (
     localidad_residencia VARCHAR(255)  
 );
 
-CREATE TABLE admins_CyT (
+CREATE TABLE admins_CyT ( -- tabla de administradores de instituciones cyt
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255),
     apellido VARCHAR(255),
@@ -31,7 +31,7 @@ CREATE TABLE admins_CyT (
     password VARCHAR(255)
 );
 
-CREATE TABLE tipos_instituciones(
+CREATE TABLE tipos_instituciones( 
     id INT AUTO_INCREMENT PRIMARY KEY,
     tipo varchar(255)
 );
@@ -61,9 +61,27 @@ CREATE TABLE instituciones_cyt (
     FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
 );
 
-CREATE TABLE estado_eval(
+CREATE TABLE estado_eval( -- tabla de estados posibles de los proyectos
   	id INT AUTO_INCREMENT PRIMARY KEY,
     nombre varchar(255)
+);
+
+CREATE TABLE modelos_encuesta ( -- tabla de los diferentes modelos de encuesta
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre varchar(255)
+);
+
+CREATE TABLE secciones ( -- son las secciones de las encuestas de opinion
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre varchar(255)
+);
+
+CREATE TABLE modelos_x_secciones (
+    id_seccion INT,
+    id_modelo INT,
+    PRIMARY KEY(id_modelo, id_seccion),
+    FOREIGN KEY (id_seccion) REFERENCES secciones(id),
+    FOREIGN KEY (id_modelo) REFERENCES modelos_encuesta(id)
 );
 
 CREATE TABLE proyectos (
@@ -85,13 +103,12 @@ CREATE TABLE proyectos (
     grado_demanda text,
     fecha_carga date,
     obligatoriedad_proposito boolean DEFAULT true,
-    obligatoriedad_opinion boolean DEFAULT true,
     FOREIGN KEY (id_estado_eval) REFERENCES estado_eval(id),
     FOREIGN KEY (id_director) REFERENCES evaluadores(id),
     FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id)
 );
 
-CREATE TABLE participacion_instituciones(
+CREATE TABLE participacion_instituciones( -- relacion entre una inst cyt con otras instituciones para su participacion en un proyecto
     id_proyecto INT,
     id_institucion INT,
     rol varchar(255), -- ejecutora, financiadora, adoptante, demandante o promotora
@@ -100,8 +117,7 @@ CREATE TABLE participacion_instituciones(
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
--- estos son los integrantes del grupo de trabajo del pdts
-CREATE TABLE participantes(
+CREATE TABLE participantes( -- tabla de los integrantes del grupo de trabajo del pdts
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_institucion INT, 
     nombre varchar(255),
@@ -128,12 +144,14 @@ CREATE TABLE evaluadores_x_instituciones (
 CREATE TABLE evaluadores_x_proyectos (
     id_proyecto INT,
     id_evaluador INT,
+    obligatoriedad_opinion boolean DEFAULT true,
+    id_modelo_encuesta INT,
     rol varchar(255),
     fecha_inicio_eval date,
     fecha_fin_eval date DEFAULT null,
     fecha_fin_op date DEFAULT null,
-    -- se podria poner un atributo de estado, pero si la fecha de fin de evaluacion está en nulo, se podria decir que todavia esta pendiente de evaluar
     PRIMARY KEY (id_proyecto, id_evaluador),
+    FOREIGN KEY (id_modelo_encuesta) REFERENCES modelos_encuesta(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id)
 );
@@ -178,12 +196,6 @@ CREATE TABLE respuestas_evaluacion (
     FOREIGN KEY (id_indicador) REFERENCES indicadores(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
-);
-
--- no me agradaN mucho las siguientes tablas que hice, habria que revisarlas
-CREATE TABLE secciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre varchar(255)
 );
 
 CREATE TABLE tipo_preguntas (

@@ -60,7 +60,6 @@ const createProject = async (req, res) => {
     !proyecto.grado_pertinencia ||
     !proyecto.grado_demanda ||
     !proyecto.hasOwnProperty('obligatoriedad_proposito') ||
-    !proyecto.hasOwnProperty('obligatoriedad_opinion') ||
     !proyecto.roles) {
 
     res.status(400).send({
@@ -104,7 +103,7 @@ const deleteProject = async (req, res) => {
 
 const assignEvaluador = async (req, res) => {
   const { params: { id_institucion, id_proyecto } } = req
-  const { id_evaluador } = req.body
+  const { id_evaluador, obligatoriedad_opinion, id_modelo_encuesta} = req.body
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
@@ -119,10 +118,17 @@ const assignEvaluador = async (req, res) => {
   }
 
   const fecha = new Date()
-  const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
+  const data = {
+    id_evaluador: id_evaluador,
+    id_proyecto: id_proyecto,
+    fecha_inicio_eval: `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`,
+    rol: 'evaluador',
+    obligatoriedad_opinion: obligatoriedad_opinion,
+    id_modelo_encuesta: id_modelo_encuesta
+  }
 
   try {
-    res.status(201).json(await service.assignEvaluador(id_evaluador, id_proyecto, id_institucion, fecha_carga, 'evaluador'))
+    res.status(201).json(await service.assignEvaluador(data, id_institucion))
   } catch (error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })

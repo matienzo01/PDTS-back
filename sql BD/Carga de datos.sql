@@ -7,11 +7,20 @@ INSERT INTO admin(email,password) VALUES
     -- admingeneral
     ('admin@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
+INSERT INTO modelos_encuesta(nombre) VALUES
+    ('Modelo de encuesta 1');
+
 INSERT INTO secciones(nombre) VALUES
 	('Sistema de evaluacion'),				-- id 1
     ('Instancias e indicadores'),			-- id 2
     ('Evaluadores'),						-- id 3
     ('Software');							-- id 4
+
+INSERT INTO modelos_x_secciones(id_modelo, id_seccion) VALUES 
+    (1,1),
+    (1,2),
+    (1,3),
+    (1,4);
 
 INSERT INTO tipo_preguntas (tipo) VALUES  
 	('opcion multiple'),	-- id 1
@@ -374,8 +383,7 @@ INSERT INTO proyectos (
     grado_pertinencia,
     grado_demanda,
     fecha_carga,
-    obligatoriedad_proposito,
-    obligatoriedad_opinion
+    obligatoriedad_proposito
 ) VALUES (
     'Proyecto Ejemplo',
     1, -- Reemplaza con el ID correcto de estado_eval
@@ -393,8 +401,7 @@ INSERT INTO proyectos (
     'Muy pertinente',
     'Alta',
     NOW(),
-    1, -- true para obligatoriedad_proposito
-    1  -- true para obligatoriedad_opinion
+    1 -- true para obligatoriedad_proposito
 ),
 (
     'Proyecto de Investigación en Biología Marina',
@@ -413,15 +420,14 @@ INSERT INTO proyectos (
     'Muy pertinente',
     'Alta',
     NOW(), 
-    1, -- true para obligatoriedad_proposito
-    1  -- true para obligatoriedad_opinion
+    1 -- true para obligatoriedad_proposito
 );
 
-INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_eval) VALUES
-	(1,1,'director',NOW()),
-    (1,2,'evaluador',NOW()),
-	(2,3,'director',NOW()),
-    (2,1,'evaluador',NOW());
+INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_eval,obligatoriedad_opinion,id_modelo_encuesta) VALUES
+	(1,1,'director',NOW(),1,1),
+    (1,2,'evaluador',NOW(),1,1),
+	(2,3,'director',NOW(),1,1),
+    (2,1,'evaluador',NOW(),1,1);
 
 
 INSERT INTO respuestas_evaluacion (id_proyecto, id_evaluador, id_indicador, respuesta, calificacion) VALUES
@@ -458,3 +464,4 @@ insert INTO participacion_instituciones(id_proyecto,id_institucion,rol) VALUES
     (1,1,'Demandante'),
     (1,1,'Financiadora'),
     (1,1,'Adoptante')
+

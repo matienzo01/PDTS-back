@@ -75,17 +75,11 @@ const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
     : true
 }
 
-const assignEvaluador = async (id_evaluador, id_proyecto, id_institucion, fecha_carga, rol, trx = null) => {
-  const data = {
-    id_evaluador: id_evaluador,
-    id_proyecto: id_proyecto,
-    fecha_inicio_eval: fecha_carga,
-    rol: rol
-  }
+const assignEvaluador = async (data, id_institucion, trx = null) => {
 
-  await getOneProject(id_proyecto, null, trx)
+  await getOneProject(data.id_proyecto, null, trx)
 
-  if (!await userBelongsToInstitution(id_evaluador, id_institucion)) {
+  if (!await userBelongsToInstitution(data.id_evaluador, id_institucion)) {
     const _error = new Error('The user is not associated with the institution that owns the project')
     _error.status = 409
     throw _error
@@ -137,9 +131,24 @@ const createProject = async (id_institucion, proyecto, roles) => {
   proyecto.id_estado_eval = 1 //sin evaluar
 
   const result = await knex.transaction(async (trx) => {
+    const obligatoriedad_opinion = proyecto.obligatoriedad_opinion_director
+    const id_modelo_encuesta = proyecto.id_modelo_encuesta_director
+    delete proyecto.obligatoriedad_opinion_director
+    delete proyecto.id_modelo_encuesta_director
+
     const insertId = await trx.insert(proyecto).into(TABLE)
     await assignInstitutionRoles(insertId[0], roles, trx)
-    await assignEvaluador(proyecto.id_director, insertId[0], id_institucion, fecha_carga, 'director', trx)
+
+    const data = {
+      id_evaluador: proyecto.id_director,
+      id_proyecto: insertId[0],
+      fecha_inicio_eval: fecha_carga,
+      rol: 'director',
+      obligatoriedad_opinion: obligatoriedad_opinion,
+      id_modelo_encuesta: id_modelo_encuesta
+    }
+
+    await assignEvaluador(data, id_institucion, trx)
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
     
     const director = await trx('evaluadores').select().where({ id: newProject.proyecto.id_director }).first()
