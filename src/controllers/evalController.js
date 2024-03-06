@@ -52,9 +52,8 @@ const getUserEvaluationAnswers = async (req, res) => {
 
 const generatePDF = async (req, res) => {
   const { params: { id_proyecto } } = req
-  
   try {
-    const pdfBuffer = await pdfService.generatePDF();
+    const pdfBuffer = await pdfService.generatePDF(id_proyecto);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
     res.send(pdfBuffer); 

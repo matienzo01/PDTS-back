@@ -128,7 +128,8 @@ const createProject = async (id_institucion, proyecto, roles) => {
 
   proyecto.fecha_carga = fecha_carga
   proyecto.id_institucion = parseInt(id_institucion)
-  proyecto.id_estado_eval = 1 //sin evaluar
+  proyecto.id_estado_eval = 1 // 'sin evaluar'. Capaz no tiene mucho sentido este estado pq instantaneamente habria que cambiarlo a
+                              // 'En evaluacion por el director'
 
   const result = await knex.transaction(async (trx) => {
     const obligatoriedad_opinion = proyecto.obligatoriedad_opinion_director
@@ -181,6 +182,15 @@ const deleteProject = async (id_institucion, id_proyecto) => {
   })
 }
 
+const verifyState = async( id_proyecto, state ) => {
+  const [ estados, proyecto] = await Promise.all([
+    knex('estado_eval').select(),
+    knex('proyectos').select().where({ id: id_proyecto }).first()
+  ])
+  
+  return proyecto.id_estado_eval === estados.filter(estado => estado.nombre == state)[0].id
+}
+
 module.exports = {
   getAllProjects,
   getOneProject,
@@ -189,5 +199,6 @@ module.exports = {
   assignEvaluador,
   unassignEvaluador,
   getParticipants,
-  getProjectsByUser
+  getProjectsByUser,
+  verifyState
 }

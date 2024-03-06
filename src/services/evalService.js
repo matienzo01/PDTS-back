@@ -265,6 +265,15 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
               //mailer.notifyReviewer(newProject.proyecto.titulo, user )
             }
           })
+          await knex('proyectos')
+            .where({ id: proyecto.id })
+            .update({ id_estado_eval: 3 })
+        } else {
+          if ( (await knex('evaluadores_x_proyectos').select().where({ id_proyecto, fecha_fin_eval: null })).length === 0 ) {
+            await knex('proyectos')
+            .where({ id: proyecto.id })
+            .update({ id_estado_eval: 4 })
+          }
         }
 
         return { response: 'respuestas guardadas' }
@@ -330,9 +339,42 @@ const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
     
 }
 
+const getEvaluationScores = async(id_proyecto) => {
+  const { proyecto } = await service_projects.getOneProject(id_proyecto)
+
+  if (proyecto.id_estado_eval !== 4 ) return ;
+  
+  const [ rtas, { cant_participantes } ] = await Promise.all([
+    knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante')
+      .from('respuestas_evaluacion')
+      .join('indicadores', 'respuestas_evaluacion.id_indicador', 'indicadores.id')
+      .join('dimensiones', 'indicadores.id_dimension', 'dimensiones.id')
+      .where({id_proyecto}),
+    knex('evaluadores_x_proyectos')
+      .count('* as cant_participantes')
+      .where('id_proyecto', id_proyecto).first()
+  ])
+
+  const entidad = { determinantes: 0, noDeterminantes: 0 }  
+  const proposito = { score: 0 }
+
+  rtas.forEach( rta => {
+    if (rta.id_instancia === 1) {
+      rta.determinante 
+        ? entidad.determinantes+=(rta.calificacion/cant_participantes) 
+        : entidad.noDeterminantes+=(rta.calificacion/cant_participantes)
+    } else {
+      proposito.score += (rta.calificacion/cant_participantes)
+    }
+  })
+
+  return { entidad, proposito }
+}
+
 module.exports = {
   getNextEval,
   postEval,
   getUserEvaluationAnswers,
-  getProjectSurvey
+  getProjectSurvey,
+  getEvaluationScores
 }
