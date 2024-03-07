@@ -345,7 +345,7 @@ const getEvaluationScores = async(id_proyecto) => {
   if (proyecto.id_estado_eval !== 4 ) return ;
   
   const [ rtas, { cant_participantes } ] = await Promise.all([
-    knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante')
+    knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante','dimensiones.nombre as nombre_dimension')
       .from('respuestas_evaluacion')
       .join('indicadores', 'respuestas_evaluacion.id_indicador', 'indicadores.id')
       .join('dimensiones', 'indicadores.id_dimension', 'dimensiones.id')
@@ -355,20 +355,23 @@ const getEvaluationScores = async(id_proyecto) => {
       .where('id_proyecto', id_proyecto).first()
   ])
 
-  const entidad = { determinantes: 0, noDeterminantes: 0 }  
-  const proposito = { score: 0 }
+  const entidad = {}  
+  const proposito = {}
 
   rtas.forEach( rta => {
-    if (rta.id_instancia === 1) {
-      rta.determinante 
-        ? entidad.determinantes+=(rta.calificacion/cant_participantes) 
-        : entidad.noDeterminantes+=(rta.calificacion/cant_participantes)
+    const { id_instancia, nombre_dimension, determinante, calificacion } = rta;
+    const factor = calificacion / cant_participantes;
+  
+    if (id_instancia === 1) {
+      entidad[nombre_dimension] = entidad[nombre_dimension] || { determinantes: 0, noDeterminantes: 0 };
+      determinante ? entidad[nombre_dimension].determinantes += factor : entidad[nombre_dimension].noDeterminantes += factor;
     } else {
-      proposito.score += (rta.calificacion/cant_participantes)
+      proposito[nombre_dimension] = proposito[nombre_dimension] || { score: 0 };
+      proposito[nombre_dimension].score += factor;
     }
   })
 
-  return { entidad, proposito }
+  return { entidad: entidad, proposito: proposito }
 }
 
 module.exports = {
