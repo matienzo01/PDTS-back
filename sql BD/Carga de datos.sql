@@ -334,10 +334,10 @@ INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
     -- admin2
     ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
-INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional) VALUES
-    ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com'),
-    ('UTN', 'RUBRO B', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com'),
-    ('Hospital General', 'Salud', 'Argentina', 'Buenos Aires', 'Ciudad C', '2264588978', 'contacto@hospitalgeneral.ar');
+INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_instituciona, esCyT) VALUES
+    ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1),
+    ('UTN', 'RUBRO B', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com', 1),
+    ('Hospital General', 'Salud', 'Argentina', 'Buenos Aires', 'Ciudad C', '2264588978', 'contacto@hospitalgeneral.ar', 0);
 
 INSERT INTO instituciones_cyt(id,id_admin,id_tipo,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
     (1,1,1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),

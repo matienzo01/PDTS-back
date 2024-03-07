@@ -73,7 +73,8 @@ const createInstitucionCYT = async (newAdmin, institucion) => {
         provincia: institucion.provincia,
         localidad: institucion.localidad,
         telefono_institucional: institucion.telefono_institucional,
-        mail_institucional: institucion.mail_institucional
+        mail_institucional: institucion.mail_institucional,
+        esCyt: true
       }
 
       const instId = (await trx(TABLE_INSTITUCIONES).insert(newInst))[0];

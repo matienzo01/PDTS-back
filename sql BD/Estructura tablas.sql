@@ -44,7 +44,8 @@ CREATE TABLE instituciones (
     provincia VARCHAR(255),
     localidad VARCHAR(255),
     telefono_institucional VARCHAR(255),
-    mail_institucional VARCHAR(255)
+    mail_institucional VARCHAR(255),
+    esCyT tinyint(1) NOT NULL
 );
 
 CREATE TABLE instituciones_cyt (
