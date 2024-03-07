@@ -1,6 +1,6 @@
 const res = require('express/lib/response.js')
 const knex = require('../database/knex.js')
-const service_projects = require('../services/projectService')
+const projectService = require('../services/projectService')
 
 const verify_date = async (id_proyecto, id_evaluador) => {
   return await knex('evaluadores_x_proyectos').select()
@@ -8,7 +8,7 @@ const verify_date = async (id_proyecto, id_evaluador) => {
 }
 
 const getNextEval = async (id_proyecto, id_evaluador) => {
-  await service_projects.getOneProject(id_proyecto)
+  await projectService.getOneProject(id_proyecto)
   const existe = await verify_date(id_proyecto, id_evaluador)
 
   if (existe.length === 1) { //existe un evaluador asignado a ese proyecto
@@ -229,7 +229,7 @@ const getProjectEval = async (id_proyecto, respuestas = null) => {
 }
 
 const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
-  const { proyecto } = await service_projects.getOneProject(id_proyecto)
+  const { proyecto } = await projectService.getOneProject(id_proyecto)
   const evaluado = await verify_date(id_proyecto, id_evaluador)
   const fecha = new Date()
   const fecha_respuesta = [`${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`]
@@ -327,7 +327,7 @@ const getRtas = async(arrayIdsEvaluadores, id_proyecto) => {
 const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
   if (rol === 'admin'){
     const arrayIds = []
-    const participantes  = await service_projects.getParticipants(id_proyecto)
+    const participantes  = await projectService.getParticipants(id_proyecto)
     participantes.forEach( async(participante) => {
       arrayIds.push(participante.id)
     })
@@ -340,9 +340,12 @@ const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
 }
 
 const getEvaluationScores = async(id_proyecto) => {
-  const { proyecto } = await service_projects.getOneProject(id_proyecto)
 
-  if (proyecto.id_estado_eval !== 4 ) return ;
+  if (!await projectService.verifyState(id_proyecto, 'Evaluado')){
+    const _error = new Error('The project has not yet finished evaluating. The answers are not yet available')
+    _error.status = 404
+    throw _error
+  }
   
   const [ rtas, { cant_participantes } ] = await Promise.all([
     knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante','dimensiones.nombre as nombre_dimension')
@@ -357,6 +360,9 @@ const getEvaluationScores = async(id_proyecto) => {
 
   const entidad = {}  
   const proposito = {}
+  let totDeterminantes = 8
+  let totNoDeterminantes = 4
+  let totProposito = 48
 
   rtas.forEach( rta => {
     const { id_instancia, nombre_dimension, determinante, calificacion } = rta;
@@ -370,8 +376,7 @@ const getEvaluationScores = async(id_proyecto) => {
       proposito[nombre_dimension].score += factor;
     }
   })
-
-  return { entidad: entidad, proposito: proposito }
+  return { entidad: entidad, proposito: proposito, totD: totDeterminantes, totND: totNoDeterminantes, totP: totProposito }
 }
 
 module.exports = {

@@ -2,6 +2,7 @@ const knex = require('../database/knex')
 const bcrypt = require('bcrypt')
 const mailer = require('./mailer')
 const TABLE_EVALUADORES = 'evaluadores'
+const institutuionService = require('./institutionCYTService')
 
 const getAllInstitutionUsers = async (id_institucion) => {
 
@@ -92,10 +93,11 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
   }
 
   try {
+    const { institucion_CYT } = await institutuionService.getOneInstitucionCYT(institutionId)
     await queryBuilder('evaluadores_x_instituciones')
       .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
     if(!trx){
-      //mailer.linkUser(user)
+      mailer.linkUser(user, institucion_CYT)
     }
   } catch (error) {
     console.log(error);

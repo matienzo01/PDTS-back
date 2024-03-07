@@ -5,10 +5,11 @@ const evalService = require('./evalService')
 
 const generatePDF = async(id_proyecto) => {
     return new Promise(async(resolve, reject) => {
-      const { entidad, proposito } = await evalService.getEvaluationScores(id_proyecto)
-      const { proyecto } = await projectService.getOneProject(id_proyecto)
-      
-      if ( await projectService.verifyState(id_proyecto, 'Evaluado') ) {
+      try {
+        const { entidad, proposito, totD, totND, totP } = await evalService.getEvaluationScores(id_proyecto)
+        const { proyecto } = await projectService.getOneProject(id_proyecto)
+        const x = 72
+
         const doc = new PDFDocument();
         const buffers = [];
         doc.on('data', buffers.push.bind(buffers));
@@ -22,59 +23,76 @@ const generatePDF = async(id_proyecto) => {
           .font('./src/fonts/arialbd.ttf')
           .fontSize(24)
           .text('Resultados de evaluacion PDTS', { align: 'center' })
-          .moveDown()
           .text(proyecto.titulo, { align: 'center' })
           .moveDown();
 
         doc
           .fontSize(18)
           .text('Entidad')
-          .font('./src/fonts/arial.ttf')
           .fontSize(12);
 
-        let tot_determinantes = 0
-        let tot_no_determinantes = 0
-        let tot_proposito = 0
+        let suma_determ = 0
+        let suma_no_determ = 0
+        let suma_proposito = 0
+
+        doc
+          .text('Dimension                                   Ind. determinantes              Ind. no determinantes')
+          .font('./src/fonts/arial.ttf')
+
         for(let key in entidad) {
-          tot_determinantes += entidad[key].determinantes
-          tot_no_determinantes += entidad[key].noDeterminantes
+          suma_determ += entidad[key].determinantes
+          suma_no_determ += entidad[key].noDeterminantes
+
           doc
-            .text(`${key}: ${entidad[key].determinantes + entidad[key].noDeterminantes}`, { align: 'justify' })
-            .moveDown();
+            .text(`${key}`,x)
+            .moveUp()
+            .text(`${entidad[key].determinantes}`,275)
+            .moveUp()
+            .text(`${entidad[key].noDeterminantes}`,440);
+        }
+        doc
+          .font('./src/fonts/arialbd.ttf')
+          .text('Total',x)
+          .moveUp()
+          .text(`${suma_determ}/${totD}`,275)
+          .moveUp()
+          .text(`${suma_no_determ}/${totND}`,440)
+          .text('',x)
+          .moveDown()
+          .fontSize(18)
+          .text('Propóstito')
+          .fontSize(12);
+
+
+        doc
+          .text('Dimension                                          Calificación')
+          .font('./src/fonts/arial.ttf')
+
+        for(let key in proposito) {
+          suma_proposito += proposito[key].score
+          doc
+            .text(`${key}`,x)
+            .moveUp()
+            .text(`${proposito[key].score}`,290)
         }
 
         doc
           .font('./src/fonts/arialbd.ttf')
+          .text(`Total`,x)
+          .moveUp()
+          .text(`${suma_proposito}/${totP}`,290)
+          .text('',x)
+          .moveDown()
+          .font('./src/fonts/arialbi.ttf')
           .fontSize(18)
-          .text('Propóstito')
-          .font('./src/fonts/arial.ttf')
-          .fontSize(12);
 
-        for(let key in proposito) {
-          tot_proposito += proposito[key].score
-          doc
-            .text(`${key}: ${proposito[key].score}`, { align: 'justify' })
-            .moveDown();
-        }
-
-
-        tot_determinantes >= 4 
-          ? doc.text('El proyecto cumple con ser un PDTS', { align: 'justify' })
-          : doc.text('El proyecto NO cumple con ser un PDTS', { align: 'justify' });
-
-        doc
-          .moveDown()
-          .text(`Calificacion Instancia Entidad:`, { align: 'left' })
-          .text(`     Indicadores determinantes: ${tot_determinantes}`, { align: 'left' })
-          .text(`     Indicadores no determinantes: ${tot_no_determinantes}`, { align: 'left' })
-          .moveDown()
-          .text(`Calificacion Instancia Proposito: ${tot_proposito}`, { align: 'left' });
+        suma_determ >= 4 
+          ? doc.text('El proyecto cumple con los requerimientos para ser un PDTS.', { align: 'center' })
+          : doc.text('El proyecto no cumple con los requerimientos para ser un PDTS.', { align: 'center' });
 
         doc.end();
-      } else {
-        const _error = new Error('the project was not finished being evaluated')
-        _error.status = 404
-        reject(_error)
+      } catch(error) {
+        reject(error)
       }
     });
   };

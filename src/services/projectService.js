@@ -183,9 +183,9 @@ const deleteProject = async (id_institucion, id_proyecto) => {
 }
 
 const verifyState = async( id_proyecto, state ) => {
-  const [ estados, proyecto] = await Promise.all([
+  const [ estados, {proyecto}] = await Promise.all([
     knex('estado_eval').select(),
-    knex('proyectos').select().where({ id: id_proyecto }).first()
+    getOneProject(id_proyecto)
   ])
   
   return proyecto.id_estado_eval === estados.filter(estado => estado.nombre == state)[0].id

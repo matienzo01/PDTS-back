@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
 })
 
 const sendNewUser = async(user, oldpass) => {
-    const subject = '¡Bienvenido a SEva-PDTS! Tu cuenta ha sido creada con éxito.'
-    const text = `Estimado ${user.nombre} ${user.apellido},
+    const subject = '¡Bienvenido/a a SEva-PDTS! Tu cuenta ha sido creada con éxito.'
+    const text = `Estimado/a ${user.nombre} ${user.apellido},
 
 ¡Nos complace darte la bienvenida a SEva-PDTS! Te informamos que tu cuenta ha sido creada con éxito.
     
@@ -21,31 +21,43 @@ A continuación, encontrarás algunos detalles importantes sobre tu nueva cuenta
 Correo electrónico asociado: ${user.email}
 Contraseña provisional: ${oldpass}
     
-Te recordamos que tu seguridad es nuestra prioridad. Por favor, asegúrate de mantener tus credenciales de inicio de sesión de forma segura y no compartirlas con terceros. Recomendamos encarecidamente que actualices tu contraseña en tu primera sesión por razones de seguridad. Puedes hacerlo accediendo a la sección de configuración de tu cuenta una vez que inicies sesión. Podrás hacerlo desde ${enlace}`
+Te recordamos que tu seguridad es nuestra prioridad. Por favor, asegúrate de mantener tus credenciales de inicio de sesión de forma segura y no compartirlas con terceros. Recomendamos encarecidamente que actualices tu contraseña en tu primera sesión por razones de seguridad. Puedes hacerlo accediendo a la sección de configuración de tu cuenta una vez que inicies sesión. Podrás hacerlo desde ${enlace}
+
+
+Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
 const sendNewEval = async(user, proyecto) => {
     const subject = 'Evaluación de proyectos'
-    const text = `Estimado ${user.nombre} ${user.apellido},
+    const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido seleccionado para llevar adelante la evaluacion del proyecto ${proyecto.nombre}.`
+Ha sido seleccionado para llevar adelante la evaluacion del proyecto ${proyecto.nombre}.
+
+
+Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-const linkUser = async (user) => {
+const linkUser = async (user, inst) => {
     const subject = 'Vinculación a Insitutción de Ciencia y Tecnología'
-    const text = `Estimado ${user.nombre} ${user.apellido},
+    const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido vinculado a una institucion`
+Ha sido vinculado a una institución (${inst.nombre}) de modo tal de poder ser elegido para llevar adelante la evaluación de PDTS
+
+
+Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
 const notifyReviewer = async(titulo, user) => {
     const subject = 'Asignacion a la evaluacion de un proyecto'
-    const text = `Estimado ${user.nombre} ${user.apellido},
+    const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido asignado para realizar la evaluacion del proyecto ${titulo}`
+Ha sido escogido para realizar la evaluacion del proyecto ${titulo}.
+
+
+Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
