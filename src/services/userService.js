@@ -4,6 +4,19 @@ const mailer = require('./mailer')
 const TABLE_EVALUADORES = 'evaluadores'
 const institutuionService = require('./institutionCYTService')
 
+const getAllUsers = async () => {
+  const users = await knex(TABLE_EVALUADORES).select()
+  const participaEn = (await knex.raw('CALL obtener_instituciones_de_usuario'))[0][0]
+  return {
+    usuarios: users.map(user => {
+      const { password, ...rest } = user
+      rest.participaEn = JSON.parse(participaEn.filter(participacion => participacion.id === user.id)[0].participa_en)
+      return rest
+    }
+    )
+  }
+}
+
 const getAllInstitutionUsers = async (id_institucion) => {
 
   const ids = await knex('evaluadores_x_instituciones')
@@ -59,7 +72,7 @@ const createUser = async (newUser, institutionId) => {
     }
   }
 
-  return await knex.transaction(async(trx) => {
+  return await knex.transaction(async (trx) => {
     const oldpass = newUser.password
     newUser.password = await createHash(oldpass)
     const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0]
@@ -67,7 +80,7 @@ const createUser = async (newUser, institutionId) => {
     //mailer.sendNewUser(newUser, oldpass)
     return await getOneUser(insertId, trx)
   })
-  
+
 }
 
 const getUserByDni = async (dni) => {
@@ -96,8 +109,8 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
     const { institucion_CYT } = await institutuionService.getOneInstitucionCYT(institutionId)
     await queryBuilder('evaluadores_x_instituciones')
       .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
-    if(!trx){
-      mailer.linkUser(user, institucion_CYT)
+    if (!trx) {
+      //mailer.linkUser(user)
     }
   } catch (error) {
     console.log(error);
@@ -114,12 +127,13 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
     return { usuario: user }
 }
 
-const updateUser = async(id, user) => {
+const updateUser = async (id, user) => {
   await knex(TABLE_EVALUADORES).where({ id: id }).update(user)
   return await getOneUser(id)
 }
 
 module.exports = {
+  getAllUsers,
   getAllInstitutionUsers,
   getUserByDni,
   createUser,

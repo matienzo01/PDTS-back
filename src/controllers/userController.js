@@ -1,5 +1,14 @@
 const service = require('../services/userService')
 
+const getAllUsers = async (req, res) => {
+  try {
+    res.status(200).json(await service.getAllUsers())
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+}
+
 const getAllInstitutionUsers = async (req, res) => {
   const { params: { id_institucion } } = req
 
@@ -67,7 +76,7 @@ const createUser = async (req, res) => {
   return;
 }
 
-const updateUser = async(req,res) => {
+const updateUser = async (req, res) => {
   const { params: { id_usuario } } = req
   const { user } = req.body
 
@@ -84,6 +93,7 @@ const updateUser = async(req,res) => {
 }
 
 module.exports = {
+  getAllUsers,
   getAllInstitutionUsers,
   getUserByDni,
   linkUserToInstitution,
