@@ -27,8 +27,8 @@ BEGIN
         preguntas_seccion.id AS id_pregunta,
         preguntas_seccion.pregunta AS enunciado_pregunta,
         preguntas_seccion.id_seccion AS id_seccion,
-       secciones.nombre AS nombre_seccion,
-       preguntas_seccion.id_tipo_pregunta AS id_tipo_pregunta
+        secciones.nombre AS nombre_seccion,
+        preguntas_seccion.id_tipo_pregunta AS id_tipo_pregunta
     FROM 
         preguntas_seccion
     LEFT JOIN 
@@ -38,11 +38,11 @@ END //
 create PROCEDURE obtener_instituciones_de_usuario()
 BEGIN   
     select distinct id, (concat('[',
-    							(select distinct  GROUP_CONCAT(evaluadores_x_instituciones.id_institucion  SEPARATOR ', ') 
-    							FROM evaluadores_x_instituciones where evaluadores_x_instituciones.id_evaluador = e.id),
-    							']') ) as 'participa_en'
-	from evaluadores e join evaluadores_x_instituciones exi on e.id = exi.id_evaluador ;
-END;
+                                (select distinct  GROUP_CONCAT(evaluadores_x_instituciones.id_institucion  SEPARATOR ', ') 
+                                FROM evaluadores_x_instituciones where evaluadores_x_instituciones.id_evaluador = e.id),
+                                ']') ) as 'participa_en'
+    from evaluadores e join evaluadores_x_instituciones exi on e.id = exi.id_evaluador ;
+END //
 
 DELIMITER ;
 

@@ -4,6 +4,8 @@ const authUser = (req, res, next) => {
     const authorization = req.get('Authorization')
     let token = null
 
+    //console.log(req)
+
     if (authorization && authorization.toLowerCase().startsWith('bearer')) {
         token = authorization.substring(7)
     }

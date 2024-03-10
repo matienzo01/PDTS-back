@@ -1,10 +1,14 @@
 {
   "scripts": {
     "start": "node ./src/app.js",
-    "dev": "nodemon ./src/app.js"
+    "dev": "nodemon ./src/app.js",
+    "test:watch": "nodemon --exec npm test",
+    "test": "mocha test/test.js"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "mocha": "^10.3.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^6.3.4"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

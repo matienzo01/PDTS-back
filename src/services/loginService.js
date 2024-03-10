@@ -45,7 +45,7 @@ const login = async (mail, password) => {
     apellido: user.apellido
   }
 
-  console.log('userForToken', userForToken);
+  //console.log('userForToken', userForToken);
 
   const token = jwt.sign(userForToken, process.env.SECRET || 'clave')
   return { token: token, user: userForToken }

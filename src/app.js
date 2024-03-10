@@ -20,6 +20,8 @@ app.use('/api/instituciones_cyt', routerInstCYT)
 app.use('/api/instituciones', routerInst)
 app.use('/api/usuarios', routerUser)
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log('funciona el server')
 })
+
+module.exports = server
