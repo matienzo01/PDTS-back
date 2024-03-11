@@ -166,7 +166,7 @@ describe('TEST USER ROUTES', () => {
     it('Should be a bad request (id_usuario must be a number)', async() => {
       const { header_evaluador } = getHeaders();
       const id_usuario = 'a'
-      const res = await request(server)
+      await request(server)
         .put(`/api/usuarios/${id_usuario}`) 
         .set(header_evaluador)
         .send(UserToUpdate)
@@ -176,14 +176,33 @@ describe('TEST USER ROUTES', () => {
 
     it('Should not let update the user (id_usuario dont match with the id_usuario from token)', async() => {
       const { header_evaluador } = getHeaders();
-      
       const id_usuario = 455000
-      const res = await request(server)
+      await request(server)
         .put(`/api/usuarios/${id_usuario}`) 
         .set(header_evaluador)
         .send(UserToUpdate)
         .expect(401);
         
+    });
+
+    it('Should be unauthorized for adminscyt', async() => {
+      const { header_admincyt } = getHeaders();
+      const id_usuario = 1
+      await request(server)
+        .put(`/api/usuarios/${id_usuario}`) 
+        .set(header_admincyt)
+        .send(UserToUpdate)
+        .expect(403);
+    });
+
+    it('Should be unauthorized for admin general', async() => {
+      const { header_admin_general } = getHeaders();
+      const id_usuario = 1
+      await request(server)
+        .put(`/api/usuarios/${id_usuario}`) 
+        .set(header_admin_general)
+        .send(UserToUpdate)
+        .expect(403);
     });
 
   })    

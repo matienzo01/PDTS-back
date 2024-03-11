@@ -4,7 +4,7 @@ const assert = require('assert');
 
 let headers = {}
 
-describe('TEST LOGIN', () => {
+describe('TEST LOGIN ROUTES', () => {
   
   describe("POST /api/login ==> Login", () => {
 
@@ -28,7 +28,7 @@ describe('TEST LOGIN', () => {
         headerKey: 'header_admin_general'
       }
     ];
-  
+
     successfulLoginTests.forEach(testCase => {
       it(`Should login successfully with correct credentials (${testCase.description})`, async() => {
         const res = await request(server)
@@ -45,7 +45,7 @@ describe('TEST LOGIN', () => {
     });
     
     it('Should fail with incorrect credentials', async() => {
-      const res = await request(server)
+      await request(server)
         .post('/api/login')
         .send({ 
           mail: 'evaluador1@example.com', 
@@ -55,7 +55,7 @@ describe('TEST LOGIN', () => {
     });
 
     it('Should fail with missing credentials', async() => {
-      const res = await request(server)
+      await request(server)
         .post('/api/login')
         .send({ 
           mail: 'evaluador1@example.com'
