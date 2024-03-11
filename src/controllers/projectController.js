@@ -183,7 +183,7 @@ const getProjectsByUser = async (req, res) => {
   const { params: { id_usuario } } = req
 
   if (isNaN(id_usuario)) {
-    res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
+    return res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
   }
 
   try {

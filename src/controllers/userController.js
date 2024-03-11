@@ -26,7 +26,6 @@ const getAllInstitutionUsers = async (req, res) => {
 
 const getUserByDni = async (req, res) => {
   const { params: { id_institucion, dni } } = req
-
   if (isNaN(dni)) {
     res.status(400).json({ error: "Parameter ':dni' should be a number" })
   }
@@ -82,6 +81,10 @@ const updateUser = async (req, res) => {
 
   if (isNaN(id_usuario)) {
     res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
+  }
+
+  if (id_usuario != req.body.id_usuario){
+    res.status(401).json({ error: "you can only update your own user" })
   }
 
   try {
