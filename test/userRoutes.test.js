@@ -1,9 +1,46 @@
 const request = require('supertest');
-const server = require('../src/app'); // Importa tu aplicación Express aquí
+const server = require('../src/app'); 
 const getHeaders = require('./LoginRoutes.test')
 const assert = require('assert');
 
 describe('TEST USER ROUTES', () => {
+
+  async function getAllUsers(header, statusCode) {
+    const res = await request(server)
+      .get(`/api/usuarios`)
+      .set(header)
+      .expect(statusCode)
+    const usuarios = res.body.usuarios
+    return usuarios
+  }
+
+  async function getOneUser(header, statusCode, dni) {
+    const res = await request(server)
+      .get(`/api/usuarios/${dni}`)
+      .set(header)
+      .expect(statusCode)
+    const usuario = res.body.usuario
+    return usuario
+  }
+
+  async function updateUser(header, statusCode, user, id_usuario) {
+    const res = await request(server)
+      .put(`/api/usuarios/${id_usuario}`) 
+      .set(header)
+      .send(user)
+      .expect(statusCode);
+    const usuario = res.body.usuario
+    return usuario
+  }
+
+  async function getUserProjects(header, id_usuario, statusCode) {
+    const res = await request(server)
+      .get(`/api/usuarios/${id_usuario}/proyectos`)
+      .set(header)
+      .expect(statusCode);
+    const proyectos = res.body.proyectos
+    return proyectos
+  }
 
   describe('GET /api/usuarios ==> Get all users', () => {
 
@@ -15,12 +52,7 @@ describe('TEST USER ROUTES', () => {
 
     it('Should return all users', async() => {
       const { header_admin_general } = getHeaders();
-      const res = await request(server)
-        .get('/api/usuarios')
-        .set(header_admin_general)
-        .expect(200);
-      
-      const { usuarios } = res.body
+      const usuarios = await getAllUsers(header_admin_general, 200)
       usuarios.forEach(user => {
         const actualAttributes = Object.keys(user);
         const unexpectedAttributes = actualAttributes.filter(attr => !expectedAttributes.includes(attr));
@@ -28,20 +60,14 @@ describe('TEST USER ROUTES', () => {
       });    
     });
 
-    it('Should be unauthorized for evaluators', async() => {
-      const { header_evaluador } = getHeaders();
-      await request(server)
-        .get('/api/usuarios')
-        .set(header_evaluador)
-        .expect(403);
+    it('Should be unauthorized for evaluators (status 403)', async() => {
+      const { header_evaluador_1 } = getHeaders();
+      await getAllUsers(header_evaluador_1, 403);
     });
 
-    it('Should be unauthorized for adminscyt', async() => {
+    it('Should be unauthorized for adminscyt (status 403)', async() => {
       const { header_admincyt } = getHeaders();
-      await request(server)
-        .get('/api/usuarios')
-        .set(header_admincyt)
-        .expect(403);
+      await getAllUsers(header_admincyt, 403);
     });
 
   })
@@ -55,39 +81,24 @@ describe('TEST USER ROUTES', () => {
     ];
 
     it('Should return one user', async() => {
-      const { header_evaluador } = getHeaders();
+      const { header_evaluador_1 } = getHeaders();
       const dni = 123456789
-      const res = await request(server)
-        .get(`/api/usuarios/${dni}`)
-        .set(header_evaluador)
-        .expect(200);
-
-      const { usuario } = res.body
+      const usuario = await getOneUser(header_evaluador_1, 200, dni)
       const actualAttributes = Object.keys(usuario);
       const unexpectedAttributes = actualAttributes.filter(attr => !expectedAttributes.includes(attr));
       assert.equal(unexpectedAttributes.length, 0, `User object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
     });
 
-    it('Should not found an user', async() => {
-      const { header_evaluador } = getHeaders();
+    it('Should not found an user (status 404)', async() => {
+      const { header_evaluador_1 } = getHeaders();
       const dni = 4
-      const res = await request(server)
-        .get(`/api/usuarios/${dni}`)
-        .set(header_evaluador)
-        .expect(404);
-
-      assert.equal((Object.keys(res.body).filter(attr => !(['error'].includes(attr)))).length, 0, 'The response has unexpected attributes')
+      await getOneUser(header_evaluador_1, 404, dni)
     });
 
-    it('Should be a bad request (dni must be a number)', async() => {
-      const { header_evaluador } = getHeaders();
+    it('Should be a bad request (dni must be a number) (status 400)', async() => {
+      const { header_evaluador_1 } = getHeaders();
       const dni = 'a'
-      const res = await request(server)
-        .get(`/api/usuarios/${dni}`)
-        .set(header_evaluador)
-        .expect(400);
-      
-      assert.equal((Object.keys(res.body).filter(attr => !(['error'].includes(attr)))).length, 0, 'The response has unexpected attributes')
+      await getOneUser(header_evaluador_1, 400, dni)
     });
 
   })  
@@ -105,14 +116,9 @@ describe('TEST USER ROUTES', () => {
     ];
 
     it('Should return all user projects', async() => {
-      const { header_evaluador } = getHeaders();
+      const { header_evaluador_1 } = getHeaders();
       const id_usuario = 1
-      const res = await request(server)
-        .get(`/api/usuarios/${id_usuario}/proyectos`)
-        .set(header_evaluador)
-        .expect(200);
-      
-      const { proyectos } = res.body
+      const proyectos = await getUserProjects(header_evaluador_1, id_usuario, 200)
           
       proyectos.forEach(proyecto => {
         const actualAttributes = Object.keys(proyecto);
@@ -121,20 +127,14 @@ describe('TEST USER ROUTES', () => {
       })
     })
 
-    it('Should be a bad request (id_usuario must be a number)', async() => {
-      const { header_evaluador } = getHeaders();
+    it('Should be a bad request (id_usuario must be a number) (status 400)', async() => {
+      const { header_evaluador_1 } = getHeaders();
       const id_usuario = 'a'
-      const res = await request(server)
-        .get(`/api/usuarios/${id_usuario}/proyectos`)
-        .set(header_evaluador)
-        .expect(400);
-    
-      assert.equal((Object.keys(res.body).filter(attr => !(['error'].includes(attr)))).length, 0, 'The response has unexpected attributes')
+      await getUserProjects(header_evaluador_1, id_usuario, 400)
     });
 
   })
     
-
   describe('PUT /api/usuarios/:id_usuario ==> Update User', () => {
 
     const UserToUpdate = {
@@ -144,65 +144,36 @@ describe('TEST USER ROUTES', () => {
     };
 
     it('Should update an existing user', async() => {
-      const { header_evaluador } = getHeaders();
+      const { header_evaluador_1 } = getHeaders();
       const id_usuario = 1
-      const res = await request(server)
-        .put(`/api/usuarios/${id_usuario}`) 
-        .set(header_evaluador)
-        .send(UserToUpdate)
-        .expect(200);
-      
-      const { usuario } = res.body
-      const res2 = await request(server)
-        .get(`/api/usuarios/${usuario.dni}`)
-        .set(header_evaluador)
-        .expect(200);
-      
-      const updatedResource = res2.body.usuario;
-      assert.equal(updatedResource.nombre,usuario.nombre)
-        
+      const usuario = await updateUser(header_evaluador_1, 200, UserToUpdate, id_usuario)
+      const updatedUser = await getOneUser(header_evaluador_1, 200, usuario.dni)
+      assert.equal(updatedUser.nombre, usuario.nombre)
     });
 
-    it('Should be a bad request (id_usuario must be a number)', async() => {
-      const { header_evaluador } = getHeaders();
+    it('Should be a bad request (id_usuario must be a number) (status 400)', async() => {
+      const { header_evaluador_1 } = getHeaders();
       const id_usuario = 'a'
-      await request(server)
-        .put(`/api/usuarios/${id_usuario}`) 
-        .set(header_evaluador)
-        .send(UserToUpdate)
-        .expect(400);
-        
+      await updateUser(header_evaluador_1, 400, UserToUpdate, id_usuario)
     });
 
-    it('Should not let update the user (id_usuario dont match with the id_usuario from token)', async() => {
-      const { header_evaluador } = getHeaders();
+    it('Should not let update the user (id_usuario dont match with the id_usuario from token) (status 401)', async() => {
+      const { header_evaluador_1 } = getHeaders();
       const id_usuario = 455000
-      await request(server)
-        .put(`/api/usuarios/${id_usuario}`) 
-        .set(header_evaluador)
-        .send(UserToUpdate)
-        .expect(401);
+      await updateUser(header_evaluador_1, 401, UserToUpdate, id_usuario)
         
     });
 
-    it('Should be unauthorized for adminscyt', async() => {
+    it('Should be unauthorized for adminscyt (status 403)', async() => {
       const { header_admincyt } = getHeaders();
       const id_usuario = 1
-      await request(server)
-        .put(`/api/usuarios/${id_usuario}`) 
-        .set(header_admincyt)
-        .send(UserToUpdate)
-        .expect(403);
+      await updateUser(header_admincyt, 403, UserToUpdate, id_usuario)
     });
 
-    it('Should be unauthorized for admin general', async() => {
+    it('Should be unauthorized for admin general (status 403)', async() => {
       const { header_admin_general } = getHeaders();
       const id_usuario = 1
-      await request(server)
-        .put(`/api/usuarios/${id_usuario}`) 
-        .set(header_admin_general)
-        .send(UserToUpdate)
-        .expect(403);
+      await updateUser(header_admin_general, 403, UserToUpdate, id_usuario)
     });
 
   })    

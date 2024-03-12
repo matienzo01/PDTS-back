@@ -421,13 +421,33 @@ INSERT INTO proyectos (
     'Alta',
     NOW(), 
     1 -- true para obligatoriedad_proposito
+),
+(
+    'Proyecto de Investigación Geológica',
+    1, -- Reemplaza con el ID correcto de estado_eval
+    1, -- Reemplaza con el ID correcto de evaluadores (director)
+    1, -- Reemplaza con el ID correcto de instituciones
+    '2024-03-15',
+    '2025-03-15',
+    'Geología',
+    'Tierra',
+    'Estudio sobre el impacto del cambio climático',
+    'Generación de informes científicos y propuestas de conservación',
+    'Resumen detallado del proyecto de investigación',
+    'Propuesta innovadora para abordar la conservación',
+    'Alto',
+    'Muy pertinente',
+    'Alta',
+    NOW(), 
+    1 -- true para obligatoriedad_proposito
 );
 
 INSERT INTO evaluadores_x_proyectos(id_proyecto,id_evaluador,rol,fecha_inicio_eval,obligatoriedad_opinion,id_modelo_encuesta) VALUES
 	(1,1,'director',NOW(),1,1),
     (1,2,'evaluador',NOW(),1,1),
 	(2,3,'director',NOW(),1,1),
-    (2,1,'evaluador',NOW(),1,1);
+    (2,1,'evaluador',NOW(),1,1),
+    (3,1,'director',NOW(),1,1);
 
 
 INSERT INTO respuestas_evaluacion (id_proyecto, id_evaluador, id_indicador, respuesta, calificacion) VALUES
@@ -454,9 +474,79 @@ INSERT INTO respuestas_evaluacion (id_proyecto, id_evaluador, id_indicador, resp
     (2,1,21, 'Alto', 3),
     (2,1,22, 'Alto', 3),
     (2,1,23, 'Alto', 3),
-    (2,1,24, 'Alto', 3);
+    (2,1,24, 'Alto', 3),
+    
+    (3,1,1, 'No cumple', 0),
+    (3,1,2, 'No cumple', 0),
+    (3,1,3, 'cumple parcial', 0.5),
+    (3,1,4, 'cumple parcial', 0.5),
+    (3,1,5, 'cumple parcial', 0.5),
+    (3,1,6, 'cumple parcial', 0.5),
+    (3,1,7, 'cumple parcial', 0.5),
+    (3,1,8, 'cumple parcial', 0.5),
+    (3,1,9, 'cumple parcial', 0.5),
+    (3,1,10, 'cumple parcial', 0.5),
+    (3,1,11, 'cumple parcial', 0.5),
+    (3,1,12, 'cumple parcial', 0.5),
+    (3,1,13, 'Alto', 3),
+    (3,1,14, 'Alto', 3),
+    (3,1,15, 'Alto', 3),
+    (3,1,16, 'Alto', 3),
+    (3,1,17, 'Alto', 3),
+    (3,1,18, 'Alto', 3),
+    (3,1,19, 'Alto', 3),
+    (3,1,20, 'Alto', 3),
+    (3,1,21, 'Alto', 3),
+    (3,1,22, 'Alto', 3),
+    (3,1,23, 'Alto', 3),
+    (3,1,24, 'Alto', 3);
+
+INSERT INTO respuestas_encuesta(id_pregunta, id_evaluador, id_proyecto, respuesta) VALUES
+    (1,1,3,'nada util'),
+    (2,1,3,'nada pertinente'),
+    (3,1,3,'agrega valor'),
+    (4,1,3,'no agrega valor'),
+    (5,1,3,'si'),
+    (6,1,3,null),
+    (7,1,3,'si'),
+    (8,1,3,'si'),
+    (9,1,3,null),
+    (10,1,3,'facil de usar'),
+    (11,1,3,'Puede que agregaria un indicador en la instancia de entidad'),
+    (12,1,3,'muy pertinente'),
+    (13,1,3,'muy pertinente'),
+    (14,1,3,'muy pertinente'),
+    (15,1,3,'muy pertinente'),
+    (16,1,3,'muy pertinente'),
+    (17,1,3,'Puede que agregaria un indicador en la instancia de proposito'),
+    (18,1,3,'pertinente'),
+    (19,1,3,'pertinente'),
+    (20,1,3,'pertinente'),
+    (21,1,3,'pertinente'),
+    (22,1,3,'pertinente'),
+    (23,1,3,'pertinente'),
+    (24,1,3,'pertinente'),
+    (25,1,3,'pertinente'),
+    (26,1,3,'pertinente'),
+    (27,1,3,'pertinente'),
+    (28,1,3,'pertinente'),
+    (29,1,3,'pertinente'),
+    (30,1,3,'pertinente'),
+    (31,1,3,'pertinente'),
+    (32,1,3,'pertinente'),
+    (33,1,3,'pertinente'),
+    (34,1,3,'pertinente'),
+    (35,1,3,'pertinente'),
+    (36,1,3,'pertinente'),
+    (37,1,3,'pertinente'),
+    (38,1,3,'pertinente'),
+    (39,1,3,'pertinente'),
+    (40,1,3,'pertinente'),
+    (41,1,3,'pertinente');
 
 UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 2 AND id_evaluador = 1;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 3 AND id_evaluador = 1;
+UPDATE evaluadores_x_proyectos SET fecha_fin_op = NOW() WHERE id_proyecto = 3 AND id_evaluador = 1;
 
 insert INTO participacion_instituciones(id_proyecto,id_institucion,rol) VALUES
     (1,1,'Ejecutora'),

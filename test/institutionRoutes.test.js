@@ -1,5 +1,5 @@
 const request = require('supertest');
-const server = require('../src/app'); // Importa tu aplicación Express aquí
+const server = require('../src/app');
 const getHeaders = require('./LoginRoutes.test')
 const assert = require('assert');
 
@@ -27,6 +27,15 @@ describe('TEST INSTITUTION ROUTES', () => {
     return res.body.instituciones;
   }
 
+  async function createInstitution(header, newInst, statusCode) {
+    const res = await request(server)
+      .post('/api/instituciones')
+      .send(newInst)
+      .set(header)
+      .expect(statusCode)
+    return res.body
+  }
+
   describe('GET /api/instituciones ==> Get all institutions', async() => {
 
     it('Should return all institutions (admin general)', async() => {
@@ -51,9 +60,9 @@ describe('TEST INSTITUTION ROUTES', () => {
         });  
     });
 
-    it('Should be unauthorized for evaluadores ', async() => {
-        const { header_evaluador } = getHeaders();
-        await getAllInstitutions(header_evaluador, 403)  
+    it('Should be unauthorized for evaluadores (status 403)', async() => {
+        const { header_evaluador_1 } = getHeaders();
+        await getAllInstitutions(header_evaluador_1, 403)  
     });
 
   })
@@ -76,12 +85,12 @@ describe('TEST INSTITUTION ROUTES', () => {
         assert.equal(unexpectedAttributes.length, 0, `User object has unexpected attributes: ${unexpectedAttributes.join(', ')}`); 
     });
 
-    it('Should be unauthorized for evaluadores ', async() => {
-        const { header_evaluador } = getHeaders();
-        await getOneInstitutions(header_evaluador, 1, 403)
+    it('Should be unauthorized for evaluadores (status 403)', async() => {
+        const { header_evaluador_1 } = getHeaders();
+        await getOneInstitutions(header_evaluador_1, 1, 403)
     });
 
-    it('Should be a bad request (id_inst should be a number) ', async() => {
+    it('Should be a bad request (id_inst should be a number) (status 400)', async() => {
         const { header_admincyt } = getHeaders();
         await getOneInstitutions(header_admincyt, 'a', 400)
     });
@@ -104,43 +113,25 @@ describe('TEST INSTITUTION ROUTES', () => {
 
     it('Should create a new institution (admincyt)', async() => {
         const { header_admincyt } = getHeaders();
-        const res = await request(server)
-          .post('/api/instituciones')
-          .send(newInst)
-          .set(header_admincyt)
-          .expect(200);
-        const { institucion } = res.body
+        const { institucion } = await createInstitution(header_admincyt, newInst, 200)
         await getOneInstitutions(header_admincyt,institucion.id,200)
     })
 
     it('Should create a new institution (admin general)', async() => {
         const { header_admin_general } = getHeaders();
-        const res = await request(server)
-          .post('/api/instituciones')
-          .send(newInst)
-          .set(header_admin_general)
-          .expect(200);
-        const { institucion } = res.body
+        const { institucion } = await createInstitution(header_admin_general, newInst, 200)
         await getOneInstitutions(header_admin_general,institucion.id,200)
     })
 
-    it('Should be unauthorized for evaluadores', async() => {
-        const { header_evaluador } = getHeaders();
-        await request(server)
-          .post('/api/instituciones')
-          .send(newInst)
-          .set(header_evaluador)
-          .expect(403);
+    it('Should be unauthorized for evaluadores (status 403)', async() => {
+        const { header_evaluador_1 } = getHeaders();
+        await createInstitution(header_evaluador_1, newInst, 403)
     })
 
-    it('Should fail creating a institution (missing fields)', async() => {
+    it('Should fail creating a institution (missing fields) (status 400)', async() => {
         const { header_admincyt } = getHeaders();
         delete newInst.institucion.nombre
-        await request(server)
-          .post('/api/instituciones')
-          .send(newInst)
-          .set(header_admincyt)
-          .expect(400);
+        await createInstitution(header_admincyt, newInst, 400)
     })
 
   })

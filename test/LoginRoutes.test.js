@@ -6,6 +6,22 @@ let headers = {}
 
 describe('TEST LOGIN ROUTES', () => {
   
+  async function login(credentials, statusCode, headerKey, expectedAttributes) {
+    return await request(server)
+      .post('/api/login')
+      .send(credentials)
+      .expect(statusCode)
+      .then(response => {
+        if (!response.body.error) {
+          const { token, user } = response.body
+          headers[headerKey] = { 'Authorization': `Bearer ${token}` }
+          const actualAttributes = Object.keys(user);
+          const unexpectedAttributes = actualAttributes.filter(attr => !expectedAttributes.includes(attr));
+          assert.equal(unexpectedAttributes.length, 0, `User object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
+        }
+      })
+  }
+
   describe("POST /api/login ==> Login", () => {
 
     const successfulLoginTests = [
@@ -13,7 +29,13 @@ describe('TEST LOGIN ROUTES', () => {
         description: 'evaluador 1',
         credentials: { mail: 'evaluador1@example.com', password: '1234' },
         expectedAttributes: ['id', 'mail', 'rol', 'nombre', 'apellido'],
-        headerKey: 'header_evaluador'
+        headerKey: 'header_evaluador_1'
+      },
+      {
+        description: 'evaluador 2',
+        credentials: { mail: 'evaluador2@example.com', password: '1234' },
+        expectedAttributes: ['id', 'mail', 'rol', 'nombre', 'apellido'],
+        headerKey: 'header_evaluador_2'
       },
       {
         description: 'admin cyt',
@@ -31,36 +53,21 @@ describe('TEST LOGIN ROUTES', () => {
 
     successfulLoginTests.forEach(testCase => {
       it(`Should login successfully with correct credentials (${testCase.description})`, async() => {
-        const res = await request(server)
-          .post('/api/login')
-          .send(testCase.credentials)
-          .expect(200);
-          
-        const { token, user } = res.body;
-        const actualAttributes = Object.keys(user);
-        const unexpectedAttributes = actualAttributes.filter(attr => !testCase.expectedAttributes.includes(attr));
-        assert.equal(unexpectedAttributes.length, 0, `User object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
-        headers[testCase.headerKey] = { 'Authorization': `Bearer ${token}`};
+        await login(testCase.credentials,200,testCase.headerKey, testCase.expectedAttributes)
       });
     });
     
-    it('Should fail with incorrect credentials', async() => {
-      await request(server)
-        .post('/api/login')
-        .send({ 
-          mail: 'evaluador1@example.com', 
-          password: '12345' 
-        })
-        .expect(401);
+    it('Should fail with incorrect credentials (status 401)', async() => {
+      credentials = { 
+        mail: 'evaluador1@example.com', 
+        password: '12345'
+      }
+      await login(credentials,401)
     });
 
-    it('Should fail with missing credentials', async() => {
-      await request(server)
-        .post('/api/login')
-        .send({ 
-          mail: 'evaluador1@example.com'
-        })
-        .expect(400);
+    it('Should fail with missing credentials (status 400)', async() => {
+      credentials = { mail: 'evaluador1@example.com' }
+      await login(credentials,400)
     });
 
   })
