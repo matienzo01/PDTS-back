@@ -13,8 +13,7 @@ const getOneInstitucion = async (req, res) => {
   const { params: { inst_id } } = req
 
   if (isNaN(inst_id)) {
-    res.status(400).json({ error: "Parameter ':inst_id' should be a number" })
-    return;
+    return res.status(400).json({ error: "Parameter ':inst_id' should be a number" })
   }
 
   try {
@@ -37,7 +36,7 @@ const createInstitucion = async (req, res) => {
     !institucion.telefono_institucional ||
     !institucion.mail_institucional ||
     !institucion.esCyt === undefined) {
-    res.status(400).json({ error: "Missing fields" })
+    return res.status(400).json({ error: "Missing fields" })
   }
 
   try {

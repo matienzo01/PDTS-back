@@ -2,6 +2,16 @@ const knex = require('../database/knex')
 const TABLE_INSTITUCIONES = 'instituciones'
 const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
 
+const getInstIdFromAdmin = async (id_admin) => {
+  const { id } =  await knex('instituciones_cyt').select('id').where({ id_admin }).first()
+  if ( id == undefined) {
+    const _error = new Error('There is no institutions with that admin id')
+    _error.status = 404
+    throw _error
+  }
+  return id
+}
+
 const getOneInstitucionCYT = async (id) => {
 
   const [tipos_inst, inst] = await Promise.all([
@@ -114,5 +124,6 @@ module.exports = {
   getAllInstitucionesCYT,
   createInstitucionCYT,
   deleteInstitucionCYT,
-  getTiposInstituciones
+  getTiposInstituciones,
+  getInstIdFromAdmin
 }

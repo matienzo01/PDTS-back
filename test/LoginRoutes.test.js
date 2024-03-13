@@ -12,6 +12,7 @@ describe('TEST LOGIN ROUTES', () => {
       .send(credentials)
       .expect(statusCode)
       .then(response => {
+        assert.equal(response.type, 'application/json')
         if (!response.body.error) {
           const { token, user } = response.body
           headers[headerKey] = { 'Authorization': `Bearer ${token}` }
@@ -41,7 +42,13 @@ describe('TEST LOGIN ROUTES', () => {
         description: 'admin cyt',
         credentials: { mail: 'admin1@mail.com', password: '1234' },
         expectedAttributes: ['id', 'mail', 'rol', 'institutionId'],
-        headerKey: 'header_admincyt'
+        headerKey: 'header_admincyt_1'
+      },
+      {
+        description: 'admin cyt',
+        credentials: { mail: 'admin2@mail.com', password: '1234' },
+        expectedAttributes: ['id', 'mail', 'rol', 'institutionId'],
+        headerKey: 'header_admincyt_2'
       },
       {
         description: 'admin general',

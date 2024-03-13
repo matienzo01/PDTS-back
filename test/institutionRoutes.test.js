@@ -16,6 +16,8 @@ describe('TEST INSTITUTION ROUTES', () => {
       .get(`/api/instituciones/${id_inst}`)
       .set(header)
       .expect(statusCode);
+    
+    assert.equal(res.type, 'application/json')
     return res.body.institucion;
   }
 
@@ -24,6 +26,8 @@ describe('TEST INSTITUTION ROUTES', () => {
       .get('/api/instituciones')
       .set(header)
       .expect(statusCode);
+    
+    assert.equal(res.type, 'application/json')
     return res.body.instituciones;
   }
 
@@ -33,6 +37,8 @@ describe('TEST INSTITUTION ROUTES', () => {
       .send(newInst)
       .set(header)
       .expect(statusCode)
+    
+    assert.equal(res.type, 'application/json')
     return res.body
   }
 
@@ -50,9 +56,9 @@ describe('TEST INSTITUTION ROUTES', () => {
     });
 
     it('Should return all institutions (admin cyt)', async() => {
-        const { header_admincyt } = getHeaders();
+        const { header_admincyt_1 } = getHeaders();
         
-        const instituciones = await getAllInstitutions(header_admincyt, 200)
+        const instituciones = await getAllInstitutions(header_admincyt_1, 200)
         instituciones.forEach(inst => {
           const actualAttributes = Object.keys(inst);
           const unexpectedAttributes = actualAttributes.filter(attr => !expectedAttributes.includes(attr));
@@ -78,9 +84,9 @@ describe('TEST INSTITUTION ROUTES', () => {
     });
 
     it('Should return one institution (admin cyt)', async() => {
-        const { header_admincyt } = getHeaders();
+        const { header_admincyt_1 } = getHeaders();
         
-        const actualAttributes = Object.keys(await getOneInstitutions(header_admincyt, 1, 200));
+        const actualAttributes = Object.keys(await getOneInstitutions(header_admincyt_1, 1, 200));
         const unexpectedAttributes = actualAttributes.filter(attr => !expectedAttributes.includes(attr));
         assert.equal(unexpectedAttributes.length, 0, `User object has unexpected attributes: ${unexpectedAttributes.join(', ')}`); 
     });
@@ -91,8 +97,8 @@ describe('TEST INSTITUTION ROUTES', () => {
     });
 
     it('Should be a bad request (id_inst should be a number) (status 400)', async() => {
-        const { header_admincyt } = getHeaders();
-        await getOneInstitutions(header_admincyt, 'a', 400)
+        const { header_admincyt_1 } = getHeaders();
+        await getOneInstitutions(header_admincyt_1, 'a', 400)
     });
 
   })
@@ -112,9 +118,9 @@ describe('TEST INSTITUTION ROUTES', () => {
     }
 
     it('Should create a new institution (admincyt)', async() => {
-        const { header_admincyt } = getHeaders();
-        const { institucion } = await createInstitution(header_admincyt, newInst, 200)
-        await getOneInstitutions(header_admincyt,institucion.id,200)
+        const { header_admincyt_1 } = getHeaders();
+        const { institucion } = await createInstitution(header_admincyt_1, newInst, 200)
+        await getOneInstitutions(header_admincyt_1,institucion.id,200)
     })
 
     it('Should create a new institution (admin general)', async() => {
@@ -129,9 +135,9 @@ describe('TEST INSTITUTION ROUTES', () => {
     })
 
     it('Should fail creating a institution (missing fields) (status 400)', async() => {
-        const { header_admincyt } = getHeaders();
+        const { header_admincyt_1 } = getHeaders();
         delete newInst.institucion.nombre
-        await createInstitution(header_admincyt, newInst, 400)
+        await createInstitution(header_admincyt_1, newInst, 400)
     })
 
   })

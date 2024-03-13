@@ -80,8 +80,8 @@ const deleteIndicator = async(req,res) => {
 
 const updateIndicator = async(req, res) => {
     const { params: { id_indicador } } = req
-    const { indicador } = req.body
-    console.log(indicador, id_indicador)
+    const { indicador } = req.body 
+    
     try {
         res.status(200).json(await service.updateIndicator(id_indicador, indicador))
     } catch (error){

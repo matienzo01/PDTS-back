@@ -5,6 +5,24 @@ const assert = require('assert');
 
 describe('TEST EVAL ROUTES', () => {
 
+    async function getEval(id_proyecto, header, statusCode) {
+        const res = await request(server)
+          .get(`/api/evaluacion/${id_proyecto}`)
+          .set(header)
+          .expect(statusCode)
+        assert.equal(res.type, 'application/json')
+        return res.body
+    }
+
+    async function getAnswers(id_proyecto, header, statusCode) {
+        const res = await request(server)
+          .get(`/api/evaluacion/${id_proyecto}/respuestas`)
+          .set(header)
+          .expect(statusCode)
+        assert.equal(res.type, 'application/json')
+        return res.body
+    }
+
     describe('GET /api/evaluacion/:id_proyecto ==> Get next eval', () => {
         
         const { header_evaluador_1, header_evaluador_2 } = getHeaders();
@@ -17,14 +35,6 @@ describe('TEST EVAL ROUTES', () => {
             { projectId: 450, type: null, statusCode: 404, msg: 'Should not find the provided id (status 404)' },
             { projectId: 2, type: null, statusCode: 403, msg: 'Should not let access to the evaluation of a project to which the evaluator is not assigned (status 403)' }
         ];
-
-        async function getEval(id_proyecto, header, statusCode) {
-            const res = await request(server)
-                .get(`/api/evaluacion/${id_proyecto}`)
-                .set(header)
-                .expect(statusCode)
-            return res.body
-        }
 
         tests.forEach(({ projectId, type, statusCode, msg }) => {
             const desc = statusCode ? msg : `Should get project ${type}`;
@@ -43,11 +53,77 @@ describe('TEST EVAL ROUTES', () => {
     })
 
     describe('GET /api/evaluacion/:id_proyecto/respuestas ==> Get eval project answers', () => {
-    
+
+        it('Should return the evaluators answers (evaluador)', async() => {
+            const { header_evaluador_1 } = getHeaders()
+            const id_proyecto = 2
+            const { respuestas } = await getAnswers(id_proyecto, header_evaluador_1, 200)
+            assert.equal(respuestas.name, 'Evaluación de proyecto')
+        })
+
+        it('Should return the evaluators answers (evaluador)', async() => {
+            const { header_admincyt_1 } = getHeaders()
+            const id_proyecto = 2
+            const { respuestas } = await getAnswers(id_proyecto, header_admincyt_1, 200)
+            assert.equal(respuestas.name, 'Evaluación de proyecto')
+        })
+
+        it('Should not find the project', async() => {
+            const { header_evaluador_1 } = getHeaders()
+            const id_proyecto = 4
+            await getAnswers(id_proyecto, header_evaluador_1, 404)
+        })
+
+        it('Should not find answers', async() => {
+            const { header_evaluador_1 } = getHeaders()
+            const id_proyecto = 1
+            await getAnswers(id_proyecto, header_evaluador_1, 404)
+        })
+
+        it('Should not allow access to responses from a project where the evaluator is not assigned', async() => {
+            const { header_evaluador_2 } = getHeaders()
+            const id_proyecto = 2
+            await getAnswers(id_proyecto, header_evaluador_2, 403)
+        })
+
+        it('Should not allow access to responses from a project which the admin does not own', async() => {
+            const { header_admincyt_2 } = getHeaders()
+            const id_proyecto = 1
+            await getAnswers(id_proyecto, header_admincyt_2, 403)
+        })
+
     })
 
     describe('GET /api/evaluacion/:id_proyecto/respuestas/pdf ==> Get a pdf with a project evaluation summary', () => {
-    
+        
+        async function getPdf(id_proyecto, header, statusCode, type) {
+            const res = await request(server)
+              .get(`/api/evaluacion/${id_proyecto}/respuestas/pdf`)
+              .set(header)
+              .expect(statusCode)
+            return res
+        }
+
+        it('Should generate a pdf', async() => {
+            const { header_admincyt_1 } = getHeaders()
+            const id_proyecto = 3
+            const res = await getPdf(id_proyecto, header_admincyt_1, 200)
+            assert.equal(res.type, 'application/pdf')
+        })
+
+        it('Should not generate a pdf if the evaluation has not finished yet', async() => {
+            const { header_admincyt_1 } = getHeaders()
+            const id_proyecto = 2
+            const res = await getPdf(id_proyecto, header_admincyt_1, 404)
+            assert.equal(res.type, 'application/json')
+        })
+
+        it('Should not generate a pdf of a project which the admin does not own', async() => {
+            const { header_admincyt_2 } = getHeaders()
+            const id_proyecto = 2
+            const res = await getPdf(id_proyecto, header_admincyt_2, 403)
+            assert.equal(res.type, 'application/json')
+        })
     })
 
     describe('POST /api/evaluacion ==> Post the responses of an evaluator for a project', () => {

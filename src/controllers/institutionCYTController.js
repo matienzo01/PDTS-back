@@ -66,7 +66,6 @@ const createInstitucionCYT = async (req, res) => {
   } catch (error) {
     res.status(409).json({ error: error.message })
   }
-  return;
 }
 
 const deleteInstitucionCYT = async (req, res) => {

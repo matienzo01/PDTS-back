@@ -1,13 +1,16 @@
 const PDFDocument = require('pdfkit');
 const htmlToPdf = require('html-pdf');
 const projectService = require('./projectService')
-const evalService = require('./evalService')
+const evalService = require('./evalService');
+const insttitutionCYTService = require('./institutionCYTService')
+const knex = require('knex');
 
-const generatePDF = async(id_proyecto) => {
+const generatePDF = async(id_proyecto, id_admin) => {
     return new Promise(async(resolve, reject) => {
       try {
+        const id = await insttitutionCYTService.getInstIdFromAdmin(id_admin)
+        const { proyecto } = await projectService.getOneProject(id_proyecto, id)
         const { entidad, proposito, totD, totND, totP } = await evalService.getEvaluationScores(id_proyecto)
-        const { proyecto } = await projectService.getOneProject(id_proyecto)
         const x = 72
 
         const doc = new PDFDocument();

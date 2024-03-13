@@ -10,6 +10,8 @@ describe('TEST USER ROUTES', () => {
       .get(`/api/usuarios`)
       .set(header)
       .expect(statusCode)
+    
+    assert.equal(res.type, 'application/json')
     const usuarios = res.body.usuarios
     return usuarios
   }
@@ -19,6 +21,8 @@ describe('TEST USER ROUTES', () => {
       .get(`/api/usuarios/${dni}`)
       .set(header)
       .expect(statusCode)
+
+    assert.equal(res.type, 'application/json')
     const usuario = res.body.usuario
     return usuario
   }
@@ -29,6 +33,8 @@ describe('TEST USER ROUTES', () => {
       .set(header)
       .send(user)
       .expect(statusCode);
+
+    assert.equal(res.type, 'application/json')
     const usuario = res.body.usuario
     return usuario
   }
@@ -38,6 +44,8 @@ describe('TEST USER ROUTES', () => {
       .get(`/api/usuarios/${id_usuario}/proyectos`)
       .set(header)
       .expect(statusCode);
+    
+    assert.equal(res.type, 'application/json')
     const proyectos = res.body.proyectos
     return proyectos
   }
@@ -66,8 +74,8 @@ describe('TEST USER ROUTES', () => {
     });
 
     it('Should be unauthorized for adminscyt (status 403)', async() => {
-      const { header_admincyt } = getHeaders();
-      await getAllUsers(header_admincyt, 403);
+      const { header_admincyt_1 } = getHeaders();
+      await getAllUsers(header_admincyt_1, 403);
     });
 
   })
@@ -165,9 +173,9 @@ describe('TEST USER ROUTES', () => {
     });
 
     it('Should be unauthorized for adminscyt (status 403)', async() => {
-      const { header_admincyt } = getHeaders();
+      const { header_admincyt_1 } = getHeaders();
       const id_usuario = 1
-      await updateUser(header_admincyt, 403, UserToUpdate, id_usuario)
+      await updateUser(header_admincyt_1, 403, UserToUpdate, id_usuario)
     });
 
     it('Should be unauthorized for admin general (status 403)', async() => {

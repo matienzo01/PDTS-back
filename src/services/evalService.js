@@ -1,6 +1,7 @@
 const res = require('express/lib/response.js')
 const knex = require('../database/knex.js')
 const projectService = require('../services/projectService')
+const insttitutionCYTService = require('../services/institutionCYTService.js')
 
 const verify_date = async (id_proyecto, id_evaluador) => {
   return await knex('evaluadores_x_proyectos').select()
@@ -325,16 +326,26 @@ const getRtas = async(arrayIdsEvaluadores, id_proyecto) => {
 }
 
 const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
+  const participantes  = await projectService.getParticipants(id_proyecto)
+  
   if (rol === 'admin'){
+    const id  = await insttitutionCYTService.getInstIdFromAdmin(id_evaluador)
+    await projectService.getOneProject(id_proyecto, id)
+    
     const arrayIds = []
-    const participantes  = await projectService.getParticipants(id_proyecto)
     participantes.forEach( async(participante) => {
       arrayIds.push(participante.id)
     })
     return await getRtas(arrayIds, id_proyecto)
 
   } else if (rol === 'evaluador') {
-    return await getRtas([id_evaluador], id_proyecto) ;
+    await projectService.getOneProject(id_proyecto)
+    if (participantes.some(participante => participante.id === id_evaluador)) {
+      return await getRtas([id_evaluador], id_proyecto)
+    }
+    const _error = new Error('The user is not assigned to the project')
+    _error.status = 403
+    throw _error;
   }
     
 }

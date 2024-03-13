@@ -5,8 +5,7 @@ const getAllDimensions = async (req,res) => {
     const {id_instancia} = req.query
 
     if (isNaN(id_instancia)) {
-        res.status(400).json({ error: "Parameter ':id_instancia' should be a number"})
-        return ;
+        return res.status(400).json({ error: "Parameter ':id_instancia' should be a number"})
     }
 
     try {
@@ -20,8 +19,7 @@ const getOneDimension = async (req,res) => {
     const { params: { id_dimension }} = req
 
     if (isNaN(id_dimension)) {
-        res.status(400).json({ error: "Parameter ':id_dimension' should be a number"})
-        return ;
+        return res.status(400).json({ error: "Parameter ':id_dimension' should be a number"})
     }
 
     try {

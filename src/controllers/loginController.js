@@ -4,7 +4,7 @@ const login = async (req,res) => {
     const { mail, password } = req.body
 
     if (!mail || !password) {
-        res.status(400).json({ error: 'mail or passord missing'})
+        return res.status(400).json({ error: 'mail or passord missing'})
     }
 
     try {
