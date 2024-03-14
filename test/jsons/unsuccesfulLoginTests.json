@@ -1,0 +1,19 @@
+{
+    "unsuccessfulLoginTests": [
+        {   
+            "msg": "Should fail with incorrect credentials (status 401)",
+            "status": 401,
+            "credentials": { 
+                "mail": "evaluador1@example.com", 
+                "password": "12345"
+              }
+        },
+        {
+            "msg": "Should fail with missing credentials (status 400)",
+            "status": 400,
+            "credentials": { 
+                "mail": "evaluador1@example.com"
+              }
+        }
+    ]
+}

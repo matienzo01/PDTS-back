@@ -1,0 +1,11 @@
+{
+    "institucion": {
+      "nombre": "INSTITUCION PARTICIPANTE DE PRUEBA",
+      "rubro": "rubroA",
+      "pais": "Argentina",
+      "provincia": "Buenos Aires",
+      "localidad": "Ciudad B",
+      "telefono_institucional": "132456798",
+      "mail_institucional": "info@utn.com"
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "tests": [
+      { "projectId": 1, "type": "evaluacion" },
+      { "projectId": 2, "type": "opinion" },
+      { "projectId": 3, "type": null, "statusCode": 409, "msg": "Should have nothing else to answer (status 409)" },
+      { "projectId": 450, "type": null, "statusCode": 404, "msg": "Should not find the provided id (status 404)" },
+      { "projectId": 2, "type": null, "statusCode": 403, "msg": "Should not let access to the evaluation of a project to which the evaluator is not assigned (status 403)" }
+    ]
+  }
