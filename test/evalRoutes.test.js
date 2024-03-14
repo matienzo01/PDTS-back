@@ -1,4 +1,4 @@
-const getHeaders = require('./LoginRoutes.test')
+const getHeaders = require('./LoginRoutes.test.js')
 const Requests = require('./Requests.js')
 const assert = require('assert');
 
@@ -14,10 +14,11 @@ describe('TEST EVAL ROUTES', () => {
                 const header = (projectId === 2 && type === null) 
                     ? getHeaders().header_evaluador_2 
                     : getHeaders().header_evaluador_1;
-                const response = await Requests.getEval(projectId, header, statusCode || 200);
+                const res = await Requests.GET(`/api/evaluacion/${projectId}`, header, statusCode || 200)
+                const eval = res.body
                 if (!statusCode) {
-                    assert.equal(response.id_proyecto, projectId);
-                    assert.equal(response.type, type);
+                    assert.equal(eval.id_proyecto, projectId);
+                    assert.equal(eval.type, type);
                 } 
             });
         });
@@ -29,39 +30,41 @@ describe('TEST EVAL ROUTES', () => {
         it('Should return the evaluators answers (evaluador)', async() => {
             const { header_evaluador_1 } = getHeaders()
             const id_proyecto = 2
-            const { respuestas } = await Requests.getAnswers(id_proyecto, header_evaluador_1, 200)
+            const res = await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas`, header_evaluador_1, 200)
+            const { respuestas } = res.body
             assert.equal(respuestas.name, 'Evaluación de proyecto')
         })
 
         it('Should return the evaluators answers (evaluador)', async() => {
             const { header_admincyt_1 } = getHeaders()
             const id_proyecto = 2
-            const { respuestas } = await Requests.getAnswers(id_proyecto, header_admincyt_1, 200)
+            const res = await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas`, header_admincyt_1, 200)
+            const { respuestas } = res.body
             assert.equal(respuestas.name, 'Evaluación de proyecto')
         })
 
         it('Should not find the project', async() => {
             const { header_evaluador_1 } = getHeaders()
             const id_proyecto = 4
-            await Requests.getAnswers(id_proyecto, header_evaluador_1, 404)
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas`, header_evaluador_1, 404)
         })
 
         it('Should not find answers', async() => {
             const { header_evaluador_1 } = getHeaders()
             const id_proyecto = 1
-            await Requests.getAnswers(id_proyecto, header_evaluador_1, 404)
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas`, header_evaluador_1, 404)
         })
 
         it('Should not allow access to responses from a project where the evaluator is not assigned', async() => {
             const { header_evaluador_2 } = getHeaders()
             const id_proyecto = 2
-            await Requests.getAnswers(id_proyecto, header_evaluador_2, 403)
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas`, header_evaluador_2, 403)
         })
 
         it('Should not allow access to responses from a project which the admin does not own', async() => {
             const { header_admincyt_2 } = getHeaders()
             const id_proyecto = 1
-            await Requests.getAnswers(id_proyecto, header_admincyt_2, 403)
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas`, header_admincyt_2, 403)
         })
 
     })
@@ -71,22 +74,19 @@ describe('TEST EVAL ROUTES', () => {
         it('Should generate a pdf', async() => {
             const { header_admincyt_1 } = getHeaders()
             const id_proyecto = 3
-            const res = await Requests.getPdf(id_proyecto, header_admincyt_1, 200)
-            assert.equal(res.type, 'application/pdf')
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas/pdf`, header_admincyt_1, 200, 'application/pdf')
         })
 
         it('Should not generate a pdf if the evaluation has not finished yet', async() => {
             const { header_admincyt_1 } = getHeaders()
             const id_proyecto = 2
-            const res = await Requests.getPdf(id_proyecto, header_admincyt_1, 404)
-            assert.equal(res.type, 'application/json')
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas/pdf`, header_admincyt_1, 404)
         })
 
         it('Should not generate a pdf of a project which the admin does not own', async() => {
             const { header_admincyt_2 } = getHeaders()
             const id_proyecto = 2
-            const res = await Requests.getPdf(id_proyecto, header_admincyt_2, 403)
-            assert.equal(res.type, 'application/json')
+            await Requests.GET(`/api/evaluacion/${id_proyecto}/respuestas/pdf`, header_admincyt_2, 403)
         })
     })
 

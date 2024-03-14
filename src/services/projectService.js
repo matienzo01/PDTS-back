@@ -160,26 +160,40 @@ const createProject = async (id_institucion, proyecto, roles) => {
   return result
 }
 
-const deleteProject = async (id_institucion, id_proyecto) => {
+const deleteProject = async (id_institucion, id_proyecto, trxx = null) => {
   await getOneProject(id_proyecto, id_institucion)
 
-  await knex.transaction(async (trx) => {
-    // 1) eliminar las respuestas de los evaluadores
-    await trx('respuestas_evaluacion').del().where({ id_proyecto })
-    await trx('respuestas_encuesta').del().where({ id_proyecto })
-
+  if(trxx) {
+    await trxx('respuestas_evaluacion').del().where({ id_proyecto })
+    await trxx('respuestas_encuesta').del().where({ id_proyecto })
     // 2) desasignar los evaluadores del proyecto
-    await trx('evaluadores_x_proyectos').del().where({ id_proyecto })
-
+    await trxx('evaluadores_x_proyectos').del().where({ id_proyecto })
     // 3) eliminar los elementos de la tabla de 'participacion_instituciones' correspondientes al proyecto
-    await trx('participacion_instituciones').del().where({ id_proyecto })
-
+    await trxx('participacion_instituciones').del().where({ id_proyecto })
     // 4) eliminar los participantes del proyecto (los que integraron el grupo de trabajo que llevo acabo el proyecto)
-    await trx('participantes_x_proyectos').del().where({ id_proyecto })
-
+    await trxx('participantes_x_proyectos').del().where({ id_proyecto })
     // 5) eliminar el proyecto
-    await trx('proyectos').del().where({ id: id_proyecto })
-  })
+    await trxx('proyectos').del().where({ id: id_proyecto })
+  } else {
+    await knex.transaction(async (trx) => {
+      // 1) eliminar las respuestas de los evaluadores
+      await trx('respuestas_evaluacion').del().where({ id_proyecto })
+      await trx('respuestas_encuesta').del().where({ id_proyecto })
+  
+      // 2) desasignar los evaluadores del proyecto
+      await trx('evaluadores_x_proyectos').del().where({ id_proyecto })
+  
+      // 3) eliminar los elementos de la tabla de 'participacion_instituciones' correspondientes al proyecto
+      await trx('participacion_instituciones').del().where({ id_proyecto })
+  
+      // 4) eliminar los participantes del proyecto (los que integraron el grupo de trabajo que llevo acabo el proyecto)
+      await trx('participantes_x_proyectos').del().where({ id_proyecto })
+  
+      // 5) eliminar el proyecto
+      await trx('proyectos').del().where({ id: id_proyecto })
+    })
+  }
+
 }
 
 const verifyState = async( id_proyecto, state ) => {

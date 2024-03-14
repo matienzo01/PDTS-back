@@ -1,4 +1,4 @@
-const getHeaders = require('./LoginRoutes.test')
+const getHeaders = require('./LoginRoutes.test.js')
 const Requests = require('./Requests.js')
 const assert = require('assert');
 
@@ -11,8 +11,8 @@ describe('TEST INSTITUTION ROUTES', () => {
 
     it('Should return all institutions (admin general)', async() => {
         const { header_admin_general } = getHeaders();
-        
-        const instituciones = await Requests.getAllInstitutions(header_admin_general, 200)
+        const res = await Requests.GET('/api/instituciones', header_admin_general, 200)
+        const { instituciones } = res.body
         instituciones.forEach(inst => {
           Requests.verifyAttributes(inst, expectedAttributes)
         });  
@@ -21,7 +21,8 @@ describe('TEST INSTITUTION ROUTES', () => {
     it('Should return all institutions (admin cyt)', async() => {
         const { header_admincyt_1 } = getHeaders();
         
-        const instituciones = await Requests.getAllInstitutions(header_admincyt_1, 200)
+        const res = await Requests.GET('/api/instituciones', header_admincyt_1, 200)
+        const { instituciones } = res.body
         instituciones.forEach(inst => {
           Requests.verifyAttributes(inst, expectedAttributes)
         });  
@@ -29,7 +30,7 @@ describe('TEST INSTITUTION ROUTES', () => {
 
     it('Should be unauthorized for evaluadores (status 403)', async() => {
         const { header_evaluador_1 } = getHeaders();
-        await Requests.getAllInstitutions(header_evaluador_1, 403)  
+        await Requests.GET('/api/instituciones', header_evaluador_1, 403) 
     });
 
   })
@@ -38,22 +39,30 @@ describe('TEST INSTITUTION ROUTES', () => {
 
     it('Should return one institution (admin general)', async() => {
         const { header_admin_general } = getHeaders();
-        Requests.verifyAttributes(await Requests.getOneInstitutions(header_admin_general, 1, 200), expectedAttributes)
+        const inst_id = 1
+        const res = await Requests.GET(`/api/instituciones/${inst_id}`, header_admin_general, 200)
+        const { institucion } = res.body
+        Requests.verifyAttributes(institucion, expectedAttributes)
     });
 
     it('Should return one institution (admin cyt)', async() => {
         const { header_admincyt_1 } = getHeaders();
-        Requests.verifyAttributes(await Requests.getOneInstitutions(header_admincyt_1, 1, 200), expectedAttributes)
+        const inst_id = 1
+        const res = await Requests.GET(`/api/instituciones/${inst_id}`, header_admincyt_1, 200)
+        const { institucion } = res.body
+        Requests.verifyAttributes(institucion, expectedAttributes)
     });
 
     it('Should be unauthorized for evaluadores (status 403)', async() => {
         const { header_evaluador_1 } = getHeaders();
-        await Requests.getOneInstitutions(header_evaluador_1, 1, 403)
+        const inst_id = 1
+        await Requests.GET(`/api/instituciones/${inst_id}`, header_evaluador_1, 403)
     });
 
     it('Should be a bad request (id_inst should be a number) (status 400)', async() => {
         const { header_admincyt_1 } = getHeaders();
-        await Requests.getOneInstitutions(header_admincyt_1, 'a', 400)
+        const inst_id = 'a'
+        await Requests.GET(`/api/instituciones/${inst_id}`, header_admincyt_1, 400)
     });
 
   })
@@ -62,28 +71,28 @@ describe('TEST INSTITUTION ROUTES', () => {
 
     it('Should create a new institution (admincyt)', async() => {
         const { header_admincyt_1 } = getHeaders();
-        const { institucion } = await Requests.createInstitution(header_admincyt_1, newInst, 200)
-        
-        Requests.verifyAttributes(await Requests.getOneInstitutions(header_admincyt_1,institucion.id,200), expectedAttributes)
-        
+        const res = await Requests.POST('/api/instituciones', header_admincyt_1, 200, newInst)
+        const { institucion } = res.body
+        Requests.verifyAttributes(institucion, expectedAttributes)
     })
 
     it('Should create a new institution (admin general)', async() => {
         const { header_admin_general } = getHeaders();
-        const { institucion } = await Requests.createInstitution(header_admin_general, newInst, 200)
-        Requests.verifyAttributes(await Requests.getOneInstitutions(header_admin_general,institucion.id,200), expectedAttributes)
+        const res = await Requests.POST('/api/instituciones', header_admin_general, 200, newInst)
+        const { institucion } = res.body
+        Requests.verifyAttributes(institucion, expectedAttributes)
         
     })
 
     it('Should be unauthorized for evaluadores (status 403)', async() => {
         const { header_evaluador_1 } = getHeaders();
-        await Requests.createInstitution(header_evaluador_1, newInst, 403)
+        await Requests.POST('/api/instituciones', header_evaluador_1, 403, newInst)
     })
 
     it('Should fail creating a institution (missing fields) (status 400)', async() => {
         const { header_admincyt_1 } = getHeaders();
         delete newInst.institucion.nombre
-        await Requests.createInstitution(header_admincyt_1, newInst, 400)
+        await Requests.POST('/api/instituciones', header_admincyt_1, 400, newInst)
     })
 
   })

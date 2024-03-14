@@ -1,6 +1,7 @@
 const knex = require('../database/knex')
 const TABLE_INSTITUCIONES = 'instituciones'
 const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
+const projectService = require('./projectService')
 
 const getInstIdFromAdmin = async (id_admin) => {
   const { id } =  await knex('instituciones_cyt').select('id').where({ id_admin }).first()
@@ -12,11 +13,12 @@ const getInstIdFromAdmin = async (id_admin) => {
   return id
 }
 
-const getOneInstitucionCYT = async (id) => {
+const getOneInstitucionCYT = async (id , trx = null) => {
+  const queryBuilder = trx || knex;
 
   const [tipos_inst, inst] = await Promise.all([
-    knex('tipos_instituciones').select(),
-    knex(TABLE_INSTITUCIONES)
+    queryBuilder('tipos_instituciones').select(),
+    queryBuilder(TABLE_INSTITUCIONES)
       .select('*')
       .innerJoin(TABLE_INSTITUCIONES_CYT, 'instituciones.id', 'instituciones_cyt.id')
       .where('instituciones.id', id)
@@ -111,7 +113,12 @@ const createInstitucionCYT = async (newAdmin, institucion) => {
 
 const deleteInstitucionCYT = async (id) => {
   knex.transaction(async (trx) => {
-    const { id_admin } = await trx(TABLE_INSTITUCIONES_CYT).select('id_admin').where({ id }).first()
+    const { id_admin } = (await getOneInstitucionCYT(id, trx)).institucion_CYT
+    const { proyectos } = await projectService.getAllProjects(id)
+    for (const project of proyectos) {
+      await projectService.deleteProject(id, project.id, trx)
+    }
+    await trx('evaluadores_x_instituciones').del().where({ id_institucion: id })
     await trx(TABLE_INSTITUCIONES_CYT).where({ id }).del()
     await trx(TABLE_INSTITUCIONES).where({ id }).del()
     await trx('admins_cyt').where({ id: id_admin }).del()

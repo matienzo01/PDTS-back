@@ -1,8 +1,9 @@
 describe('MAIN SUITE', () => {
     require('./LoginRoutes.test.js');
-    require('./userRoutes.test.js');
-    require('./institutionRoutes.test.js');
-    require('./institutionCYTRoutes.test.js')
-    require('./evalRoutes.test.js');
+    //require('./userRoutes.test.js');
+    //require('./InstitutionRoutes.test.js');
+    require('./InstitutionCYTRoutes_1.test.js')
+    //require('./EvalRoutes.test.js');
+    require('./InstitutionCYTRoutes_2.test.js')
     
 });

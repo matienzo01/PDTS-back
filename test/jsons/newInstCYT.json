@@ -1,0 +1,23 @@
+{
+	"admin" : {
+		"nombre": "Adrian",
+		"apellido": "Lopez",
+		"email": "mail@mail.com",
+		"password": "123456"
+	},
+	"institucion": {
+		"id_tipo": 1,
+		"nombre": "Facultad de Ingenieria",
+		"pais": "Argentina",
+		"provincia": "Buenos Aires",
+		"localidad": "Mar del plata",
+		"telefono_institucional": "2236887998",
+		"mail_institucional": "FIngenieria@fi.mdp.edu.ar",
+		"nombre_referente": "Agustin",
+		"apellido_referente": "Patane",
+		"cargo_referente": "Presidente",
+		"telefono_referente": "223456789",
+		"mail_referente": "apatane@gmail.com",
+		"rubro": "enseñanza"
+	}
+}
