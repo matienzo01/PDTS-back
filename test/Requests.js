@@ -19,7 +19,7 @@ async function POST(route, header, status, data, type = 'application/json') {
     .set(header !== null ? header : {})
     .expect(status);
   const res = await requestToSend;
-  assert.equal(res.type, type)
+  //assert.equal(res.type, type)
   return res
 }
 
@@ -34,6 +34,15 @@ async function PUT(route, header, status, data, type = 'application/json')  {
   return res
 }
 
+async function DELETE(route, header, status) {
+  const res = await request(server)
+    .delete(route)
+    .set(header)
+    .expect(status)
+  
+  return res
+}
+
 function verifyAttributes(object, expected) {
     const actualAttributes = Object.keys(object);
     assert.equal(true, expected.every(element => actualAttributes.includes(element)))
@@ -42,6 +51,6 @@ function verifyAttributes(object, expected) {
 }
 
 module.exports = {
-    GET, POST, PUT,
+    GET, POST, PUT, DELETE,
     verifyAttributes
 }

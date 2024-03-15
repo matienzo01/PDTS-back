@@ -66,6 +66,21 @@ const createUser = async (req, res) => {
   const { params: { id_institucion } } = req
   const { user } = req.body
 
+  if (!user.email ||
+    !user.password ||
+    !user.nombre ||
+    !user.apellido ||
+    !user.dni ||
+    !user.celular ||
+    !user.especialidad ||
+    !user.pais_residencia ||
+    !user.provincia_residencia ||
+    !user.localidad_residencia ||
+    !user.institucion_origen ) {
+      res.status(400).json({ error: "Missing fields in the user" })
+      return;
+  }
+
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
@@ -74,6 +89,7 @@ const createUser = async (req, res) => {
   try {
     res.status(200).json(await service.createUser(user, id_institucion))
   } catch (_error) {
+    console.log(_error)
     const statusCode = _error.status || 500
     res.status(statusCode).json({ error: _error.message })
   }

@@ -3,7 +3,7 @@
 		"nombre": "Adrian",
 		"apellido": "Lopez",
 		"email": "mail@mail.com",
-		"password": "123456"
+		"password": "1234"
 	},
 	"institucion": {
 		"id_tipo": 1,

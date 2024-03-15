@@ -1,0 +1,15 @@
+{
+	"user": {
+        "email": "userdeprueba1@gmail.com",
+        "password": "1234",
+        "nombre": "prueba",
+        "apellido": "prueba",
+        "dni": 1000,
+        "celular": "1",
+        "especialidad": "Informática",
+        "pais_residencia": "1",
+        "provincia_residencia": "1",
+        "institucion_origen": "Universidad XYZ",
+        "localidad_residencia": "1"
+    }
+}

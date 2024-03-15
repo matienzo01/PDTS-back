@@ -77,7 +77,7 @@ const deleteInstitucionCYT = async (req, res) => {
   }
 
   try {
-    res.status(200).json(await service.deleteInstitucionCYT(id_institucion))
+    res.status(204).json(await service.deleteInstitucionCYT(id_institucion))
   } catch (error) {
     res.status(500).json({ error: `Error al eliminar la institucion con id ${id_institucion}` })
   }
