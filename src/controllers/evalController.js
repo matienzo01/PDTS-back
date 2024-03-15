@@ -16,6 +16,12 @@ const getNextEval = async (req, res) => {
 }
 
 const postEval = async (req, res) => {
+
+  if(!req.body.hasOwnProperty('respuestas')){
+    res.status(400).json({ error: "Missing fields respuestas"})
+    return ;
+  }
+
   const { respuestas, id_proyecto } = req.body
   const id_evaluador = req.body.id_usuario
   try {

@@ -9,10 +9,17 @@
               }
         },
         {
-            "msg": "Should fail with missing credentials (status 400)",
+            "msg": "Should fail with missing credentials (missing password) (status 400)",
             "status": 400,
             "credentials": { 
                 "mail": "evaluador1@example.com"
+              }
+        },
+        {
+            "msg": "Should fail with missing credentials (missing email) (status 400)",
+            "status": 400,
+            "credentials": { 
+                "password": "1234"
               }
         }
     ]

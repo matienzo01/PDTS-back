@@ -34,6 +34,17 @@ const getTiposInstituciones = async (req, res) => {
 }
 
 const createInstitucionCYT = async (req, res) => {
+
+  if(!req.body.hasOwnProperty('admin')) {
+    res.status(400).json({ error: "Missing admin" })
+    return;
+  }
+
+  if(!req.body.hasOwnProperty('institucion')) {
+    res.status(400).json({ error: "Missing admin" })
+    return;
+  }
+
   const { admin, institucion } = req.body
 
   if (!admin.nombre ||

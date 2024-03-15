@@ -1,0 +1,7 @@
+{
+    "expectedAttributes": [
+      "id", "email", "nombre", "apellido", "dni", "celular", "especialidad",
+      "institucion_origen", "pais_residencia", "provincia_residencia",
+      "localidad_residencia"
+    ]
+  }

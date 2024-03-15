@@ -40,14 +40,20 @@ const getOneIndicator = async(req,res) => {
 }
 
 const createIndicator = async(req,res) => {
+
+    if(!req.body.hasOwnProperty('indicador')){
+        res.status(400).json({ error: "Missing indicator"})
+        return ;
+    }
+
     const {indicador} = req.body
 
     if (
-        !indicador.pregunta ||
-        !indicador.fundamentacion ||
-        !indicador.id_dimension ||
-        !indicador.determinante) {
-            res.status(400).json({ error: "Missing fields"})
+        !indicador.hasOwnProperty('pregunta') ||
+        !indicador.hasOwnProperty('fundamentacion') ||
+        !indicador.hasOwnProperty('id_dimension') ||
+        !indicador.hasOwnProperty('determinante')) {
+            res.status(400).json({ error: "Missing fields in indicator"})
             return ;
     }
 

@@ -19,7 +19,7 @@ async function POST(route, header, status, data, type = 'application/json') {
     .set(header !== null ? header : {})
     .expect(status);
   const res = await requestToSend;
-  //assert.equal(res.type, type)
+  assert.equal(res.type, type)
   return res
 }
 
@@ -45,7 +45,7 @@ async function DELETE(route, header, status) {
 
 function verifyAttributes(object, expected) {
     const actualAttributes = Object.keys(object);
-    assert.equal(true, expected.every(element => actualAttributes.includes(element)))
+    assert.equal(true, expected.every(element => actualAttributes.includes(element)), `The object should contain all the expected attributes`)
     const unexpectedAttributes = actualAttributes.filter(attr => !expected.includes(attr));
     assert.equal(unexpectedAttributes.length, 0, `Object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
 }

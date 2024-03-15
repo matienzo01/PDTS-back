@@ -25,18 +25,23 @@ const getOneInstitucion = async (req, res) => {
 }
 
 const createInstitucion = async (req, res) => {
+
+  if(!req.body.hasOwnProperty('institucion')){
+    return res.status(400).json({ error: "Missing institution" })
+  }
+
   const { institucion } = req.body
 
   if (
-    !institucion.nombre ||
-    !institucion.pais ||
-    !institucion.provincia ||
-    !institucion.localidad ||
-    !institucion.rubro ||
-    !institucion.telefono_institucional ||
-    !institucion.mail_institucional ||
+    !institucion.hasOwnProperty('nombre') ||
+    !institucion.hasOwnProperty('pais') ||
+    !institucion.hasOwnProperty('provincia') ||
+    !institucion.hasOwnProperty('localidad') ||
+    !institucion.hasOwnProperty('rubro') ||
+    !institucion.hasOwnProperty('telefono_institucional') ||
+    !institucion.hasOwnProperty('mail_institucional') ||
     !institucion.esCyt === undefined) {
-    return res.status(400).json({ error: "Missing fields" })
+    return res.status(400).json({ error: "Missing fields in institution" })
   }
 
   try {

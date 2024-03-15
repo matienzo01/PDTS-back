@@ -7,14 +7,22 @@ const institutuionService = require('./institutionCYTService')
 const getAllUsers = async () => {
   const users = await knex(TABLE_EVALUADORES).select()
   const participaEn = (await knex.raw('CALL obtener_instituciones_de_usuario'))[0][0]
-  return {
-    usuarios: users.map(user => {
+
+  const institucionesPorIdUsuario = participaEn.reduce((obj, inst) => {
+    const id = inst.id;
+    const participantes = JSON.parse(inst.participa_en); // Convertimos la cadena '[1]' a un array [1]
+    obj[id] = participantes;
+    return obj;
+  }, {});
+
+  const usuarios = users.map(user => {
       const { password, ...rest } = user
-      rest.participaEn = JSON.parse(participaEn.filter(participacion => participacion.id === user.id)[0].participa_en)
+      rest.participaEn = institucionesPorIdUsuario[user.id] ? institucionesPorIdUsuario[user.id] : []
       return rest
     }
-    )
-  }
+  )
+
+  return { usuarios: usuarios }
 }
 
 const getAllInstitutionUsers = async (id_institucion) => {
@@ -60,6 +68,7 @@ const createHash = async (password) => {
 }
 
 const createUser = async (newUser, institutionId) => {
+  await institutuionService.getOneInstitucionCYT(institutionId)
 
   try {
     await getUserByDni(newUser.dni) // debe dar un 404 para asegurarnos de que no exista previamente el usuario
@@ -113,7 +122,6 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
       //mailer.linkUser(user)
     }
   } catch (error) {
-    console.log(error);
     if (error.code === 'ER_DUP_ENTRY') {
       const _error = new Error('The user is already linked to the institution')
       _error.status = 409
