@@ -4,12 +4,17 @@ const assert = require('assert');
 
 const { expectedAttributes: InstCytAttributes } = require('./jsons/InstCYTAttributes.json')
 const { expectedAttributes: UserAttributes } = require('./jsons/userAttributes2.json')
+const { expectedAttributes: ProjectAttributes } = require('./jsons/ProjectAttributes.json')
 const newInstCYT = require('./jsons/newInstCYT.json')
-const newUser = require('./jsons/newUsers.json');
+const newUser = require('./jsons/newUser.json');
+const newProject = require('./jsons/newProject.json');
 let header_newAdmin
+let header_newEvaluador
 let newInstitutionId 
+let newEvaluadorId
 
-const getNewHeader = () => { return header_newAdmin }
+const getNewAdminHeader = () => { return header_newAdmin }
+const getNetEvaluadorHeader = () => { return header_newEvaluador }
 const getNewInstitutionId = () => { return newInstitutionId }
 
 describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
@@ -184,13 +189,21 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
     describe('POST /api/instituciones_cyt/:id_institucion/usuarios ==> Create a new evaluator user', async() => {
         
-        
-
         it('Should create a new user (new admin)', async() => {
             newUser.user.dni = Math.floor(Math.random() * 1000000) + 1;
             newUser.user.institucion_origen = newInstCYT.institucion.nombre
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_newAdmin, 200, newUser)
             Requests.verifyAttributes(res.body.usuario, UserAttributes)
+
+            newEvaluadorId = res.body.usuario.id
+            const credentials = {
+                "mail": newUser.user.email,
+                "password": newUser.user.password
+            }
+
+            const res2 = await Requests.POST('/api/login', null, 200, credentials)
+            const { token } = res2.body
+            header_newEvaluador = { 'Authorization': `Bearer ${token}` }
         })
 
         it('Should be unauthorized (admin general) (status 403)', async() => {
@@ -254,11 +267,34 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_evaluador_1, 403)
         })
 
-
     })
 
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos ==> Create a new project', async() => {
         
+        it('Should create a new Project (new admin)', async() => {
+            newProject.proyecto.id_director = newEvaluadorId
+            const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 200, newProject)
+            const { proyecto } = res.body
+            Requests.verifyAttributes(proyecto, ProjectAttributes)
+            assert.equal(newEvaluadorId, proyecto.id_director, 'The director id should be the same as that of the new evaluator')
+        })
+
+        it('Should be a bad request (inst id should be a number) (status 400)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/a/proyectos`, header_newAdmin, 400, newProject)
+        })
+
+        it('Should be unauthorized (admin general) (status 403)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_admin_general, 403, newProject)
+        })
+
+        it('Should be unauthorized (admin cyt 1) (status 403)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_admincyt_1, 403, newProject)
+        })
+
+        it('Should be unauthorized (evaluador) (status 403)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_evaluador_1, 403, newProject)
+        })
+
     })
     
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Assign a evaluator to the project', async() => {
@@ -285,6 +321,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 })
 
 module.exports = {
-    getNewHeader,
+    getNewAdminHeader,
+    getNetEvaluadorHeader,
     getNewInstitutionId
 }

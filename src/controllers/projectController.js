@@ -1,4 +1,5 @@
 const service = require('../services/projectService')
+const InstitutionCytservice = require('../services/institutionCYTService')
 
 // va a haber que modificarlo para que:
 //- Sos admin general -> te devolvemos todos los proyectos
@@ -43,7 +44,7 @@ const getOneProject = async (req, res) => {
 
 const createProject = async (req, res) => {
   const { params: { id_institucion } } = req
-  const { proyecto } = req.body
+  const { proyecto, id_usuario: id_admin } = req.body
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
@@ -74,9 +75,14 @@ const createProject = async (req, res) => {
   }
 
   try {
+    if ((await InstitutionCytservice.getInstIdFromAdmin(id_admin)) != id_institucion) {
+      const _error = new Error('An administrator can only create projects within their institution')
+      _error.status = 403
+      throw _error
+    }
     const roles = proyecto.roles
     delete proyecto.roles
-    res.status(200).json(await service.createProject(id_institucion, proyecto, roles))
+    res.status(200).json(await service.createProject(id_institucion, proyecto, roles, id_admin))
   } catch (error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })

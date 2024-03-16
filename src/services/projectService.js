@@ -123,6 +123,7 @@ const assignInstitutionRoles = async (id_proyecto, roles, trx) => {
 }
 
 const createProject = async (id_institucion, proyecto, roles) => {
+
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
@@ -130,7 +131,6 @@ const createProject = async (id_institucion, proyecto, roles) => {
   proyecto.id_institucion = parseInt(id_institucion)
   proyecto.id_estado_eval = 1 // 'sin evaluar'. Capaz no tiene mucho sentido este estado pq instantaneamente habria que cambiarlo a
                               // 'En evaluacion por el director'
-
   const result = await knex.transaction(async (trx) => {
     const obligatoriedad_opinion = proyecto.obligatoriedad_opinion_director
     const id_modelo_encuesta = proyecto.id_modelo_encuesta_director

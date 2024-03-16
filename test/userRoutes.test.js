@@ -69,7 +69,7 @@ describe('TEST USER ROUTES', () => {
     
   describe('GET /api/usuarios/:id_usuario/proyectos ==> Get user projects', () => {
 
-    const { expectedAttributes } = require('./jsons/ProjectAttributes.json');
+    const { expectedAttributes } = require('./jsons/UserProjectAttributes.json');
 
     it('Should return all user projects', async() => {
       const id_usuario = 1

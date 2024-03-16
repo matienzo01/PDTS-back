@@ -29,7 +29,6 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 2', () => {
         
         
     })
-
     describe('DELETE /api/instituciones_cyt/:id_institucion ==> Delete one institution', async() => {
         it('Should delete one institution (admin general)', async() => {
             await Requests.DELETE(`/api/instituciones_cyt/${newInstData.getNewInstitutionId()}`, header_admin_general, 204)

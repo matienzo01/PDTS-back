@@ -1,0 +1,45 @@
+{
+	"proyecto" : {
+		"titulo": "Proyecto de TEST",
+		"FechaInicio": "2024-03-15T03:00:00.000Z",
+		"FechaFin": "2025-03-15T03:00:00.000Z",
+		"area_conocim": "Aeronautica",
+		"subarea_conocim": "Conocimeinto del espacio",
+		"problema_a_resolver": "Estudio sobre los astros",
+		"producto_a_generar": "Generación de informes científicos",
+		"resumen": "Resumen detallado ",
+		"novedad_u_originalidad": "Propuesta innovadora ",
+		"grado_relevancia": "Bajo",
+		"grado_pertinencia": "Muy pertinente",
+		"grado_demanda": "Alta",
+		"obligatoriedad_proposito": 1,
+		"obligatoriedad_opinion_director": 1,
+		"id_modelo_encuesta_director": 1,
+		"roles": [
+			{
+				"institucion_id": 2,
+				"rol": "Financiadora"
+			},
+			{
+				"institucion_id": 2,
+				"rol": "Demandante"
+			},
+			{
+				"institucion_id": 2,
+				"rol": "Adoptante"
+			},
+			{
+				"institucion_id": 1,
+				"rol": "Ejecutora"
+			},
+			{
+				"institucion_id": 3,
+				"rol": "Adoptante"
+			},
+			{
+				"institucion_id": 2,
+				"rol": "Promotora"
+			}
+		]
+	}
+}
