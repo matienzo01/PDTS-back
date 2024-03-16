@@ -2,20 +2,24 @@ const Requests = require('./Requests.js')
 const getHeaders = require('./LoginRoutes.test.js')
 const assert = require('assert');
 
-const { expectedAttributes: InstCytAttributes } = require('./jsons/InstCYTAttributes.json')
-const { expectedAttributes: UserAttributes } = require('./jsons/userAttributes2.json')
-const { expectedAttributes: ProjectAttributes } = require('./jsons/ProjectAttributes.json')
-const newInstCYT = require('./jsons/newInstCYT.json')
-const newUser = require('./jsons/newUser.json');
-const newProject = require('./jsons/newProject.json');
+const { expectedAttributes: InstCytAttributes } = require('./jsons/expectedAttributes/InstCYTAttributes.json')
+const { expectedAttributes: UserAttributes } = require('./jsons/expectedAttributes/userAttributes2.json')
+const { expectedAttributes: ProjectAttributes } = require('./jsons/expectedAttributes/ProjectAttributes.json')
+const { expectedAttributes: linkedUserToProjectAtt } = require('./jsons/expectedAttributes/linkedUserToProjectAtt.json')
+const { expectedAttributes: projectEvaluatorsAtt } = require('./jsons/expectedAttributes/ProjectEvaluatorsAtt.json')
+const newInstCYT = require('./jsons/newData/newInstCYT.json')
+const newUser = require('./jsons/newData/newUser.json');
+const newProject = require('./jsons/newData/newProject.json');
 let header_newAdmin
 let header_newEvaluador
 let newInstitutionId 
 let newEvaluadorId
+let newProjectId
 
 const getNewAdminHeader = () => { return header_newAdmin }
 const getNetEvaluadorHeader = () => { return header_newEvaluador }
 const getNewInstitutionId = () => { return newInstitutionId }
+const getnewProjectId = () => { return newProjectId }
 
 describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
@@ -276,6 +280,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 200, newProject)
             const { proyecto } = res.body
             Requests.verifyAttributes(proyecto, ProjectAttributes)
+            newProjectId = proyecto.id
             assert.equal(newEvaluadorId, proyecto.id_director, 'The director id should be the same as that of the new evaluator')
         })
 
@@ -299,23 +304,69 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
     
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Assign a evaluator to the project', async() => {
         
+        it('Should assign 2 evaluators to the new project', async() => {
+            const data = {
+                "id_evaluador": 1,
+	            "obligatoriedad_opinion": 1,
+	            "id_modelo_encuesta": 1
+            }
+            const res1 = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 201, data)
+            Requests.verifyAttributes(res1.body, linkedUserToProjectAtt)
+            data.id_evaluador = 2
+            const res2 = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 201, data)
+            Requests.verifyAttributes(res2.body, linkedUserToProjectAtt)
+        })
+
     })
 
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Gell all project evaluators', async() => {
-        
+
+        it('Should get all new project evaluators (new admin)', async() => {
+            const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 200)
+            const { participantes } = res.body
+            participantes.forEach( (p) => {
+                Requests.verifyAttributes(p, projectEvaluatorsAtt)
+            })
+        })
+
     })
     
     describe('DELETE /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador ==> Unassign a evaluator from a project', async() => {
         
+        it('Should unnassign a evaluator', async() => {
+            const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 200)
+            await Requests.DELETE(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores/2`, header_newAdmin, 204)
+            const res2 = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 200)
+            
+            const { participantes: prev } = res.body
+            const { participantes: post } = res2.body
+
+            assert.ok( prev.filter(p => p.id == 2).length ===  1, "The evaluator with id = 2 should be assigned to the project")
+            assert.ok( post.filter(p => p.id == 2).length ===  0, "The evaluator with id = 2 should not remain assigned to the project")
+        })
+
     })
 
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos ==> Get all institution projects', async() => {
         
-    })
+        it('Should get all institution projects', async() => {
+            const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 200)
+            const { proyectos } = res.body
+            proyectos.forEach(proyecto => {
+                Requests.verifyAttributes(proyecto, ProjectAttributes)
+            })
+        })
 
+    })
 
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto ==> Get one institution project', async() => {
         
+        it('Should get one project', async() => {
+            const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}`, header_newAdmin, 200)
+            const { proyecto } = res.body
+            Requests.verifyAttributes(proyecto, ProjectAttributes)
+        })
+
     })
 
 })
@@ -323,5 +374,6 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 module.exports = {
     getNewAdminHeader,
     getNetEvaluadorHeader,
-    getNewInstitutionId
+    getNewInstitutionId,
+    getnewProjectId
 }

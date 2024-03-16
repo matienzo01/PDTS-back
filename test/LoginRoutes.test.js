@@ -2,8 +2,8 @@ const assert = require('assert');
 const Requests = require('./Requests.js')
 
 let headers = {}
-const { successfulLoginTests } = require('./jsons/succesfullLoginTests.json');
-const { unsuccessfulLoginTests } = require('./jsons/unsuccesfulLoginTests.json');
+const { successfulLoginTests } = require('./jsons/tests/succesfullLoginTests.json');
+const { unsuccessfulLoginTests } = require('./jsons/tests/unsuccesfulLoginTests.json');
 
 describe('TEST LOGIN ROUTES', () => {
   
@@ -18,7 +18,6 @@ describe('TEST LOGIN ROUTES', () => {
       });
     });
     
-
     unsuccessfulLoginTests.forEach(testCase => {
       it(testCase.msg, async() => {
         const res = await Requests.POST('/api/login', null, testCase.status, testCase.credentials)

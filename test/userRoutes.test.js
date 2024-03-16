@@ -24,7 +24,7 @@ describe('TEST USER ROUTES', () => {
 
   describe('GET /api/usuarios ==> Get all users', () => {
 
-  const { expectedAttributes } = require('./jsons/userAttributes1.json')
+  const { expectedAttributes } = require('./jsons/expectedAttributes/userAttributes1.json')
 
     it('Should return all users', async() => {
       const res = await Requests.GET(`/api/usuarios`, header_admin_general, 200)
@@ -46,7 +46,7 @@ describe('TEST USER ROUTES', () => {
 
   describe('GET /api/usuarios/:dni ==> Get one user', () => { 
     
-    const {expectedAttributes} = require('./jsons/userAttributes2.json'); //no tiene el participaEn
+    const {expectedAttributes} = require('./jsons/expectedAttributes/userAttributes2.json'); //no tiene el participaEn
 
     it('Should return one user', async() => {
       const dni = 123456789
@@ -69,7 +69,7 @@ describe('TEST USER ROUTES', () => {
     
   describe('GET /api/usuarios/:id_usuario/proyectos ==> Get user projects', () => {
 
-    const { expectedAttributes } = require('./jsons/UserProjectAttributes.json');
+    const { expectedAttributes } = require('./jsons/expectedAttributes/UserProjectAttributes.json');
 
     it('Should return all user projects', async() => {
       const id_usuario = 1
@@ -90,7 +90,7 @@ describe('TEST USER ROUTES', () => {
     
   describe('PUT /api/usuarios/:id_usuario ==> Update User', () => {
 
-    const UserToUpdate = require('./jsons/UserToUpdate.json')
+    const UserToUpdate = require('./jsons/newData/UserToUpdate.json')
     
     it('Should update an existing user', async() => {
       const id_usuario = 1

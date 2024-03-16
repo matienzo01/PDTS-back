@@ -1,0 +1,6 @@
+{
+    "expectedAttributes": [
+        "id", "nombre", "apellido", "rol", "fecha_inicio_eval",
+        "fecha_fin_eval", "fecha_fin_op"
+    ]
+}

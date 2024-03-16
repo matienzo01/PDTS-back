@@ -2,8 +2,8 @@ const getHeaders = require('./LoginRoutes.test.js')
 const Requests = require('./Requests.js')
 const assert = require('assert');
 
-const newInst = require('./jsons/newInst.json')
-const { expectedAttributes } = require('./jsons/InstAttributes.json')
+const newInst = require('./jsons/newData/newInst.json')
+const { expectedAttributes } = require('./jsons/expectedAttributes/InstAttributes.json')
 
 describe('TEST INSTITUTION ROUTES', () => {
 

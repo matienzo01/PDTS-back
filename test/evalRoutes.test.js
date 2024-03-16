@@ -2,7 +2,7 @@ const getHeaders = require('./LoginRoutes.test.js')
 const Requests = require('./Requests.js')
 const assert = require('assert');
 
-const { tests } = require('./jsons/getNextEvalTests.json')
+const { tests } = require('./jsons/tests/getNextEvalTests.json')
 
 describe('TEST EVAL ROUTES', () => {
 
