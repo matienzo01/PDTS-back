@@ -26,6 +26,11 @@ const getAllUsers = async () => {
 }
 
 const getAllInstitutionUsers = async (id_institucion) => {
+  if (await knex('instituciones_cyt').select().where({ id: id_institucion }).first() === undefined) {
+    const _error = new Error('There is no institution with the provided id')
+    _error.status = 404
+    throw _error
+  }
 
   const ids = await knex('evaluadores_x_instituciones')
     .select('id_evaluador')

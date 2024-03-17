@@ -1,5 +1,5 @@
 const service = require('../services/projectService')
-const InstitutionCytservice = require('../services/institutionCYTService')
+const institutionCytService = require('../services/institutionCYTService')
 
 // va a haber que modificarlo para que:
 //- Sos admin general -> te devolvemos todos los proyectos
@@ -74,12 +74,11 @@ const createProject = async (req, res) => {
     return;
   }
 
+  if(await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+    return res.status(403).json({ error: "An admin can only manage his own institution" })
+  }
+
   try {
-    if ((await InstitutionCytservice.getInstIdFromAdmin(id_admin)) != id_institucion) {
-      const _error = new Error('An administrator can only create projects within their institution')
-      _error.status = 403
-      throw _error
-    }
     const roles = proyecto.roles
     delete proyecto.roles
     res.status(200).json(await service.createProject(id_institucion, proyecto, roles, id_admin))
@@ -115,7 +114,11 @@ const deleteProject = async (req, res) => {
 
 const assignEvaluador = async (req, res) => {
   const { params: { id_institucion, id_proyecto } } = req
-  const { id_evaluador, obligatoriedad_opinion, id_modelo_encuesta} = req.body
+  const { id_evaluador, obligatoriedad_opinion, id_modelo_encuesta, id_usuario: id_admin} = req.body
+
+  if ( obligatoriedad_opinion === undefined || id_modelo_encuesta === undefined) {
+    return res.status(400).json({ error: "Missing fields"})
+  }
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
@@ -130,6 +133,10 @@ const assignEvaluador = async (req, res) => {
   if (isNaN(id_evaluador)) {
     res.status(400).json({ error: "Parameter ':id_evaluador' should be a number" })
     return ;
+  }
+
+  if(await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+    return res.status(403).json({ error: "An admin can only manage his own institution" })
   }
 
   const fecha = new Date()
@@ -155,16 +162,15 @@ const getParticipants = async (req, res) => {
   const { params: { id_institucion, id_proyecto } } = req
 
   if (isNaN(id_institucion)) {
-    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-    return ;
+    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
   }
 
   if (isNaN(id_proyecto)) {
-    res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
-    return ;
+    return res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
   }
 
   try {
+    await institutionCytService.getOneInstitucionCYT(id_institucion)
     res.status(200).json({ participantes: await service.getParticipants(id_proyecto) })
   } catch (error) {
     const statusCode = error.status || 500

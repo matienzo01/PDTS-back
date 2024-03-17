@@ -1,4 +1,5 @@
 const service = require('../services/userService')
+const institutionCytService = require('../services/institutionCYTService')
 
 const getAllUsers = async (req, res) => {
   try {
@@ -42,16 +43,18 @@ const getUserByDni = async (req, res) => {
 
 const linkUserToInstitution = async (req, res) => {
   const { params: { id_institucion } } = req
-  const { dni } = req.body
+  const { dni, id_usuario: id_admin, rol } = req.body
 
   if (isNaN(id_institucion)) {
-    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-    return ;
+    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
   }
 
   if (isNaN(dni)) {
-    res.status(400).json({ error: "Parameter ':dni' should be a number" })
-    return ;
+    return res.status(400).json({ error: "Parameter ':dni' should be a number" })
+  }
+
+  if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+    return res.status(403).json({ error: "An admin can only manage his own institution" })
   }
 
   try {
@@ -64,11 +67,15 @@ const linkUserToInstitution = async (req, res) => {
 
 const createUser = async (req, res) => {
   const { params: { id_institucion } } = req
-  const { user } = req.body
+  const { user, id_usuario: id_admin } = req.body
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
+  }
+
+  if(await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+    return res.status(403).json({ error: "An admin can only manage his own institution" })
   }
 
   if (!user.hasOwnProperty('email') ||

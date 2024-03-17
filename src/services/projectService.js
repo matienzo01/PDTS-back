@@ -30,7 +30,7 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
   }
 
   if (id_institucion && project.id_institucion != id_institucion) {
-    const _error = new Error('The project is not linked to the institution')
+    const _error = new Error('The project is not linked to the institution or the institution does not exist')
     _error.status = 403
     throw _error
   }
@@ -76,8 +76,8 @@ const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
 }
 
 const assignEvaluador = async (data, id_institucion, trx = null) => {
-
-  await getOneProject(data.id_proyecto, null, trx)
+  
+  await getOneProject(data.id_proyecto, id_institucion, trx)
 
   if (!await userBelongsToInstitution(data.id_evaluador, id_institucion)) {
     const _error = new Error('The user is not associated with the institution that owns the project')

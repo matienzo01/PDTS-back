@@ -85,7 +85,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
         it('Should be unauthorized (evaluador) (status 403)', async() => {
-            const res = await Requests.GET('/api/instituciones_cyt/tipos', header_evaluador_1, 403)
+            await Requests.GET('/api/instituciones_cyt/tipos', header_evaluador_1, 403)
         })
 
     })
@@ -154,14 +154,14 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
     describe('GET /api/instituciones_cyt/:id_institucion ==> Get one institution', async() => {
         
-        it('Should get all institutions (admin cyt)', async() => {
+        it('Should get one institution (admin cyt)', async() => {
             const id_inst = 1
             const res = await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_admincyt_1, 200)
             const { institucion_CYT } = res.body
             Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
         })
 
-        it('Should get all institutions (a new admin cyt)', async() => {
+        it('Should get one institution (a new admin cyt)', async() => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}`, header_newAdmin, 200)
             const { institucion_CYT } = res.body
             Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
@@ -211,15 +211,15 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
         it('Should be unauthorized (admin general) (status 403)', async() => {
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_evaluador_1, 403, newUser.user)
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_admin_general, 403, newUser.user)
         })
 
         it('Should be unauthorized (evaluador) (status 403)', async() => {
             await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_evaluador_1, 403, newUser.user)
         })
 
-        it('Should not find the institution (status 404)', async() => {
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId*150}/usuarios`, header_newAdmin, 404, newUser)
+        it('Should be prohibited for an administrator to create a user to a foreign institution (admin cyt) (status 403)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/1/usuarios`, header_newAdmin, 403, newUser)
         })
 
         it('Should be a bad request (missing user fields) (status 400)', async() => {
@@ -229,7 +229,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             newUser.user.dni = dni
         })
 
-        it('Should be a bad request (missing user fields) (status 400)', async() => {
+        it('Should be a bad request (institution id should be a number) (status 400)', async() => {
             await Requests.POST(`/api/instituciones_cyt/a/usuarios`, header_newAdmin, 400, newUser)
         })
 
@@ -237,14 +237,26 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
     describe('POST /api/instituciones_cyt/:id_institucion/usuarios/vincular_usuario ==> Link an evaluator to the institution', async() => {
         
-        it('Should link a user to the institution. (admin cyt)', async() => {
+        it('Should link a user to the institution (admin cyt)', async() => {
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_newAdmin, 200, {"dni": "123456789"})
             Requests.verifyAttributes(res.body.usuario, UserAttributes)
         })
 
-        it('Should link a user to the institution. (admin general)', async() => {
+        it('Should link a user to the institution (admin general)', async() => {
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_admin_general, 200, {"dni": "987654321"})
             Requests.verifyAttributes(res.body.usuario, UserAttributes)
+        })
+
+        it('Should be prohibited for an administrator to link a user to a foreign institution (admin cyt) (status 403)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_admincyt_1, 403, {"dni": "123456789"})
+        })
+
+        it('Should not find the user (admin cyt) (status 404)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_newAdmin, 404, {"dni": "7777"})
+        })
+
+        it('Should be a bad request (dni should be a number) (admin cyt) (status 400)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_newAdmin, 400, {})
         })
 
     })
@@ -271,6 +283,10 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_evaluador_1, 403)
         })
 
+        it('Should not find the institution (admin cyt) (status 404)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/99999999/usuarios`, header_newAdmin, 404)
+        })
+
     })
 
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos ==> Create a new project', async() => {
@@ -286,6 +302,13 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
         it('Should be a bad request (inst id should be a number) (status 400)', async() => {
             await Requests.POST(`/api/instituciones_cyt/a/proyectos`, header_newAdmin, 400, newProject)
+        })
+
+        it('Should be a bad request (missing fields in project) (status 400)', async() => {
+            const titulo = newProject.proyecto.titulo
+            delete newProject.proyecto.titulo
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 400, newProject)
+            newProject.proyecto.titulo = titulo
         })
 
         it('Should be unauthorized (admin general) (status 403)', async() => {
@@ -304,17 +327,40 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
     
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Assign a evaluator to the project', async() => {
         
+        const data = {
+            "id_evaluador": 1,
+            "obligatoriedad_opinion": 1,
+            "id_modelo_encuesta": 1
+        }
+
         it('Should assign 2 evaluators to the new project', async() => {
-            const data = {
-                "id_evaluador": 1,
-	            "obligatoriedad_opinion": 1,
-	            "id_modelo_encuesta": 1
-            }
             const res1 = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 201, data)
             Requests.verifyAttributes(res1.body, linkedUserToProjectAtt)
             data.id_evaluador = 2
             const res2 = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 201, data)
             Requests.verifyAttributes(res2.body, linkedUserToProjectAtt)
+        })
+
+        it('Sould fail, the user is already linked to the institution', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 409, data)
+        })
+
+        it('Should not let assign the user to the project (the institution does not own the project) (status 403)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/1/evaluadores`, header_newAdmin, 403, data)
+        })
+
+        it('Should not let assign the user to the project (the user its not linked to the institution) (status 409)', async() => {
+            data.id_evaluador = 3
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 409, data)
+        })
+
+        it('Should be a bad request (missing fields) (status 400)', async() => {
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/a/evaluadores`, header_newAdmin, 400, data)
+        })
+
+        it('Should be a bad request (missing fields) (status 400)', async() => {
+            delete data.obligatoriedad_opinion
+            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 400, data)
         })
 
     })
@@ -329,6 +375,17 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             })
         })
 
+        it('Should be a bad request (institution id should be a number) (status 400)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/a/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 400)
+        })
+
+        it('Should be a bad request (project id should be a number) (status 400)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/a/evaluadores`, header_newAdmin, 400)
+        })
+
+        it('Should not find the institution (status 404)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/999999/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 404)
+        })
     })
     
     describe('DELETE /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador ==> Unassign a evaluator from a project', async() => {
@@ -365,6 +422,14 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}`, header_newAdmin, 200)
             const { proyecto } = res.body
             Requests.verifyAttributes(proyecto, ProjectAttributes)
+        })
+        
+        it('Should not find the institution (status 403)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/999999/proyectos/${newProjectId}`, header_newAdmin, 403)
+        })
+        
+        it('Should not find the project (the institution does not own the specified project) (status 403)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/1`, header_newAdmin, 403)
         })
 
     })
