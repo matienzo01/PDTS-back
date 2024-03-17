@@ -402,6 +402,17 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             assert.ok( post.filter(p => p.id == 2).length ===  0, "The evaluator with id = 2 should not remain assigned to the project")
         })
 
+        it('Should not let to unnassign evaluators from a project that belongs to other institution (status 403)', async() => {
+            await Requests.DELETE(`/api/instituciones_cyt/1/proyectos/1/evaluadores/1`, header_newAdmin, 403)
+        })
+
+        it('Should not let to unnassign the director from his/her project (status 409)', async() => {
+            await Requests.DELETE(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores/${newEvaluadorId}`, header_newAdmin, 409)
+        })
+
+        it('Should not allow an evaluator who is not linked to the project to leave. (status 409)', async() => {
+            await Requests.DELETE(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores/2`, header_newAdmin, 404)
+        })
     })
 
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos ==> Get all institution projects', async() => {
@@ -412,6 +423,10 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             proyectos.forEach(proyecto => {
                 Requests.verifyAttributes(proyecto, ProjectAttributes)
             })
+        })
+
+        it('Should not be authorized (evaluador) (403)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newEvaluador, 403)
         })
 
     })

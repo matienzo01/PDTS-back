@@ -180,6 +180,7 @@ const getParticipants = async (req, res) => {
 
 const unassignEvaluador = async (req, res) => {
   const { params: { id_institucion, id_proyecto, id_evaluador } } = req
+  const { id_usuario: id_admin } = req.body
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
@@ -196,6 +197,9 @@ const unassignEvaluador = async (req, res) => {
     return ;
   }
 
+  if(await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+    return res.status(403).json({ error: "An admin can only manage his own institution" })
+  }
 
   try {
     res.status(204).json(await service.unassignEvaluador(id_evaluador, id_proyecto))

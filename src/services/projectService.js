@@ -102,11 +102,21 @@ const assignEvaluador = async (data, id_institucion, trx = null) => {
 
 const unassignEvaluador = async (id_evaluador, id_proyecto) => {
   //habria que ver de no eliminar al evaluador director
-  if (!await knex('evaluadores_x_proyectos').del().where({ id_evaluador, id_proyecto })) {
-    const _error = new Error('The user is not assigned to this project')
+  await getOneProject(id_proyecto)
+  const evaluador = await knex('evaluadores_x_proyectos').select().where({ id_evaluador, id_proyecto }).first()
+  if ( evaluador === undefined ){
+    const _error = new Error('There is no user with the providied id linked to the project')
     _error.status = 404
     throw _error
   }
+
+  if (evaluador.rol === 'director'){
+    const _error = new Error('You cannot remove a director from his or her own project')
+    _error.status = 409
+    throw _error
+  }
+
+  await knex('evaluadores_x_proyectos').del().where({ id_evaluador, id_proyecto })
   return;
 }
 
