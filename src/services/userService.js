@@ -86,6 +86,8 @@ const createUser = async (newUser, institutionId) => {
     }
   }
 
+  await mailer.checkEmail(newUser.email)
+
   return await knex.transaction(async (trx) => {
     const oldpass = newUser.password
     newUser.password = await createHash(oldpass)

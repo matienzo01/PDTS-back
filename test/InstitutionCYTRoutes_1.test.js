@@ -15,11 +15,14 @@ let header_newEvaluador
 let newInstitutionId 
 let newEvaluadorId
 let newProjectId
+let newEvaluatorCredentials
 
 const getNewAdminHeader = () => { return header_newAdmin }
 const getNetEvaluadorHeader = () => { return header_newEvaluador }
 const getNewInstitutionId = () => { return newInstitutionId }
-const getnewProjectId = () => { return newProjectId }
+const getNewProjectId = () => { return newProjectId }
+const getNewEvaluatorId = () => { return newEvaluadorId }
+const getNewEvaluatorCredentials = () => { return newEvaluatorCredentials}
 
 describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
@@ -196,16 +199,26 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         it('Should create a new user (new admin)', async() => {
             newUser.user.dni = Math.floor(Math.random() * 1000000) + 1;
             newUser.user.institucion_origen = newInstCYT.institucion.nombre
+
+            const caracteres = 'abcdefghijklmnopqrstuvwxyz0123456789'
+            let correo = ''
+            for (let i = 0; i < 10; i++) { correo += caracteres.charAt(Math.floor(Math.random() * caracteres.length)) }
+            correo += '@example.com'
+  
+            newUser.user.email = correo
+            newUser.user.password = '1234'
+
+            newEvaluatorCredentials = {
+                mail: correo,
+                password: '1234'
+            }
+            
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_newAdmin, 200, newUser)
             Requests.verifyAttributes(res.body.usuario, UserAttributes)
 
             newEvaluadorId = res.body.usuario.id
-            const credentials = {
-                "mail": newUser.user.email,
-                "password": newUser.user.password
-            }
 
-            const res2 = await Requests.POST('/api/login', null, 200, credentials)
+            const res2 = await Requests.POST('/api/login', null, 200, newEvaluatorCredentials)
             const { token } = res2.body
             header_newEvaluador = { 'Authorization': `Bearer ${token}` }
         })
@@ -455,5 +468,7 @@ module.exports = {
     getNewAdminHeader,
     getNetEvaluadorHeader,
     getNewInstitutionId,
-    getnewProjectId
+    getNewProjectId,
+    getNewEvaluatorCredentials,
+    getNewEvaluatorId
 }

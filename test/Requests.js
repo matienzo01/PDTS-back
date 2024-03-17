@@ -50,7 +50,45 @@ function verifyAttributes(object, expected) {
     assert.equal(unexpectedAttributes.length, 0, `Object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
 }
 
+function verifyProperties(obj, props){
+  for (const prop of props) {
+    assert.ok(obj.hasOwnProperty(prop));
+  }
+}
+
+function verifyEvaluation(eval){
+  assert.ok(eval.hasOwnProperty('respuestas'));
+  const { respuestas } = eval;
+  verifyRespuestas(respuestas);
+}
+
+function verifyRespuestas(respuestas) {
+  verifyProperties(respuestas, ['name', 'sections']);
+  const { sections } = respuestas;
+  verifyProperties(sections, ['Entidad', 'Proposito']);
+
+  const { Entidad, Proposito } = sections;
+  verifyProperties(Entidad, ['opciones_instancia', 'dimensiones']);
+  verifyProperties(Proposito, ['opciones_instancia', 'dimensiones']);
+
+  verifyDimensiones(Entidad.dimensiones);
+  verifyDimensiones(Proposito.dimensiones);
+}
+
+function verifyDimensiones(dimensiones) {
+  dimensiones.forEach((dim) => {
+    verifyProperties(dim, ['id_dimension', 'nombre', 'indicadores']);
+    dim.indicadores.forEach((ind) => {
+      verifyProperties(ind, ['id_indicador', 'indicador', 'fundamentacion', 'determinante', 'respuestas']);
+      ind.respuestas.forEach((rta) => {
+        verifyProperties(rta, ['id_evaluador', 'option', 'value']);
+      });
+    });
+  });
+}
+
 module.exports = {
     GET, POST, PUT, DELETE,
-    verifyAttributes
+    verifyAttributes,
+    verifyEvaluation
 }

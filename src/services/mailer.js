@@ -1,6 +1,7 @@
 const { send } = require('express/lib/response');
 const nodemailer = require('nodemailer')
 const enlace = 'http://localhost:3001/login'
+const knex = require('../database/knex')
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -9,6 +10,19 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 })
+
+const checkEmail = async(email, trx = null) => {
+    const querybuilder = trx || knex
+    const tables = ['evaluadores', 'admins_cyt', 'admin']
+    for (let i = 0; i < 3; i++ ){
+      const user = await querybuilder(tables[i]).select().where({email})
+      if( user.length > 0){
+        const _error = new Error('The email entered is already registered in the system')
+        _error.status = 409
+        throw _error
+      }
+    }
+}
 
 const sendNewUser = async(user, oldpass) => {
     const subject = '¡Bienvenido/a a SEva-PDTS! Tu cuenta ha sido creada con éxito.'
@@ -83,5 +97,6 @@ module.exports = {
     sendNewUser,
     sendNewEval,
     linkUser,
-    notifyReviewer
+    notifyReviewer,
+    checkEmail
 };

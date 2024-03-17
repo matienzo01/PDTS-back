@@ -3,6 +3,7 @@ const TABLE_INSTITUCIONES = 'instituciones'
 const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
 const projectService = require('./projectService')
 const bcrypt = require('bcrypt')
+const mailer = require('./mailer')
 
 const getInstIdFromAdmin = async (id_admin) => {
   const { id } =  await knex('instituciones_cyt').select('id').where({ id_admin }).first()
@@ -89,6 +90,7 @@ const createInstitucionCYT = async (newAdmin, institucion) => {
   if (exists[0] === undefined) //no existe todavia la institucion
   {
     const id_inst = await knex.transaction(async (trx) => {
+      await mailer.checkEmail(newAdmin.email, trx)
       newAdmin.password = await createHash(newAdmin.password)
       const adminId = (await trx('admins_cyt').insert(newAdmin))[0];
 
