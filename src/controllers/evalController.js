@@ -83,12 +83,12 @@ function validateNumberParameter(res, id_proyecto, id_usuario) {
 
 const getEntidad = async(req, res) => {
   const { params: { id_proyecto } } = req
-  const { id_usuario } = req.body
+  const { id_usuario, rol } = req.body
 
   validateNumberParameter(res, id_proyecto, id_usuario)
 
   try {
-    res.status(200).json(await service.getEntidad(id_proyecto, id_usuario))
+    res.status(200).json(await service.getEntidad(id_proyecto, id_usuario, rol))
   } catch(error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
@@ -97,12 +97,12 @@ const getEntidad = async(req, res) => {
 
 const getProposito = async(req, res) => {
   const { params: { id_proyecto } } = req
-  const { id_usuario } = req.body
+  const { id_usuario, rol } = req.body
 
   validateNumberParameter(res, id_proyecto, id_usuario)
 
   try {
-    res.status(200).json(await service.getProposito(id_proyecto, id_usuario))
+    res.status(200).json(await service.getProposito(id_proyecto, id_usuario, rol))
   } catch(error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
@@ -112,7 +112,7 @@ const getProposito = async(req, res) => {
 
 const postEntidad = async(req, res) => {
   const { params: { id_proyecto } } = req
-  const { id_usuario, respuestas } = req.body
+  const { id_usuario, respuestas, rol } = req.body
 
   validateNumberParameter(res, id_proyecto, id_usuario)
 

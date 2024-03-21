@@ -415,7 +415,7 @@ const getAmountQuestions = async(id_instancia) => {
     .count().first())['count(*)']
 }
 
-const getInstancia = async(id_instancia, nombreInstancia) => {
+const getInstancia = async(id_instancia, nombreInstancia, respuestas = null) => {
   
   const dimensiones = {};
   const [indicadores, options] = await Promise.all([
@@ -446,6 +446,20 @@ const getInstancia = async(id_instancia, nombreInstancia) => {
       fundamentacion: row.fundamentacion
     };
 
+    if (respuestas) {
+      newIndicador.respuestas = respuestas.filter(rta => {
+        return rta.id_indicador === newIndicador.id_indicador;
+      })
+
+      newIndicador.respuestas.forEach(respuesta => {
+        respuesta.option = respuesta.respuesta
+        respuesta.value = respuesta.calificacion
+        delete respuesta.respuesta
+        delete respuesta.calificacion
+        delete respuesta.id_indicador
+      })
+    }
+
     if(!dimensiones[row.nombre_dimension]) {
       dimensiones[row.nombre_dimension] = {
         id_dimension: row.id_dimension,
@@ -464,6 +478,27 @@ const getInstancia = async(id_instancia, nombreInstancia) => {
       opciones: options
     } 
   }
+}
+
+const getInstanciaRtas = async(id_instancia, id_proyecto, arrayIdsEvaluadores) => {
+
+  return await knex('respuestas_evaluacion as re')
+    .join('indicadores as i', 're.id_indicador', 'i.id')
+    .join('dimensiones as d', 'i.id_dimension', 'd.id')
+    .select('id_evaluador','id_indicador', 'respuesta', 'calificacion', 'justificacion')
+    .where({ id_proyecto })
+    .whereIn('id_evaluador', arrayIdsEvaluadores)
+    .where({id_instancia})
+
+}
+
+const getAllInstanciaRtas = async(id_instancia, id_proyecto) => {
+  const participantes  = await projectService.getParticipants(id_proyecto)
+  const arrayIds = []
+  participantes.forEach( async(participante) => {
+    arrayIds.push(participante.id)
+  })
+  return getInstanciaRtas(id_instancia, id_proyecto, arrayIds)
 }
 
 const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
@@ -518,29 +553,33 @@ const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
   });
 }
 
-
-const getEntidad = async(id_proyecto, id_usuario) => {
+const getEntidad = async(id_proyecto, id_usuario, rol) => {
   await projectService.getOneProject(id_proyecto)
   const assigned = await verify_date(id_proyecto, id_usuario)
+  const { id: id_instancia } = await knex('instancias').select('id').where({nombre: 'Entidad'}).first()
 
-  if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
 
+  if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
+    return await getInstancia(id_instancia, 'Entidad', await getAllInstanciaRtas(id_instancia, id_proyecto))
+  } else if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
+    return await getInstancia(id_instancia, 'Entidad', await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
   } else {
-    const { id } = await knex('instancias').select('id').where({nombre: 'Entidad'}).first()
-    return await getInstancia(id, 'Entidad')
+    return await getInstancia(id_instancia, 'Entidad')
   }
 
 }
  
-const getProposito = async(id_proyecto, id_usuario) => {
+const getProposito = async(id_proyecto, id_usuario, rol) => {
   await projectService.getOneProject(id_proyecto)
   const assigned = await verify_date(id_proyecto, id_usuario)
 
-  if(assigned.fecha_fin_eval !== null) { // ya respondio las preguntas de la instancia de entidad
-
+  const { id: id_instancia } = await knex('instancias').select('id').where({nombre: 'Proposito'}).first()
+  if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
+    return await getInstancia(id_instancia, 'Proposito', await getAllInstanciaRtas(id_instancia, id_proyecto))
+  } else if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
+    return await getInstancia(id_instancia, 'Proposito', await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
   } else {
-    const { id } = await knex('instancias').select('id').where({nombre: 'Proposito'}).first()
-    return await getInstancia(id, 'Proposito')
+    return await getInstancia(id_instancia, 'Proposito')
   }
 
 }

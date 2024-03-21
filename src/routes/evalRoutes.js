@@ -11,9 +11,9 @@ router
     .post('/', authUser, checkRol(['evaluador']), controller.postEval)
 
 
-    .get('/entidad/:id_proyecto', authUser, checkRol(['evaluador']), controller.getEntidad)
+    .get('/entidad/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getEntidad)
     .post('/entidad/:id_proyecto', authUser, checkRol(['evaluador']), controller.postEntidad)
-    .get('/proposito/:id_proyecto', authUser, checkRol(['evaluador']), controller.getProposito)
+    .get('/proposito/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getProposito)
     .post('/proposito/:id_proyecto', authUser, checkRol(['evaluador']), controller.postProposito)
 
 module.exports = router
