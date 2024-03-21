@@ -104,6 +104,9 @@ CREATE TABLE proyectos (
     grado_demanda text,
     fecha_carga date,
     obligatoriedad_proposito boolean DEFAULT true,
+    obligatoriedad_opinion boolean DEFAULT true,
+    id_modelo_encuesta INT,
+    FOREIGN KEY (id_modelo_encuesta) REFERENCES modelos_encuesta(id),
     FOREIGN KEY (id_estado_eval) REFERENCES estado_eval(id),
     FOREIGN KEY (id_director) REFERENCES evaluadores(id),
     FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id)
@@ -145,14 +148,12 @@ CREATE TABLE evaluadores_x_instituciones (
 CREATE TABLE evaluadores_x_proyectos (
     id_proyecto INT,
     id_evaluador INT,
-    obligatoriedad_opinion boolean DEFAULT true,
-    id_modelo_encuesta INT,
     rol varchar(255),
     fecha_inicio_eval date,
     fecha_fin_eval date DEFAULT null,
     fecha_fin_op date DEFAULT null,
+    respondio_entidad boolean DEFAULT false,
     PRIMARY KEY (id_proyecto, id_evaluador),
-    FOREIGN KEY (id_modelo_encuesta) REFERENCES modelos_encuesta(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id)
 );
@@ -172,6 +173,7 @@ CREATE TABLE dimensiones (
 CREATE TABLE indicadores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pregunta TEXT not null,
+    descripcion text, 
     fundamentacion TEXT,
     id_dimension INT,
     determinante boolean,
@@ -191,6 +193,7 @@ CREATE TABLE respuestas_evaluacion (
     id_indicador INT,
     id_evaluador INT,
     id_proyecto INT,
+    justificacion text,
     respuesta varchar(255), 
     calificacion DECIMAL(5,2), -- este atributo o el de arriba podrian no estar. Con uno solo de los dos alcanza
     PRIMARY KEY (id_indicador, id_evaluador, id_proyecto),

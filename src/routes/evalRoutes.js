@@ -10,4 +10,10 @@ router
     .get('/:id_proyecto/respuestas/pdf', authUser, checkRol(['admin']), controller.generatePDF)
     .post('/', authUser, checkRol(['evaluador']), controller.postEval)
 
+
+    .get('/entidad/:id_proyecto', authUser, checkRol(['evaluador']), controller.getEntidad)
+    .post('/entidad/:id_proyecto', authUser, checkRol(['evaluador']), controller.postEntidad)
+    .get('/proposito/:id_proyecto', authUser, checkRol(['evaluador']), controller.getProposito)
+    .post('/proposito/:id_proyecto', authUser, checkRol(['evaluador']), controller.postProposito)
+
 module.exports = router

@@ -1,12 +1,6 @@
-const res = require('express/lib/response.js')
 const knex = require('../database/knex.js')
 const projectService = require('../services/projectService')
 const insttitutionCYTService = require('../services/institutionCYTService.js')
-
-const verify_date = async (id_proyecto, id_evaluador) => {
-  return await knex('evaluadores_x_proyectos').select()
-    .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
-}
 
 const getNextEval = async (id_proyecto, id_evaluador) => {
   await projectService.getOneProject(id_proyecto)
@@ -129,6 +123,7 @@ const getProjectEval = async (id_proyecto, respuestas = null) => {
       'i.id as id_indicador',
       'i.pregunta',
       'i.fundamentacion',
+      'i.descripcion',
       'd.id as id_dimension',
       'd.nombre as nombre_dimension',
       'ins.id as id_instancia',
@@ -176,7 +171,8 @@ const getProjectEval = async (id_proyecto, respuestas = null) => {
       id_indicador: row.id_indicador,
       indicador: row.pregunta,
       fundamentacion: row.fundamentacion,
-      determinante: row.determinante
+      determinante: row.determinante,
+      descripcion: row.descripcion
     };
     
     if (respuestas) {
@@ -250,7 +246,8 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
             id_evaluador: id_evaluador,
             id_proyecto: id_proyecto,
             respuesta: rta.answer,
-            calificacion: rta.value
+            calificacion: rta.value,
+            justificacion: rta.justificacion
           }
         })
         await knex('respuestas_evaluacion').insert(respuestas)
@@ -284,8 +281,8 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
         throw _error
       }
 
-    } else { // aca se entraria si fueran las repsuestas de la opinion
-      if (evaluado[0].fecha_fin_op === null && proyecto.obligatoriedad_opinion) { //el evaluador todavia no respondio la encuesta de opinion+
+    } else { // aca se entraria si fueran las repsuestas de la encuesta
+      if (evaluado[0].fecha_fin_op === null && proyecto.obligatoriedad_opinion) { //el evaluador todavia no respondio la encuesta
         respuestas = rawRespuestas.map(rta => {
           return {
             id_pregunta: rta.id_indicador,
@@ -312,7 +309,7 @@ const postEval = async (id_proyecto, id_evaluador, rawRespuestas) => {
 
 const getRtas = async(arrayIdsEvaluadores, id_proyecto) => {
   const rtas = await knex('respuestas_evaluacion')
-    .select('id_evaluador','id_indicador', 'respuesta', 'calificacion')
+    .select('id_evaluador','id_indicador', 'respuesta', 'calificacion', 'justificacion')
     .where({ id_proyecto })
     .whereIn('id_evaluador', arrayIdsEvaluadores)
 
@@ -390,10 +387,213 @@ const getEvaluationScores = async(id_proyecto) => {
   return { entidad: entidad, proposito: proposito, totD: totDeterminantes, totND: totNoDeterminantes, totP: totProposito }
 }
 
+// ----------------------------------------------------------------------------------------------------------
+
+const verify_date = async (id_proyecto, id_evaluador) => {
+  const assigned = await knex('evaluadores_x_proyectos').select()
+    .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
+    .first()
+  
+  if(!assigned) {
+    const _error = new Error('The user is not linked to the project')
+    _error.status = 403
+    throw _error
+  }
+
+  return assigned
+}
+
+const getFecha = () => {
+  const fecha = new Date()
+  return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
+}
+
+const getAmountQuestions = async(id_instancia) => {
+  return (await knex('indicadores as i')
+  .join('dimensiones as d', 'i.id_dimension', 'd.id')
+    .where({id_instancia})
+    .count().first())['count(*)']
+}
+
+const getInstancia = async(id_instancia, nombreInstancia) => {
+  
+  const dimensiones = {};
+  const [indicadores, options] = await Promise.all([
+    knex.select(
+      'i.id as id_indicador',
+      'i.pregunta',
+      'i.fundamentacion',
+      'i.descripcion',
+      'i.determinante',
+      'i.fecha_elim',
+      'd.id as id_dimension',
+      'd.nombre as nombre_dimension',
+      'id_instancia'
+    )
+      .from('indicadores as i')
+      .join('dimensiones as d', 'i.id_dimension', 'd.id')
+      .where({id_instancia}),
+    knex('opciones_evaluacion').select('id', 'opcion as option', 'peso as value').where({id_instancia})
+  ])
+
+  indicadores.forEach(row => {
+
+    const newIndicador = {
+      id_indicador: row.id_indicador,
+      indicador: row.pregunta,
+      descripcion: row.descripcion,
+      determinante: row.determinante,
+      fundamentacion: row.fundamentacion
+    };
+
+    if(!dimensiones[row.nombre_dimension]) {
+      dimensiones[row.nombre_dimension] = {
+        id_dimension: row.id_dimension,
+        indicadores: []
+      }
+    }
+
+    dimensiones[row.nombre_dimension].indicadores.push(newIndicador)
+
+  })
+
+  return { Instancia: 
+    {
+      nombre_instancia: nombreInstancia,
+      dimensiones: dimensiones, 
+      opciones: options
+    } 
+  }
+}
+
+const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
+
+  if(raw_respuestas.length != await getAmountQuestions(id_instancia)) {
+    const _error = new Error('The amount of answers does not match those expected')
+    _error.status = 400
+    throw _error
+  }
+
+  respuestas = raw_respuestas.map(rta => {
+    return {
+      id_indicador: rta.id_indicador,
+      id_evaluador: id_usuario,
+      id_proyecto: proyecto.id,
+      respuesta: rta.answer,
+      calificacion: rta.value,
+      justificacion: rta.justificacion
+    }
+  })
+
+  await knex.transaction(async (trx) => { 
+    
+    //console.log(respuestas)
+    await trx('respuestas_evaluacion').insert(respuestas)
+
+    const evaluadorPorProyectoQuery = trx('evaluadores_x_proyectos')
+      .where({ id_proyecto: proyecto.id, id_evaluador: id_usuario });
+
+    if (id_instancia === 1) {
+      await evaluadorPorProyectoQuery.update({ respondio_entidad: 1 });
+    } else {
+      await evaluadorPorProyectoQuery.update({ fecha_fin_eval: getFecha() });
+
+      const esDirector = proyecto.id_director === id_usuario;
+      if (esDirector) {
+        const participantes = proyecto.participantes.filter(participante => participante.rol !== 'director');
+        const users = await trx('evaluadores').whereIn('id', participantes.map(participante => participante.id));
+        // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
+
+        await trx('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
+      } else {
+        const evaluadoresActivos = await trx('evaluadores_x_proyectos')
+          .where({ id_proyecto: proyecto.id, fecha_fin_eval: null })
+          .count('id');
+
+        if (evaluadoresActivos === 0) {
+          await trx('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 4 });
+        }
+      }
+    }  
+  });
+}
+
+
+const getEntidad = async(id_proyecto, id_usuario) => {
+  await projectService.getOneProject(id_proyecto)
+  const assigned = await verify_date(id_proyecto, id_usuario)
+
+  if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
+
+  } else {
+    const { id } = await knex('instancias').select('id').where({nombre: 'Entidad'}).first()
+    return await getInstancia(id, 'Entidad')
+  }
+
+}
+ 
+const getProposito = async(id_proyecto, id_usuario) => {
+  await projectService.getOneProject(id_proyecto)
+  const assigned = await verify_date(id_proyecto, id_usuario)
+
+  if(assigned.fecha_fin_eval !== null) { // ya respondio las preguntas de la instancia de entidad
+
+  } else {
+    const { id } = await knex('instancias').select('id').where({nombre: 'Proposito'}).first()
+    return await getInstancia(id, 'Proposito')
+  }
+
+}
+
+const postEntidad = async(id_proyecto, id_usuario, respuestas) => {
+  const { proyecto } = await projectService.getOneProject(id_proyecto)
+  const assigned = await verify_date(id_proyecto, id_usuario)
+
+  if(assigned.respondio_entidad == 1){
+    const _error = new Error("The user already answered the 'Entidad' instance questions")
+    _error.status = 409
+    throw _error
+  } 
+
+  try {
+    await postRtas(proyecto, id_usuario, 1, respuestas)
+  } catch(error) {
+    throw error
+  }
+}
+
+const postProposito = async(id_proyecto, id_usuario, respuestas) => {
+  const { proyecto } = await projectService.getOneProject(id_proyecto)
+  const assigned = await verify_date(id_proyecto, id_usuario)
+
+  if(!assigned.respondio_entidad) {
+    const _error = new Error("The user should answer first the 'Entidad' instance questions")
+    _error.status = 409
+    throw _error
+  }
+
+  if(assigned.fecha_fin_eval !== null) {
+    const _error = new Error("The user already answered the 'Entidad' instance questions")
+    _error.status = 409
+    throw _error
+  } 
+
+  try { 
+    await postRtas(proyecto, id_usuario, 2, respuestas)
+  } catch(error) {
+    throw error
+  }
+}
+
 module.exports = {
   getNextEval,
   postEval,
   getUserEvaluationAnswers,
   getProjectSurvey,
-  getEvaluationScores
+  getEvaluationScores,
+
+  getEntidad,
+  getProposito,
+  postEntidad,
+  postProposito
 }

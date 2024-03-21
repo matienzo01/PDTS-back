@@ -142,10 +142,6 @@ const createProject = async (id_institucion, proyecto, roles) => {
   proyecto.id_estado_eval = 1 // 'sin evaluar'. Capaz no tiene mucho sentido este estado pq instantaneamente habria que cambiarlo a
                               // 'En evaluacion por el director'
   const result = await knex.transaction(async (trx) => {
-    const obligatoriedad_opinion = proyecto.obligatoriedad_opinion_director
-    const id_modelo_encuesta = proyecto.id_modelo_encuesta_director
-    delete proyecto.obligatoriedad_opinion_director
-    delete proyecto.id_modelo_encuesta_director
 
     const insertId = await trx.insert(proyecto).into(TABLE)
     await assignInstitutionRoles(insertId[0], roles, trx)
@@ -154,9 +150,7 @@ const createProject = async (id_institucion, proyecto, roles) => {
       id_evaluador: proyecto.id_director,
       id_proyecto: insertId[0],
       fecha_inicio_eval: fecha_carga,
-      rol: 'director',
-      obligatoriedad_opinion: obligatoriedad_opinion,
-      id_modelo_encuesta: id_modelo_encuesta
+      rol: 'director'
     }
 
     await assignEvaluador(data, id_institucion, trx)

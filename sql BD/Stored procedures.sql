@@ -6,6 +6,7 @@ BEGIN
         i.id AS id_indicador,
         i.pregunta,
         i.fundamentacion,
+        i.descripcion,
         d.id AS id_dimension,
         d.nombre AS nombre_dimension,
         ins.id AS id_instancia,

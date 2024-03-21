@@ -51,21 +51,23 @@ const createProject = async (req, res) => {
     return ;
   }
 
-  if (!proyecto.titulo ||
-    !proyecto.id_director ||
-    !proyecto.FechaInicio ||
-    !proyecto.FechaFin ||
-    !proyecto.area_conocim ||
-    !proyecto.subarea_conocim ||
-    !proyecto.problema_a_resolver ||
-    !proyecto.producto_a_generar ||
-    !proyecto.resumen ||
-    !proyecto.novedad_u_originalidad ||
-    !proyecto.grado_relevancia ||
-    !proyecto.grado_pertinencia ||
-    !proyecto.grado_demanda ||
+  if (!proyecto.hasOwnProperty("titulo") ||
+    !proyecto.hasOwnProperty("id_director") ||
+    !proyecto.hasOwnProperty("FechaInicio") ||
+    !proyecto.hasOwnProperty("FechaFin") ||
+    !proyecto.hasOwnProperty("area_conocim") ||
+    !proyecto.hasOwnProperty("subarea_conocim") ||
+    !proyecto.hasOwnProperty("problema_a_resolver") ||
+    !proyecto.hasOwnProperty("producto_a_generar") ||
+    !proyecto.hasOwnProperty("resumen") ||
+    !proyecto.hasOwnProperty("novedad_u_originalidad") ||
+    !proyecto.hasOwnProperty("grado_relevancia") ||
+    !proyecto.hasOwnProperty("grado_pertinencia") ||
+    !proyecto.hasOwnProperty("grado_demanda") ||
     !proyecto.hasOwnProperty('obligatoriedad_proposito') ||
-    !proyecto.roles) {
+    !proyecto.hasOwnProperty('obligatoriedad_opinion') ||
+    !proyecto.hasOwnProperty('id_modelo_encuesta') ||
+    !proyecto.hasOwnProperty("roles")) {
 
     res.status(400).send({
       status: 'FAILED',
@@ -114,11 +116,7 @@ const deleteProject = async (req, res) => {
 
 const assignEvaluador = async (req, res) => {
   const { params: { id_institucion, id_proyecto } } = req
-  const { id_evaluador, obligatoriedad_opinion, id_modelo_encuesta, id_usuario: id_admin} = req.body
-
-  if ( obligatoriedad_opinion === undefined || id_modelo_encuesta === undefined) {
-    return res.status(400).json({ error: "Missing fields"})
-  }
+  const { id_evaluador, id_usuario: id_admin} = req.body
 
   if (isNaN(id_institucion)) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
@@ -144,9 +142,7 @@ const assignEvaluador = async (req, res) => {
     id_evaluador: id_evaluador,
     id_proyecto: id_proyecto,
     fecha_inicio_eval: `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`,
-    rol: 'evaluador',
-    obligatoriedad_opinion: obligatoriedad_opinion,
-    id_modelo_encuesta: id_modelo_encuesta
+    rol: 'evaluador'
   }
 
   try {

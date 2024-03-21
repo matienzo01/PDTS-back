@@ -26,9 +26,9 @@ const postEval = async (req, res) => {
   const id_evaluador = req.body.id_usuario
   try {
     res.status(201).json(await service.postEval(id_proyecto, id_evaluador, respuestas))
-  } catch (_error) {
-    const statusCode = _error.status || 500
-    res.status(statusCode).json({ error: _error.message })
+  } catch (error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
   }
 }
 
@@ -70,9 +70,86 @@ const generatePDF = async (req, res) => {
   }
 };
 
+// --------------------------------------------------
+
+function validateNumberParameter(res, id_proyecto, id_usuario) { 
+  if (isNaN(id_proyecto)) {
+    return res.status(400).json({ error: `Parameter id_proyecto should be a number` });
+  }
+  if (isNaN(id_usuario)) {
+    return res.status(400).json({ error: `Parameter id_usuario should be a number` });
+  }
+}
+
+const getEntidad = async(req, res) => {
+  const { params: { id_proyecto } } = req
+  const { id_usuario } = req.body
+
+  validateNumberParameter(res, id_proyecto, id_usuario)
+
+  try {
+    res.status(200).json(await service.getEntidad(id_proyecto, id_usuario))
+  } catch(error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+}
+
+const getProposito = async(req, res) => {
+  const { params: { id_proyecto } } = req
+  const { id_usuario } = req.body
+
+  validateNumberParameter(res, id_proyecto, id_usuario)
+
+  try {
+    res.status(200).json(await service.getProposito(id_proyecto, id_usuario))
+  } catch(error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+  
+}
+
+const postEntidad = async(req, res) => {
+  const { params: { id_proyecto } } = req
+  const { id_usuario, respuestas } = req.body
+
+  validateNumberParameter(res, id_proyecto, id_usuario)
+
+  try {
+    await service.postEntidad(id_proyecto, id_usuario, respuestas)
+    res.status(200).json({ message: 'respuestas de la instancia de Entidad guardadas exitosamente'})
+  } catch(error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+  
+}
+
+const postProposito = async(req, res) => {
+  const { params: { id_proyecto } } = req
+  const { id_usuario, respuestas } = req.body
+
+  validateNumberParameter(res, id_proyecto, id_usuario)
+
+  try {
+    await service.postProposito(id_proyecto, id_usuario, respuestas)
+    res.status(200).json({ message: 'respuestas de la instancia de Proposito guardadas exitosamente'})
+  } catch(error) {
+    const statusCode = error.status || 500
+    res.status(statusCode).json({ error: error.message })
+  }
+  
+}
+
 module.exports = {
   getNextEval,
   postEval,
   getUserEvaluationAnswers,
-  generatePDF
+  generatePDF,
+
+  getEntidad,
+  getProposito,
+  postEntidad,
+  postProposito
 }
