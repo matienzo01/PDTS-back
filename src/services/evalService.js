@@ -207,8 +207,6 @@ const getInstanciaRtas = async(id_instancia, id_proyecto, arrayIdsEvaluadores) =
 
 }
 
-
-
 const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
 
   if(raw_respuestas.length != await getAmountQuestions(id_instancia)) {
@@ -342,11 +340,7 @@ const postEntidad = async(id_proyecto, id_usuario, respuestas) => {
     throw _error
   } 
 
-  try {
-    await postRtas(proyecto, id_usuario, 1, respuestas)
-  } catch(error) {
-    throw error
-  }
+  await postRtas(proyecto, id_usuario, 1, respuestas)
 }
 
 const postProposito = async(id_proyecto, id_usuario, respuestas) => {
@@ -365,11 +359,7 @@ const postProposito = async(id_proyecto, id_usuario, respuestas) => {
     throw _error
   } 
 
-  try { 
-    await postRtas(proyecto, id_usuario, 2, respuestas)
-  } catch(error) {
-    throw error
-  }
+  await postRtas(proyecto, id_usuario, 2, respuestas)
 }
 
 module.exports = {
