@@ -6,6 +6,7 @@ const routerInstCYT = require('./routes/institutionCYTRoutes.js')
 const routerInst = require('./routes/institutionRoutes.js')
 const routerLogin = require('./routes/LoginRoutes.js')
 const routerUser = require('./routes/userRoutes.js')
+const routerEncuesta = require('./routes/encuestaRoutes.js')
 const cors = require('cors')
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.use('/api/evaluacion', routerEval)
 app.use('/api/instituciones_cyt', routerInstCYT)
 app.use('/api/instituciones', routerInst)
 app.use('/api/usuarios', routerUser)
+app.use('/api/encuesta', routerEncuesta)
 
 const server = app.listen(PORT, () => {
   console.log('funciona el server')

@@ -105,7 +105,7 @@ const getProposito = async(req, res) => {
     res.status(200).json(await service.getProposito(id_proyecto, id_usuario, rol))
   } catch(error) {
     const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    res.status(statusCode).json({ message: error.message })
   }
   
 }
