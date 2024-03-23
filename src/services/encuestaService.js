@@ -198,6 +198,16 @@ const postEncuesta = async(id_proyecto, id_evaluador, rawRespuestas) =>{
     }
         
     return await knex.transaction(async (trx) => {
+        
+        /* 
+        const preguntas = await trx('preguntas_seccion').select()
+        if(rawRespuestas.length != preguntas.length) {
+            const _error = new Error('The amount of answers does not match those expected')
+            _error.status = 400
+            throw _error
+        }
+        */
+
         const opciones = await trx('opciones').select('valor')
         const valores = opciones.map(objeto => objeto.valor)
         valores.push('si', 'no')
