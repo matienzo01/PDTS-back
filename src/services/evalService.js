@@ -2,46 +2,6 @@ const knex = require('../database/knex.js')
 const projectService = require('../services/projectService')
 const insttitutionCYTService = require('../services/institutionCYTService.js')
 
-const getRtas = async(arrayIdsEvaluadores, id_proyecto) => {
-  const rtas = await knex('respuestas_evaluacion')
-    .select('id_evaluador','id_indicador', 'respuesta', 'calificacion', 'justificacion')
-    .where({ id_proyecto })
-    .whereIn('id_evaluador', arrayIdsEvaluadores)
-
-  if (rtas[0] !== undefined) {
-    return { respuestas: await getProjectEval(id_proyecto, rtas) }
-  }
-  
-  const _error = new Error('There are no answers for the project')
-  _error.status = 404
-  throw _error
-}
-
-const getUserEvaluationAnswers = async (id_proyecto, id_evaluador, rol) => {
-  const participantes  = await projectService.getParticipants(id_proyecto)
-  
-  if (rol === 'admin'){
-    const id  = await insttitutionCYTService.getInstIdFromAdmin(id_evaluador)
-    await projectService.getOneProject(id_proyecto, id)
-    
-    const arrayIds = []
-    participantes.forEach( async(participante) => {
-      arrayIds.push(participante.id)
-    })
-    return await getRtas(arrayIds, id_proyecto)
-
-  } else if (rol === 'evaluador') {
-    await projectService.getOneProject(id_proyecto)
-    if (participantes.some(participante => participante.id === id_evaluador)) {
-      return await getRtas([id_evaluador], id_proyecto)
-    }
-    const _error = new Error('The user is not assigned to the project')
-    _error.status = 403
-    throw _error;
-  }
-    
-}
-
 const getEvaluationScores = async(id_proyecto) => {
 
   if (!await projectService.verifyState(id_proyecto, 'Evaluado')){
@@ -242,22 +202,14 @@ const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
         .where({ id_proyecto: proyecto.id, id_evaluador: id_usuario })
         .update({ fecha_fin_eval: getFecha() });
 
-      const esDirector = proyecto.id_director === id_usuario;
-      if (esDirector) {
+      
+      if (proyecto.id_director === id_usuario) { // es director
         const participantes = proyecto.participantes.filter(participante => participante.rol !== 'director');
         const users = await trx('evaluadores').whereIn('id', participantes.map(participante => participante.id));
         // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
 
         await trx('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
-      } else {
-        const evaluadoresActivos = await trx('evaluadores_x_proyectos')
-          .where({ id_proyecto: proyecto.id, fecha_fin_eval: null })
-          .count('id');
-
-        if (evaluadoresActivos === 0) {
-          await trx('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 4 });
-        }
-      }
+      } 
     }
   });
 }
@@ -290,42 +242,62 @@ const getIDsEvaluadores = async(id_proyecto) => {
 }
 
 const getEntidad = async(id_proyecto, id_usuario, rol) => {
-  await projectService.getOneProject(id_proyecto)
-  const assigned = await verify_date(id_proyecto, id_usuario)
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: 'Entidad'}).first()
 
   if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
+    await verifyProject(id_proyecto, true, id_usuario)
+
     const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
     const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto, id_instancia)
     return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores), idsNoRespondieron)
-  } else if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
-    return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
   } else {
-    return await getInstancia(id_instancia, 'Entidad', rol)
+    await verifyProject(id_proyecto, true)
+    const assigned = await verify_date(id_proyecto, id_usuario)
+
+    if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
+      return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
+    } else {
+      return await getInstancia(id_instancia, 'Entidad', rol)
+    }
   }
 
 }
- 
-const getProposito = async(id_proyecto, id_usuario, rol) => {
-  const { proyecto } = await projectService.getOneProject(id_proyecto)
-  const assigned = await verify_date(id_proyecto, id_usuario)
 
-  if(!proyecto.obligatoriedad_proposito){
-    // el mensaje este no va a aparecer, pero lo pono igual
+const verifyProject = async(id_proyecto, entidad, id_usuario = null) => {
+  let proyecto
+  if(id_usuario != null) {
+    const id  = await insttitutionCYTService.getInstIdFromAdmin(id_usuario)
+    proyecto = (await projectService.getOneProject(id_proyecto, id)).proyecto
+  } else {
+    proyecto = (await projectService.getOneProject(id_proyecto)).proyecto
+  }
+
+  if(!entidad && !proyecto.obligatoriedad_proposito){
     const _error = new Error('The Proposito instance should not be evaluated in this project')
     _error.status = 204
     throw _error
   }
+}
 
+const getProposito = async(id_proyecto, id_usuario, rol) => {
+  
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: 'Proposito'}).first()
+
   if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
+    await verifyProject(id_proyecto, false, id_usuario)
     const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
     const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto, id_instancia)
     return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores), idsNoRespondieron)
-  } else if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
-    return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
   } else {
-    return await getInstancia(id_instancia, 'Proposito', rol)
+    await verifyProject(id_proyecto, false)
+    const assigned = await verify_date(id_proyecto, id_usuario)
+
+    if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
+      return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
+    } else {
+      return await getInstancia(id_instancia, 'Proposito', rol)
+    }
+
   }
 
 }
@@ -362,12 +334,40 @@ const postProposito = async(id_proyecto, id_usuario, respuestas) => {
   await postRtas(proyecto, id_usuario, 2, respuestas)
 }
 
+const finalizarEvaluacion = async(id_proyecto, id_usuario) => {
+
+  const id_inst  = await insttitutionCYTService.getInstIdFromAdmin(id_usuario)
+  await projectService.getOneProject(id_proyecto, id_inst)
+
+  const { cantidad: evaluadoresTotales} = (await knex('evaluadores_x_proyectos')
+      .where({ id_proyecto })
+      .count('id_evaluador as cantidad'))[0];
+
+  const { cantidad: evaluadoresActivos} = (await knex('evaluadores_x_proyectos')
+      .where({ id_proyecto, fecha_fin_eval: null })
+      .count('id_evaluador as cantidad'))[0];
+
+  //console.log('evalaudores totales:  ', evaluadoresTotales)
+  //console.log('evaluadores restantes:',evaluadoresActivos)
+
+  /*
+  if(evaluadoresTotales - evaluadoresActivos< 4){
+    const _error = new Error('To complete an evaluation, at least 4 evaluators are required to complete the project evaluation')
+    _error.status = 409
+    throw _error
+  }*/
+
+  await knex('proyectos').where({ id: id_proyecto }).update({ id_estado_eval: 4 })
+
+  return {msg: 'Evaluacion concluida'}
+}
+
 module.exports = {
-  getUserEvaluationAnswers,
   getEvaluationScores,
 
   getEntidad,
   getProposito,
   postEntidad,
-  postProposito
+  postProposito,
+  finalizarEvaluacion
 }
