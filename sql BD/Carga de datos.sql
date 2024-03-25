@@ -137,17 +137,17 @@ INSERT into dimensiones (nombre, id_instancia) VALUES ('Calidad del Desempeño',
 INSERT into indicadores(pregunta, id_dimension, determinante, descripcion, fundamentacion)
 	VALUES 
     	('Calidad Técnica de la solución desarrollada ', 
-        7, true,
+        7, false,
         'Califica a los fundamentos científicos y técnicos de la solución, la metodología y métodos, y la existencia de documentación técnica sobre la solución.',
         ' Debe fundamentarse el grado de satisfacción consignado respecto de la calidad de la solución propiamente dicha y de la metodología y métodos aplicados en el desarrollo. También debe consignarse la documentación técnica disponible sobre la solución desarrollada.'),
         
         ('Calidad del proceso de desarrollo del proyecto', 
-        7, true,
+        7, false,
         'Califica al proceso de desarrollo del proyecto en relación a la planificación establecida, considerando desvíos y aspectos que pudieron afectar al plan previsto.',
         'Debe fundamentarse el grado de satisfacción consignado respecto de la calidad del proceso de desarrollo del proyecto, el cumplimiento de la planificación y metas, los desvíos y aspectos que pudieron afectar el plan previsto, tales como la disponibilidad de los recursos, el compromiso de los financiadores, demandantes, adoptantes y unidades de CyT, etc.'),
         
         ('Calidad de la gestión del proyecto',
-        7, true,
+        7, false,
         'Califica la dirección del proyecto, la administración de los recursos y la gestión de las relaciones entre los actores.',
         'Debe fundamentarse el grado de satisfacción consignado respecto de la calidad de la gestión del proyecto, prestando especial atención a la dirección del proyecto, la administración de los recursos y a la gestión de las relaciones entre los actores del proyecto.');
 
@@ -155,22 +155,22 @@ INSERT into dimensiones (nombre, id_instancia) VALUES ('Alcance del impacto',2);
 INSERT into indicadores(pregunta, id_dimension, determinante, descripcion, fundamentacion)
 	VALUES 
     	('Impacto efectivo en el sector', 
-        8, true,
+        8, false,
         'Califica el grado de impacto efectivo que el proyecto y el desarrollo tecnológico tuvieron en el sector de la demanda en términos de los indicadores de efectividad esperados definidos por la demanda.',
         'Debe fundamentarse el grado de satisfacción consignado respecto del impacto efectivo que el proyecto y el desarrollo tecnológico tuvieron en el sector de la demanda. Debe referirse a los indicadores de efectividad esperados definidos oportunamente por la demanda.'),
         
         ('Impacto potencial en el sector', 
-        8, true,
+        8, false,
         'Califica el grado de impacto potencial que el desarrollo tecnológico podría tener en el sector de la demanda en términos de los indicadores de efectividad esperables definidos por la demanda. Considera la posibilidad de re-aplicación de la tecnología desarrollada o de los conocimientos producidos en otros potenciales adoptantes del mismo sector de la solución.',
         'Debe fundamentarse el grado de satisfacción consignado respecto del impacto potencial que el desarrollo tecnológico podría tener en el sector de la demanda. Puede referirse a los indicadores de efectividad esperados definidos oportunamente por la demanda u otros, considerando la posibilidad de re-aplicación de la tecnología desarrollada o de los conocimientos producidos en otros potenciales adoptantes del mismo sector de la solución.'),
         
         ('Impacto potencial en otros sectores',
-        8, true,
+        8, false,
         'Califica el grado de impacto potencial que el desarrollo tecnológico podría tener en otros sectores diferentes al de la demanda. Considera la posibilidad de re-aplicación de la tecnología desarrollada o de los conocimientos producidos en otros potenciales adoptantes de otros sectores.',
         'Debe fundamentarse el grado de satisfacción consignado respecto del impacto potencial que el desarrollo tecnológico podría tener en otros sectores diferentes al de la demanda. Puede referirse a los indicadores de efectividad esperados definidos oportunamente por la demanda u otros, considerando la posibilidad de re-aplicación de la tecnología desarrollada o de los conocimientos producidos en otros potenciales adoptantes de otros sectores diferentes al de la solución.'),
         
         ('Impacto en C&T',
-        8, true,
+        8, false,
         'Califica el grado de impacto que el desarrollo tecnológico tuvo o podría tener en las disciplinas y grupos de Ciencia y Tecnología vinculados a la temática, tanto a nivel nacional como internacional. Considera la posibilidad de apropiación y explotación de los conocimientos producidos en el ámbito del proyecto para producir nuevos conocimientos, tanto en el grupo ejecutor como en otros grupos y disciplinas.',
         'Debe fundamentarse el grado de satisfacción consignado respecto del impacto que el desarrollo tecnológico tuvo o podría tener en las disciplinas y grupos de Ciencia y Tecnología vinculados a la temática, considerando tanto el nivel nacional como internacional. Debe considerarse la posibilidad de apropiación y explotación de los conocimientos producidos en el ámbito del proyecto para producir nuevos conocimientos, tanto en el grupo ejecutor como en otros grupos y disciplinas.');
         
@@ -178,12 +178,12 @@ INSERT into dimensiones (nombre, id_instancia) VALUES ('Contribucion al desarrol
 INSERT into indicadores(pregunta, id_dimension, determinante, descripcion, fundamentacion)
 	VALUES 
     	('Contribución a la política institucional de las unidades ejecutoras', 
-        9, true,
+        9, false,
         'Califica la contribución del proyecto y sus efectos a las metas y objetivos estratégicos de las unidades ejecutoras, en el marco de sus respectivas políticas institucionales.',
         'Debe fundamentarse el grado de satisfacción consignado respecto de la contribución del proyecto a las metas y objetivos estratégicos de las unidades ejecutoras, en el marco de sus respectivas políticas institucionales.'),
         
         ('Contribución al desarrollo de redes locales / micro ecosistemas de innovación local',
-        9, true,
+        9, false,
         'Califica la contribución del proyecto y sus efectos al desarrollo o fortalecimiento de redes locales o micro ecosistemas de innovación local, generando las vinculaciones, sinergias y co-producción de conocimiento necesarias al efecto.',
         'Debe fundamentarse el grado de satisfacción consignado respecto de la contribución del proyecto y sus efectos al desarrollo o fortalecimiento de redes locales o micro ecosistemas de innovación local, considerando las vinculaciones y sinergias generadas y la co-producción de conocimiento que las determinan.');
 
@@ -191,17 +191,17 @@ INSERT into dimensiones (nombre, id_instancia) VALUES ('Valoración Socio-Ético
 INSERT into indicadores(pregunta, id_dimension, determinante, descripcion, fundamentacion)
 	VALUES 
     	('Compromiso ético', 
-        10, true,
+        10, false,
         'Califica el grado de satisfacción de principios éticos en cuanto a los fines y métodos de la I+D.',
         ' Debe fundamentarse el grado de satisfacción consignado respecto de los principios éticos en cuanto a los fines y métodos de la I+D en general y de la problemática abordada en particular.'),
         
         ('Compromiso ambiental', 
-        10, true,
+        10, false,
         'Califica el grado de satisfacción de principios de cuidado y preservación del ambiente, tanto en sus fines como en el proceso de desarrollo tecnológico y el impacto ambiental de sus efectos.',
         'Debe fundamentarse el grado de satisfacción consignado respecto de los principios de cuidado y preservación del ambiente, tanto en sus fines como en el proceso de desarrollo tecnológico y el impacto ambiental de sus efectos.'),
         
         ('Compromiso con las demandas sociales',
-        10, true,
+        10, false,
         'Califica el grado de satisfacción del proyecto respecto de metas u objetivos políticos definidos en el marco de las demandas sociales nacionales o globales. Los ODS y las urgencias sociales del país son referencias globales y locales a considerar.',
         'Debe fundamentarse el grado de satisfacción consignado respecto de la contribución del proyecto a metas u objetivos políticos definidos en el marco de las demandas sociales nacionales o globales.');
 
