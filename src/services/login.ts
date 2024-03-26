@@ -1,8 +1,10 @@
-const bcrypt = require('bcrypt')
-const knex = require('../database/knex')
-const jwt = require('jsonwebtoken')
+import bcrypt from 'bcrypt';
+import knex from '../database/knex';
+import jwt from 'jsonwebtoken';
+import { UserForToken } from '../types/UserForToken';
+import { CustomError } from '../types/customError';
 
-const login = async (mail, password) => {
+const login = async (mail: string, password: string) => {
 
   const tablesToCheck = [
     { rol: 'admin general', tableName: 'admin', columns: ['email', 'password'] },
@@ -10,7 +12,7 @@ const login = async (mail, password) => {
     { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido'] }
   ];
 
-  let user = null;
+  let user: any = null;
 
   for (const table of tablesToCheck) {
     user = await knex(table.tableName).select(...table.columns).where({ email: mail }).first();
@@ -31,12 +33,12 @@ const login = async (mail, password) => {
 
   delete user.password
   if (!(user && passwordCorrect)) {
-    const _error = new Error('Invalid user or password')
+    const _error: CustomError = new Error('Invalid user or password')
     _error.status = 401
     throw _error
   }
 
-  const userForToken = {
+  const userForToken: UserForToken = {
     id: user.id,
     mail: user.email,
     rol: user.rol,
@@ -51,6 +53,6 @@ const login = async (mail, password) => {
   return { token: token, user: userForToken }
 }
 
-module.exports = {
+export default {
   login
-}
+};
