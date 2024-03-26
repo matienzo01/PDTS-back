@@ -1,8 +1,12 @@
-const knex = require('../database/knex.js')
-const questionService = require('./questionService')
+import questionService from './question'
+import knex from '../database/knex';
+import { Knex } from 'knex';
+import { CustomError } from '../types/CustomError';
+import { Indicador } from '../types/Indicador';
+import { Question } from '../types/Question';
 const TABLE = 'indicadores'
 
-const getAllIndicators = async(id_instancia, id_dimension) => {
+const getAllIndicators = async(id_instancia: number, id_dimension: number) => {
 
     const query = knex(TABLE)
 
@@ -18,32 +22,25 @@ const getAllIndicators = async(id_instancia, id_dimension) => {
     return { indicadores: await query };    
 }
 
-const getOneIndicator = async(id,trx = null) => {
+const getOneIndicator = async(id: number , trx: any = null) => {
     const queryBuilder = trx || knex
     const indicator = await queryBuilder(TABLE).select().where({id}).first();
     if(indicator   === undefined) {
-        const _error = new Error('There is no indicator with the provided id ')
+        const _error: CustomError = new Error('There is no indicator with the provided id ')
         _error.status = 404
         throw _error
     }
     return {indicador: indicator}
 }
 
-const createIndicator = async(indicator) => {
-
-    const newIndicator = {
-        pregunta: indicator.pregunta,
-        fundamentacion: indicator.fundamentacion,
-        id_dimension: indicator.id_dimension,
-        determinante: indicator.determinante,
-    }
+const createIndicator = async(indicator: Indicador) => {
 
     try {
-        return await knex.transaction(async(trx) => {
-            const indicator_id = parseInt(await trx(TABLE).insert(newIndicator))
+        return await knex.transaction(async(trx: Knex.Transaction) => {
+            const indicator_id = parseInt(await trx(TABLE).insert(indicator))
 
-            const question = {
-                pregunta: newIndicator.pregunta,
+            const question: Question = {
+                pregunta: indicator.pregunta,
                 id_seccion: null,
                 id_padre: 6,
                 id_tipo_pregunta: 1,
@@ -54,12 +51,13 @@ const createIndicator = async(indicator) => {
                     { id_opcion: 8}
                 ]
             }
+
             await questionService.creteQuestion(question)
-            return await getOneIndicator(indicator_id,trx) 
+            return await getOneIndicator(indicator_id, trx) 
         })
     } catch (error) {
-        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-            const _error = new Error('There is no dimension with the provided id')
+        if ((error as any).code === 'ER_NO_REFERENCED_ROW_2') {
+            const _error: CustomError= new Error('There is no dimension with the provided id')
             _error.status = 404
             throw _error
         }
@@ -68,7 +66,7 @@ const createIndicator = async(indicator) => {
     
 }
 
-const deleteIndicator = async(id) => {
+const deleteIndicator = async(id: number) => {
     /*
     const fecha = new Date()
     await knex(TABLE)
@@ -76,19 +74,19 @@ const deleteIndicator = async(id) => {
         .update({ fecha_elim: `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`})
     */
     if (!await knex(TABLE).del().where({id})){
-        const _error = new Error('There is no indicator with the provided id ')
+        const _error: CustomError = new Error('There is no indicator with the provided id ')
         _error.status = 404
         throw _error
     }
     return ;
 }
 
-const updateIndicator = async (id, updatedFields ) => {
+const updateIndicator = async (id: number, updatedFields: Partial<Indicador>  ) => {
     await knex(TABLE).where({ id }).update(updatedFields)
     return await getOneIndicator(id)
 }
 
-module.exports = {
+export default {
     getAllIndicators,
     getOneIndicator,
     createIndicator,

@@ -1,6 +1,6 @@
 import knex from '../database/knex';
 import { Dimension } from '../types/Dimension'
-import { CustomError } from '../types/customError';
+import { CustomError } from '../types/CustomError';
 const TABLE = 'dimensiones'
 
 const getAllDimensions = async (id_instancia?: number) => {

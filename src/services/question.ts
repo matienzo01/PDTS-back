@@ -1,15 +1,18 @@
-const knex = require('../database/knex.js')
-const eval_service = require('../services/evalService.js')
+import { Knex } from 'knex';
+import knex from '../database/knex'
+//import eval_service from '../services/evalService.js'
+import { Question } from '../types/Question';
 
-const getAllQuestions = async(sectionId = null) => {
+
+const getAllQuestions = async(sectionId: number | null = null) => {/*
     const { sections } = await eval_service.getProjectSurvey()
     if (sectionId) {
         return sections.filter(section => section.sectionId == sectionId)
     }
-    return sections
+    return sections*/
 }
 
-const getOneQuestion = async(id, trx = null) => {
+const getOneQuestion = async(id: number, trx: Knex.Transaction | null = null) => {
     const queryBuilder = trx || knex
     const question = await queryBuilder('preguntas_seccion').where({id}).first()
     const opciones = await queryBuilder('opciones')
@@ -26,29 +29,29 @@ const getOneQuestion = async(id, trx = null) => {
     return { question: question }
 }
 
-const creteQuestion = async(questionData) => {
-    const newQuestion = {
-        pregunta: questionData.pregunta,
-        id_seccion: questionData.id_seccion,
-        id_tipo_pregunta: questionData.id_tipo_pregunta
-    }
-
-    return knex.transaction( async(trx) => {
-        const insertId = (await trx('preguntas_seccion').insert(newQuestion))[0]
-        
-        if (!questionData.id_seccion) { // es subpregunta
-            const subpreg = {
-                id_pregunta_padre: questionData.id_padre,
-                id_subpregunta: insertId
-            }
-            await trx('relacion_subpregunta')
-            .insert({ id_pregunta_padre: questionData.id_padre, id_subpregunta: insertId })
+const creteQuestion = async(questionData: Question) => {
+    return knex.transaction( async(trx: Knex.Transaction) => {
+        const newQuestion: Partial<Question> = {
+            pregunta: questionData.pregunta,
+            id_seccion: questionData.id_seccion,
+            id_tipo_pregunta: questionData.id_tipo_pregunta
         }
 
-        if (questionData.id_tipo_pregunta == 1) { // opcion multiple
+        const insertId = (await trx('preguntas_seccion').insert(newQuestion))[0];
+
+        if (!questionData.id_seccion) { // es subpregunta
+            await trx('relacion_subpregunta').insert({ 
+                id_pregunta_padre: questionData.id_padre, 
+                id_subpregunta: insertId 
+            })
+        }
+
+        if (questionData.id_tipo_pregunta == 1 && questionData.opciones) { // opcion multiple
             questionData.opciones.forEach(async(opcion) => {
-                await trx('opciones_x_preguntas')
-                .insert({ id_opcion: opcion.id_opcion, id_preguntas_seccion: insertId})
+                await trx('opciones_x_preguntas').insert({ 
+                    id_opcion: opcion.id_opcion, 
+                    id_preguntas_seccion: insertId
+                })
             });
         }
 
@@ -64,7 +67,7 @@ const updateQuestion = async() => {
 
 }
 
-module.exports = {
+export default {
     getAllQuestions,
     getOneQuestion,
     creteQuestion,

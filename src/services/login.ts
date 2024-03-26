@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import knex from '../database/knex';
 import jwt from 'jsonwebtoken';
 import { UserForToken } from '../types/UserForToken';
-import { CustomError } from '../types/customError';
+import { CustomError } from '../types/CustomError';
 
 const login = async (mail: string, password: string) => {
 

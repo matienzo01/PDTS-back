@@ -77,7 +77,7 @@ const updateSeccion = async (req,res) => {
     }
 }
 
-module.exports = {
+export default {
     getAllSecciones,
     getOneSeccion,
     createSeccion,

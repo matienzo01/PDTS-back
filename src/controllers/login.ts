@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import service from '../services/login';
-import { CustomError } from '../types/customError';
+import { CustomError } from '../types/CustomError';
 
 const login = async (req: Request, res: Response) => {
     const { mail, password } = req.body

@@ -1,9 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import service from '../services/dimension'
-import { CustomError } from '../types/customError';
+import { CustomError } from '../types/CustomError';
 
 const getAllDimensions = async (req: Request, res: Response) => {
-
     const { id_instancia } = req.query
     
     if ( id_instancia != '' && (id_instancia === undefined || isNaN(parseInt(id_instancia as string)))) {
@@ -11,8 +10,7 @@ const getAllDimensions = async (req: Request, res: Response) => {
     }
 
     try {
-        const instanciaId: number = parseInt(id_instancia as string);
-        res.status(200).json(await service.getAllDimensions(instanciaId))
+        res.status(200).json(await service.getAllDimensions(parseInt(id_instancia as string)))
     } catch(error){
         res.status(500).json({ error: 'Error getting all dimensions'})
     }
@@ -26,8 +24,7 @@ const getOneDimension = async (req: Request, res: Response) => {
     }
 
     try {
-        const dimensionId: number = parseInt(id_dimension as string);
-        res.status(200).json(await service.getOneDimension(dimensionId))
+        res.status(200).json(await service.getOneDimension(parseInt(id_dimension as string)))
     } catch (error) {
         const statusCode = (error as CustomError).status || 500
         res.status(statusCode).json({ error: (error as CustomError).message})
@@ -59,8 +56,7 @@ const deleteDimension = async (req: Request, res: Response) => {
     }
 
     try {
-        const dimensionId: number = parseInt(id_dimension as string);
-        res.status(204).json(await service.deleteDimension(dimensionId))
+        res.status(204).json(await service.deleteDimension(parseInt(id_dimension as string)))
     } catch (error) {
         const statusCode = (error as CustomError).status || 500
         const message = (error as CustomError).status ? (error as CustomError).message : 'Error deleting the dimension'
@@ -77,8 +73,7 @@ const updateDimension = async (req: Request, res: Response) => {
     }
     
     try {
-        const dimensionId: number = parseInt(id_dimension as string);
-        res.status(200).json(await service.updateDimension(dimensionId, dimension))
+        res.status(200).json(await service.updateDimension(parseInt(id_dimension as string), dimension))
     } catch (error) {
         const statusCode = (error as CustomError).status || 500
         const message = (error as CustomError).status ? (error as CustomError).message : 'Error deleting the dimension'

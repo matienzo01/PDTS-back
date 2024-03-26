@@ -43,7 +43,7 @@ const updateQuestion = async(req, res) => {
 
 }
 
-module.exports = {
+export default {
     getAllQuestions,
     getOneQuestion,
     creteQuestion,
