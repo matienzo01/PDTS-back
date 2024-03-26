@@ -1,9 +1,9 @@
 import express from 'express'
 const router = express.Router()
 import dimensionController from '../controllers/dimension'
-import indicatorcontroller from '../controllers/indicator'/*
-import seccionController from '../controllers/sectionController'
-import questionController from '../controllers/questionController'*/
+import indicatorcontroller from '../controllers/indicator'
+import seccionController from '../controllers/section'/*
+import questionController from '../controllers/question'*/
 import authUser from '../middlewares/authUser'
 import checkRol from '../middlewares/checkRol'
 
@@ -20,7 +20,7 @@ router
     .post('/indicadores', authUser, checkRol(['admin general']), indicatorcontroller.createIndicator)
     .delete('/indicadores/:id_indicador', authUser, checkRol(['admin general']), indicatorcontroller.deleteIndicator)
     .put('/indicadores/:id_indicador', authUser, checkRol(['admin general']), indicatorcontroller.updateIndicator)
-/*
+
     .get('/secciones', authUser, checkRol(['admin general']), seccionController.getAllSecciones)
     .get('/secciones/:id_seccion', authUser, checkRol(['admin general']), seccionController.getOneSeccion)
     .post('/secciones', authUser, checkRol(['admin general']), seccionController.createSeccion)
