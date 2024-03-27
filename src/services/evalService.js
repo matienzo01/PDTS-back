@@ -313,6 +313,8 @@ const postEntidad = async(id_proyecto, id_usuario, respuestas) => {
   } 
 
   await postRtas(proyecto, id_usuario, 1, respuestas)
+
+  return await getEntidad(id_proyecto, id_usuario, 'evaluador');
 }
 
 const postProposito = async(id_proyecto, id_usuario, respuestas) => {
@@ -332,6 +334,8 @@ const postProposito = async(id_proyecto, id_usuario, respuestas) => {
   } 
 
   await postRtas(proyecto, id_usuario, 2, respuestas)
+
+  return await getProposito(id_proyecto, id_usuario, 'evaluador');
 }
 
 const finalizarEvaluacion = async(id_proyecto, id_usuario) => {

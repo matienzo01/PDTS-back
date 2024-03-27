@@ -60,8 +60,7 @@ const postEntidad = async(req, res) => {
   validateNumberParameter(res, id_proyecto, id_usuario)
 
   try {
-    await service.postEntidad(id_proyecto, id_usuario, respuestas)
-    res.status(200).json({ message: 'respuestas de la instancia de Entidad guardadas exitosamente'})
+    res.status(200).json(await service.postEntidad(id_proyecto, id_usuario, respuestas))
   } catch(error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
@@ -76,8 +75,7 @@ const postProposito = async(req, res) => {
   validateNumberParameter(res, id_proyecto, id_usuario)
 
   try {
-    await service.postProposito(id_proyecto, id_usuario, respuestas)
-    res.status(200).json({ message: 'respuestas de la instancia de Proposito guardadas exitosamente'})
+    res.status(200).json(await service.postProposito(id_proyecto, id_usuario, respuestas))
   } catch(error) {
     const statusCode = error.status || 500
     res.status(statusCode).json({ error: error.message })
