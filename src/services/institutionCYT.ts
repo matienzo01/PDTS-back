@@ -1,21 +1,20 @@
-const knex = require('../database/knex')
+import knex from '../database/knex'
+import projectService from './project'
+import bcrypt from 'bcrypt'
+import mailer from './mailer'
+import { CustomError } from '../types/CustomError'
 const TABLE_INSTITUCIONES = 'instituciones'
 const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
-const projectService = require('./projectService')
-const bcrypt = require('bcrypt')
-const mailer = require('./mailer')
 
-const getInstIdFromAdmin = async (id_admin) => {
+const getInstIdFromAdmin = async (id_admin: number) => {
   const { id } =  await knex('instituciones_cyt').select('id').where({ id_admin }).first()
   if ( id == undefined) {
-    const _error = new Error('There is no institutions with that admin id')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no institution with that admin id', 404)
   }
   return id
 }
 
-const getOneInstitucionCYT = async (id , trx = null) => {
+const getOneInstitucionCYT = async (id: number , trx: any = null) => {
   const queryBuilder = trx || knex;
 
   const [tipos_inst, inst] = await Promise.all([
@@ -28,12 +27,10 @@ const getOneInstitucionCYT = async (id , trx = null) => {
   ])
 
   if (inst === undefined) {
-    const _error = new Error('There is no institution with that id')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no institution with that id', 404)
   }
 
-  const tipoCorrespondiente = tipos_inst.find(tipo => tipo.id === inst.id_tipo);
+  const tipoCorrespondiente = tipos_inst.find((tipo: any) => tipo.id === inst.id_tipo);
   if (tipoCorrespondiente) {
     inst.tipo = tipoCorrespondiente.tipo;
     delete inst.id_tipo;
@@ -65,7 +62,7 @@ const getTiposInstituciones = async () => {
   return { tipos: tipos }
 }
 
-const createHash = async (password) => {
+const createHash = async (password: string) => {
   return new Promise((resolve, reject) => {
     bcrypt.hash(password, 10, (err, hash) => {
       if (err) {
@@ -77,7 +74,7 @@ const createHash = async (password) => {
   });
 }
 
-const createInstitucionCYT = async (newAdmin, institucion) => {
+const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 
   const exists = await knex(TABLE_INSTITUCIONES).select()
     .where({
@@ -127,7 +124,7 @@ const createInstitucionCYT = async (newAdmin, institucion) => {
   }
 }
 
-const deleteInstitucionCYT = async (id) => {
+const deleteInstitucionCYT = async (id: number) => {
   knex.transaction(async (trx) => {
     const { id_admin } = (await getOneInstitucionCYT(id, trx)).institucion_CYT
     const { proyectos } = await projectService.getAllProjects(id)
@@ -142,7 +139,7 @@ const deleteInstitucionCYT = async (id) => {
   return;
 }
 
-module.exports = {
+export default {
   getOneInstitucionCYT,
   getAllInstitucionesCYT,
   createInstitucionCYT,

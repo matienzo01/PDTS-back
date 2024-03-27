@@ -1,8 +1,12 @@
-const TABLE = 'proyectos'
-const knex = require('../database/knex')
-const mailer = require('./mailer')
+import { Knex } from "knex"
+import { CustomError } from "../types/CustomError"
+import { InstitucionParticipante } from "../types/InstitucionParticipante"
 
-const getAllProjects = async (id_institucion) => {
+const TABLE = 'proyectos'
+import knex from '../database/knex'
+import mailer from './mailer'
+
+const getAllProjects = async (id_institucion: number) => {
   const proyectos = await knex(TABLE).select().where({ id_institucion: id_institucion })
 
   for (let i = 0; i < proyectos.length; i++) {
@@ -12,7 +16,7 @@ const getAllProjects = async (id_institucion) => {
   return { proyectos: proyectos }
 }
 
-const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => {
+const getOneProject = async (id_proyecto: number, id_institucion: number | null = null, trx: any = null) => {
   const queryBuilder = trx || knex;
 
   const project = await queryBuilder(TABLE)
@@ -24,21 +28,17 @@ const getOneProject = async (id_proyecto, id_institucion = null, trx = null) => 
   const participating_insts = await getInstParticipants(id_proyecto, queryBuilder)
 
   if (!project) {
-    const _error = new Error('There is no project with the provided id')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no project with the provided id', 404)
   }
 
   if (id_institucion && project.id_institucion != id_institucion) {
-    const _error = new Error('The project is not linked to the institution or the institution does not exist')
-    _error.status = 403
-    throw _error
+    throw new CustomError('The project is not linked to the institution or the institution does not exist', 403)
   }
 
   return { proyecto: { ...project, participantes: participants, instituciones_participantes: participating_insts } };
 }
 
-const getParticipants = async (id_proyecto, trx = null) => {
+const getParticipants = async (id_proyecto: number, trx: any = null) => {
   const queryBuilder = trx || knex;
   const participantes = await queryBuilder('evaluadores_x_proyectos')
     .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
@@ -48,7 +48,7 @@ const getParticipants = async (id_proyecto, trx = null) => {
   return participantes;
 }
 
-const getInstParticipants = async (id_proyecto, trx = null) => {
+const getInstParticipants = async (id_proyecto: number, trx: any = null) => {
   const queryBuilder = trx || knex;
   const participaciones = await queryBuilder('participacion_instituciones')
     .join('instituciones', 'participacion_instituciones.id_institucion', 'instituciones.id')
@@ -57,42 +57,37 @@ const getInstParticipants = async (id_proyecto, trx = null) => {
   return participaciones
 }
 
-const getProjectsByUser = async (id_usuario) => {
+const getProjectsByUser = async (id_usuario: number) => {
   const proyectos = await knex('evaluadores_x_proyectos').join('proyectos', 'evaluadores_x_proyectos.id_proyecto', 'proyectos.id').select().where({ id_evaluador: id_usuario })
   return { proyectos: proyectos }
 }
 
-const userBelongsToInstitution = async (id_evaluador, id_institucion) => {
+const userBelongsToInstitution = async (id_evaluador: number, id_institucion: number) => {
 
   const inst = await knex('instituciones_cyt').select().where({ id: id_institucion }).first()
   if (inst === undefined) {
-    const _error = new Error('There is no institution with the provided id')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no institution with the provided id', 404)
   }
   return await knex('evaluadores_x_instituciones').select().where({ id_institucion, id_evaluador }).first() === undefined
     ? false
     : true
 }
 
-const assignEvaluador = async (data, id_institucion, trx = null) => {
+const assignEvaluador = async (data: any, id_institucion: number, trx: any = null) => {
   
   await getOneProject(data.id_proyecto, id_institucion, trx)
 
   if (!await userBelongsToInstitution(data.id_evaluador, id_institucion)) {
-    const _error = new Error('The user is not associated with the institution that owns the project')
-    _error.status = 409
-    throw _error
+    throw new CustomError('The user is not associated with the institution that owns the project', 409)
   }
 
   const queryBuilder = trx || knex;
   try {
     await queryBuilder('evaluadores_x_proyectos').insert(data)
   } catch (error) {
+    // @ts-ignore
     if (error.code === 'ER_DUP_ENTRY') {
-      const _error = new Error('The user is already asigned to the project')
-      _error.status = 409
-      throw _error
+      throw new CustomError('The user is already asigned to the project', 409)
     } else {
       throw error
     }
@@ -100,27 +95,23 @@ const assignEvaluador = async (data, id_institucion, trx = null) => {
   return { ...data };
 }
 
-const unassignEvaluador = async (id_evaluador, id_proyecto) => {
+const unassignEvaluador = async (id_evaluador: number, id_proyecto: number) => {
   //habria que ver de no eliminar al evaluador director
   await getOneProject(id_proyecto)
   const evaluador = await knex('evaluadores_x_proyectos').select().where({ id_evaluador, id_proyecto }).first()
   if ( evaluador === undefined ){
-    const _error = new Error('There is no user with the providied id linked to the project')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no user with the providied id linked to the project', 409)
   }
 
   if (evaluador.rol === 'director'){
-    const _error = new Error('You cannot remove a director from his or her own project')
-    _error.status = 409
-    throw _error
+    throw new CustomError('You cannot remove a director from his or her own project', 409)
   }
 
   await knex('evaluadores_x_proyectos').del().where({ id_evaluador, id_proyecto })
   return;
 }
 
-const assignInstitutionRoles = async (id_proyecto, roles, trx) => {
+const assignInstitutionRoles = async (id_proyecto: number, roles: InstitucionParticipante[], trx: any) => {
   roles.forEach(async (element) => {
     // hay que verificar que no haya mas de un ¿demandante?
     const participacion = {
@@ -132,13 +123,13 @@ const assignInstitutionRoles = async (id_proyecto, roles, trx) => {
   })
 }
 
-const createProject = async (id_institucion, proyecto, roles) => {
+const createProject = async (id_institucion: number, proyecto: any, roles: InstitucionParticipante[]) => {
 
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
   proyecto.fecha_carga = fecha_carga
-  proyecto.id_institucion = parseInt(id_institucion)
+  proyecto.id_institucion = id_institucion
   proyecto.id_estado_eval = 1 // 'sin evaluar'. Capaz no tiene mucho sentido este estado pq instantaneamente habria que cambiarlo a
                               // 'En evaluacion por el director'
   const result = await knex.transaction(async (trx) => {
@@ -164,7 +155,7 @@ const createProject = async (id_institucion, proyecto, roles) => {
   return result
 }
 
-const deleteProject = async (id_institucion, id_proyecto, trxx = null) => {
+const deleteProject = async (id_institucion: number, id_proyecto: number, trxx: any = null) => {
   await getOneProject(id_proyecto, id_institucion)
 
   if(trxx) {
@@ -179,7 +170,7 @@ const deleteProject = async (id_institucion, id_proyecto, trxx = null) => {
     // 5) eliminar el proyecto
     await trxx('proyectos').del().where({ id: id_proyecto })
   } else {
-    await knex.transaction(async (trx) => {
+    await knex.transaction(async (trx: any): Promise<any> => {
       // 1) eliminar las respuestas de los evaluadores
       await trx('respuestas_evaluacion').del().where({ id_proyecto })
       await trx('respuestas_encuesta').del().where({ id_proyecto })
@@ -200,16 +191,16 @@ const deleteProject = async (id_institucion, id_proyecto, trxx = null) => {
 
 }
 
-const verifyState = async( id_proyecto, state ) => {
+const verifyState = async( id_proyecto: number, state: string ) => {
   const [ estados, {proyecto}] = await Promise.all([
     knex('estado_eval').select(),
     getOneProject(id_proyecto)
   ])
   
-  return proyecto.id_estado_eval === estados.filter(estado => estado.nombre == state)[0].id
+  return proyecto.id_estado_eval === estados.filter((estado: any) => estado.nombre == state)[0].id
 }
 
-module.exports = {
+export default {
   getAllProjects,
   getOneProject,
   createProject,

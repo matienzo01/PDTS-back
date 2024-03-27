@@ -2,14 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { DecodedToken } from '../types/DecodedToken';
 import jwt from 'jsonwebtoken';
 
-declare global {
-    namespace Express {
-        interface Request {
-            userData?: DecodedToken;
-        }
-    }
-}
-
 const authUser = (req: Request, res: Response, next: NextFunction) => {
     const authorization: string | undefined = req.headers.authorization;
     
@@ -19,11 +11,11 @@ const authUser = (req: Request, res: Response, next: NextFunction) => {
 
     const token = authorization.substring(7);
 
+    if (!process.env.SECRET) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+
     try {
-        if (!process.env.SECRET) {
-            return res.status(500).json({ error: 'Internal server error' });
-        }
-        
         const dt: any = jwt.verify(token, process.env.SECRET)
         const decodedToken: DecodedToken = {
             id: dt.id,
@@ -34,7 +26,7 @@ const authUser = (req: Request, res: Response, next: NextFunction) => {
             nombre: dt.nombre,
             apellido: dt.apellido
         };
-        req.userData = decodedToken; 
+        req.body.userData = decodedToken; 
         next();
     } catch (error) {
         return res.status(401).json({ error: 'Token missing or invalid' });

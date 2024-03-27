@@ -1,36 +1,43 @@
-const knex = require('../database/knex.js')
-const projectService = require('../services/projectService')
-const insttitutionCYTService = require('../services/institutionCYTService.js')
+import knex from '../database/knex'
+import projectService from './project'
+import insttitutionCYTService from './institutionCYT'
+import { CustomError } from '../types/CustomError'
+import { Indicador } from '../types/Indicador'
+import { Dimension } from '../types/Dimension'
+import { RespuestaEval } from '../types/RespuestaEval'
+import { Proyecto } from '../types/Proyecto'
+import { Participante } from '../types/Participante'
 
-const getEvaluationScores = async(id_proyecto) => {
+const getEvaluationScores = async(id_proyecto: number) => {
 
   if (!await projectService.verifyState(id_proyecto, 'Evaluado')){
-    const _error = new Error('The project has not yet finished evaluating. The answers are not yet available')
-    _error.status = 404
-    throw _error
+    throw new CustomError('The project has not yet finished evaluating. The answers are not yet available', 409)
   }
   
-  const [ rtas, { cant_participantes } ] = await Promise.all([
-    knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante','dimensiones.nombre as nombre_dimension')
-      .from('respuestas_evaluacion')
-      .join('indicadores', 'respuestas_evaluacion.id_indicador', 'indicadores.id')
-      .join('dimensiones', 'indicadores.id_dimension', 'dimensiones.id')
-      .where({id_proyecto}),
-    knex('evaluadores_x_proyectos')
-      .count('* as cant_participantes')
-      .where('id_proyecto', id_proyecto).first()
-  ])
+  const rtas = await knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante','dimensiones.nombre as nombre_dimension')
+    .from('respuestas_evaluacion')
+    .join('indicadores', 'respuestas_evaluacion.id_indicador', 'indicadores.id')
+    .join('dimensiones', 'indicadores.id_dimension', 'dimensiones.id')
+    .where({id_proyecto})
 
-  const entidad = {}  
-  const proposito = {}
+  const participantes = (await knex('evaluadores_x_proyectos')
+  .count('* as cantidad')
+  .where('id_proyecto', id_proyecto).first())
+
+  const entidad: any = {}  
+  const proposito: any = {}
   let totDeterminantes = 8
   let totNoDeterminantes = 4
   let totProposito = 48
 
   rtas.forEach( rta => {
     const { id_instancia, nombre_dimension, determinante, calificacion } = rta;
-    const factor = calificacion / cant_participantes;
-  
+    let factor = 0
+
+    if(participantes != undefined){
+      factor = calificacion / (participantes.cantidad as number);
+    }
+    
     if (id_instancia === 1) {
       entidad[nombre_dimension] = entidad[nombre_dimension] || { determinantes: 0, noDeterminantes: 0 };
       determinante ? entidad[nombre_dimension].determinantes += factor : entidad[nombre_dimension].noDeterminantes += factor;
@@ -44,15 +51,13 @@ const getEvaluationScores = async(id_proyecto) => {
 
 // ----------------------------------------------------------------------------------------------------------
 
-const verify_date = async (id_proyecto, id_evaluador) => {
+const verify_date = async (id_proyecto: number, id_evaluador: number ) => {
   const assigned = await knex('evaluadores_x_proyectos').select()
     .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
     .first()
   
   if(!assigned) {
-    const _error = new Error('The user is not linked to the project')
-    _error.status = 403
-    throw _error
+    throw new CustomError('The user is not linked to the project', 403)
   }
 
   return assigned
@@ -63,16 +68,21 @@ const getFecha = () => {
   return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 }
 
-const getAmountQuestions = async(id_instancia) => {
-  return (await knex('indicadores as i')
+const getAmountQuestions = async(id_instancia: number) => {
+  let amount: any =  (await knex('indicadores as i')
   .join('dimensiones as d', 'i.id_dimension', 'd.id')
     .where({id_instancia})
-    .count().first())['count(*)']
+    .count().first())
+  if(amount == undefined){
+    throw new CustomError('There is no instancia with the provided id', 404)
+  }
+  
+  return amount['count(*)']
 }
 
-const getInstancia = async(id_instancia, nombreInstancia, rol, respuestas = null, idsNoRespondieron = []) => {
+const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: string, respuestas: RespuestaEval[] | null = null, idsNoRespondieron: number[] = []) => {
 
-  const dimensiones = {};
+  const dimensiones: { [nombre: string]: Dimension } = {};
   const [indicadores, options] = await Promise.all([
     knex.select(
       'i.id as id_indicador',
@@ -93,27 +103,18 @@ const getInstancia = async(id_instancia, nombreInstancia, rol, respuestas = null
 
   indicadores.forEach(row => {
 
-    const newIndicador = {
+    let newIndicador: Partial<Indicador> = {
       id_indicador: row.id_indicador,
-      indicador: row.pregunta,
+      pregunta: row.pregunta,
       descripcion: row.descripcion,
       determinante: row.determinante,
       fundamentacion: row.fundamentacion
     };
 
     if (respuestas && respuestas.length > 0) {
-      newIndicador.respuestas = respuestas.filter(rta => {
-        return rta.id_indicador === newIndicador.id_indicador;
-      })
-
-      newIndicador.respuestas.forEach(respuesta => {
-        respuesta.option = respuesta.respuesta
-        respuesta.value = respuesta.calificacion
-        delete respuesta.respuesta
-        delete respuesta.calificacion
-        delete respuesta.id_indicador
-      })
-    }
+      newIndicador.respuestas = respuestas.filter(rta => rta.id_indicador === newIndicador.id_indicador);
+      newIndicador.respuestas.forEach(respuesta => delete respuesta.id_indicador);
+  }
 
     if(!dimensiones[row.nombre_dimension]) {
       dimensiones[row.nombre_dimension] = {
@@ -121,14 +122,17 @@ const getInstancia = async(id_instancia, nombreInstancia, rol, respuestas = null
         indicadores: []
       }
     }
-
-    dimensiones[row.nombre_dimension].indicadores.push(newIndicador)
+    
+    if (dimensiones[row.nombre_dimension]?.indicadores) {
+      // @ts-ignore
+      dimensiones[row.nombre_dimension].indicadores.push(newIndicador);
+    }
 
   })
 
 
   if(rol == 'admin') {
-    const respuestasVacias = idsNoRespondieron.map(id => ({
+    const respuestasVacias: RespuestaEval[]  = idsNoRespondieron.map(id => ({
       id_evaluador: id,
       justificacion: null,
       option: null,
@@ -137,9 +141,11 @@ const getInstancia = async(id_instancia, nombreInstancia, rol, respuestas = null
 
     for (const clave in dimensiones) {
       if (Object.prototype.hasOwnProperty.call(dimensiones, clave)) {
-        const indicadores = dimensiones[clave].indicadores;
+        const indicadores = dimensiones[clave].indicadores ?? [];
         for (const ind of indicadores) {
-          ind.respuestas = ind.respuestas ? [...ind.respuestas, ...respuestasVacias] : respuestasVacias;
+          ind.respuestas = ind.respuestas 
+            ? [...ind.respuestas, ...respuestasVacias] 
+            : respuestasVacias;
         }
       }
     }
@@ -155,27 +161,25 @@ const getInstancia = async(id_instancia, nombreInstancia, rol, respuestas = null
   }
 }
 
-const getInstanciaRtas = async(id_instancia, id_proyecto, arrayIdsEvaluadores) => {
+const getInstanciaRtas = async(id_instancia: number, id_proyecto: number, arrayIdsEvaluadores: number[]) => {
 
   return await knex('respuestas_evaluacion as re')
     .join('indicadores as i', 're.id_indicador', 'i.id')
     .join('dimensiones as d', 'i.id_dimension', 'd.id')
-    .select('id_evaluador','id_indicador', 'respuesta', 'calificacion', 'justificacion')
+    .select('id_evaluador','id_indicador', 'respuesta as option', 'calificacion as value', 'justificacion')
     .where({ id_proyecto })
     .whereIn('id_evaluador', arrayIdsEvaluadores)
     .where({id_instancia})
 
 }
 
-const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
+const postRtas = async(proyecto: Proyecto, id_usuario: number, id_instancia: number, raw_respuestas: any[]) => {
 
   if(raw_respuestas.length != await getAmountQuestions(id_instancia)) {
-    const _error = new Error('The amount of answers does not match those expected')
-    _error.status = 400
-    throw _error
+    throw new CustomError('The amount of answers does not match those expected', 400)
   }
 
-  respuestas = raw_respuestas.map(rta => {
+  let respuestas = raw_respuestas.map((rta: any)=> {
     return {
       id_indicador: rta.id_indicador,
       id_evaluador: id_usuario,
@@ -214,41 +218,43 @@ const postRtas = async(proyecto, id_usuario, id_instancia, raw_respuestas) => {
   });
 }
 
-const getIDsNoRespondieron = async(id_proyecto, id_instancia) => {
+const getIDsNoRespondieron = async(id_proyecto: number, id_instancia: number) => {
   if (id_instancia == 1) {
     const idsNoRespondieron = await knex('evaluadores_x_proyectos')
       .select('id_evaluador')
       .where({ id_proyecto, respondio_entidad: 0})
 
-    return idsNoRespondieron.map(objeto => objeto.id_evaluador)
+    const arrayIds: number[] = idsNoRespondieron.map(objeto => objeto.id_evaluador)
+    return arrayIds
   } else if(id_instancia == 2) {
     const idsNoRespondieron = await knex('evaluadores_x_proyectos')
       .select('id_evaluador')
       .where({ id_proyecto})
       .whereNull('fecha_fin_eval')
 
-    return idsNoRespondieron.map(objeto => objeto.id_evaluador)
+    const arrayIds: number[] = idsNoRespondieron.map(objeto => objeto.id_evaluador)
+    return arrayIds
   }
   
 }
 
-const getIDsEvaluadores = async(id_proyecto) => {
+const getIDsEvaluadores = async(id_proyecto: number) => {
   const participantes  = await projectService.getParticipants(id_proyecto)
-  const arrayIds = []
-  participantes.forEach( async(participante) => {
+  const arrayIds: number[] = []
+  participantes.forEach( async(participante: Participante) => {
     arrayIds.push(participante.id)
   })
   return arrayIds
 }
 
-const getEntidad = async(id_proyecto, id_usuario, rol) => {
+const getEntidad = async(id_proyecto: number, id_usuario: number, rol: string) => {
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: 'Entidad'}).first()
 
   if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
     await verifyProject(id_proyecto, true, id_usuario)
 
     const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
-    const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto, id_instancia)
+    const idsNoRespondieron: number[] = (await getIDsNoRespondieron(id_proyecto, id_instancia) as number[])
     return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores), idsNoRespondieron)
   } else {
     await verifyProject(id_proyecto, true)
@@ -263,7 +269,7 @@ const getEntidad = async(id_proyecto, id_usuario, rol) => {
 
 }
 
-const verifyProject = async(id_proyecto, entidad, id_usuario = null) => {
+const verifyProject = async(id_proyecto: number, entidad: boolean, id_usuario: number | null = null) => {
   let proyecto
   if(id_usuario != null) {
     const id  = await insttitutionCYTService.getInstIdFromAdmin(id_usuario)
@@ -273,13 +279,11 @@ const verifyProject = async(id_proyecto, entidad, id_usuario = null) => {
   }
 
   if(!entidad && !proyecto.obligatoriedad_proposito){
-    const _error = new Error('The Proposito instance should not be evaluated in this project')
-    _error.status = 204
-    throw _error
+    throw new CustomError('The proposito instance should not be evaluated in this project', 204)
   }
 }
 
-const getProposito = async(id_proyecto, id_usuario, rol) => {
+const getProposito = async(id_proyecto: number, id_usuario: number, rol: string) => {
   
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: 'Proposito'}).first()
 
@@ -302,39 +306,37 @@ const getProposito = async(id_proyecto, id_usuario, rol) => {
 
 }
 
-const postEntidad = async(id_proyecto, id_usuario, respuestas) => {
+const postEntidad = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
   const { proyecto } = await projectService.getOneProject(id_proyecto)
   const assigned = await verify_date(id_proyecto, id_usuario)
 
   if(assigned.respondio_entidad == 1){
-    const _error = new Error("The user already answered the 'Entidad' instance questions")
-    _error.status = 409
-    throw _error
+    throw new CustomError("The user already answered the 'Entidad' instance questions", 409)
   } 
 
   await postRtas(proyecto, id_usuario, 1, respuestas)
+
+  return await getEntidad(id_proyecto, id_usuario, 'evaluador')
 }
 
-const postProposito = async(id_proyecto, id_usuario, respuestas) => {
+const postProposito = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
   const { proyecto } = await projectService.getOneProject(id_proyecto)
   const assigned = await verify_date(id_proyecto, id_usuario)
 
   if(!assigned.respondio_entidad) {
-    const _error = new Error("The user should answer first the 'Entidad' instance questions")
-    _error.status = 409
-    throw _error
+    throw new CustomError("The user should answer first the 'Entidad' instance questions", 409)
   }
 
   if(assigned.fecha_fin_eval !== null) {
-    const _error = new Error("The user already answered the 'Proposito' instance questions")
-    _error.status = 409
-    throw _error
+    throw new CustomError("The user should answer first the 'Proposito' instance questions", 409)
   } 
 
   await postRtas(proyecto, id_usuario, 2, respuestas)
+
+  return await getProposito(id_proyecto, id_usuario, 'evaluador')
 }
 
-const finalizarEvaluacion = async(id_proyecto, id_usuario) => {
+const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number) => {
 
   const id_inst  = await insttitutionCYTService.getInstIdFromAdmin(id_usuario)
   await projectService.getOneProject(id_proyecto, id_inst)
@@ -362,7 +364,7 @@ const finalizarEvaluacion = async(id_proyecto, id_usuario) => {
   return {msg: 'Evaluacion concluida'}
 }
 
-module.exports = {
+export default {
   getEvaluationScores,
 
   getEntidad,

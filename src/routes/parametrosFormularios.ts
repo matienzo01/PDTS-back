@@ -2,8 +2,8 @@ import express from 'express'
 const router = express.Router()
 import dimensionController from '../controllers/dimension'
 import indicatorcontroller from '../controllers/indicator'
-import seccionController from '../controllers/section'/*
-import questionController from '../controllers/question'*/
+import seccionController from '../controllers/section'
+import questionController from '../controllers/question'
 import authUser from '../middlewares/authUser'
 import checkRol from '../middlewares/checkRol'
 
@@ -26,11 +26,11 @@ router
     .post('/secciones', authUser, checkRol(['admin general']), seccionController.createSeccion)
     .delete('/secciones/:id_seccion', authUser, checkRol(['admin general']), seccionController.deleteSeccion)
     .put('/secciones/:id_seccion', authUser, checkRol(['admin general']), seccionController.updateSeccion)
-/*
+
     .get('/preguntas_encuesta', authUser, checkRol(['admin general']), questionController.getAllQuestions)
     .get('/preguntas_encuesta/:id_pregunta', authUser, checkRol(['admin general']), questionController.getOneQuestion)
     .post('/preguntas_encuesta', authUser, checkRol(['admin general']), questionController.creteQuestion)
     .delete('/preguntas_encuesta/:id_pregunta', authUser, checkRol(['admin general']), questionController.deleteQuestion)
     .put('/preguntas_encuesta/:id_pregunta', authUser, checkRol(['admin general']), questionController.updateQuestion)
-*/
+
 export default router;

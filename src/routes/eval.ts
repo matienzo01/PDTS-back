@@ -1,8 +1,8 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
-const controller = require('../controllers/evalController.js')
-const authUser = require('../middlewares/authUser.js')
-const checkRol = require('../middlewares/checkRol.js')
+import controller from '../controllers/eval'
+import authUser from '../middlewares/authUser'
+import checkRol from '../middlewares/checkRol'
 
 router
     // nuevos
@@ -14,4 +14,4 @@ router
     .get('/:id_proyecto/respuestas/pdf', authUser, checkRol(['admin']), controller.generatePDF)
     .put('/:id_proyecto/finalizar', authUser, checkRol(['admin']), controller.finalizarEvaluacion)
 
-module.exports = router
+export default router

@@ -26,9 +26,7 @@ const getOneIndicator = async(id: number , trx: any = null) => {
     const queryBuilder = trx || knex
     const indicator = await queryBuilder(TABLE).select().where({id}).first();
     if(indicator   === undefined) {
-        const _error: CustomError = new Error('There is no indicator with the provided id ')
-        _error.status = 404
-        throw _error
+        throw new CustomError('There is no indicator with the provided id ', 404)
     }
     return {indicador: indicator}
 }
@@ -57,9 +55,7 @@ const createIndicator = async(indicator: Indicador) => {
         })
     } catch (error) {
         if ((error as any).code === 'ER_NO_REFERENCED_ROW_2') {
-            const _error: CustomError= new Error('There is no dimension with the provided id')
-            _error.status = 404
-            throw _error
+            throw new CustomError('There is no dimension with the provided id', 404)
         }
         throw error;
     }
@@ -74,9 +70,7 @@ const deleteIndicator = async(id: number) => {
         .update({ fecha_elim: `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`})
     */
     if (!await knex(TABLE).del().where({id})){
-        const _error: CustomError = new Error('There is no indicator with the provided id ')
-        _error.status = 404
-        throw _error
+        throw new CustomError('There is no indicator with the provided id ', 404)
     }
     return ;
 }

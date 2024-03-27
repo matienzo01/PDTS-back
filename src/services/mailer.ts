@@ -1,7 +1,10 @@
-const { send } = require('express/lib/response');
 const nodemailer = require('nodemailer')
 const enlace = 'http://localhost:3001/login'
-const knex = require('../database/knex')
+import knex from '../database/knex';
+import { CustomError } from '../types/CustomError';
+import { Evaluador } from '../types/Evaluador';
+import { InstitucionCyT } from '../types/InstitucionCyT';
+import { Proyecto } from '../types/Proyecto';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -11,20 +14,18 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-const checkEmail = async(email, trx = null) => {
+const checkEmail = async(email: string, trx: any = null) => {
     const querybuilder = trx || knex
     const tables = ['evaluadores', 'admins_cyt', 'admin']
     for (let i = 0; i < 3; i++ ){
       const user = await querybuilder(tables[i]).select().where({email})
       if( user.length > 0){
-        const _error = new Error('The email entered is already registered in the system')
-        _error.status = 409
-        throw _error
+        throw new CustomError('The email entered is already registered in the system', 409)
       }
     }
 }
 
-const sendNewUser = async(user, oldpass) => {
+const sendNewUser = async(user: Evaluador, oldpass: string) => {
     const subject = '¡Bienvenido/a a SEva-PDTS! Tu cuenta ha sido creada con éxito.'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
@@ -42,18 +43,18 @@ Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-const sendNewEval = async(user, proyecto) => {
+const sendNewEval = async(user: Evaluador, titulo: string) => {
     const subject = 'Evaluación de proyectos'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido seleccionado para llevar adelante la evaluacion del proyecto ${proyecto.nombre}.
+Ha sido seleccionado para llevar adelante la evaluacion del proyecto ${titulo}.
 
 
 Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-const linkUser = async (user, inst) => {
+const linkUser = async (user: Evaluador, inst: InstitucionCyT) => {
     const subject = 'Vinculación a Insitutción de Ciencia y Tecnología'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
@@ -64,18 +65,17 @@ Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-const notifyReviewer = async(titulo, user) => {
+const notifyReviewer = async(titulo: string, user: Evaluador) => {
     const subject = 'Asignacion a la evaluacion de un proyecto'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
 Ha sido escogido para realizar la evaluacion del proyecto ${titulo}.
 
-
 Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-async function sendMail(to, subject, text) {
+async function sendMail(to: string, subject: string, text: string) {
     let mailOptions = {
         from: process.env.EMAIL,
         to: to,
@@ -92,7 +92,7 @@ async function sendMail(to, subject, text) {
 }
 
 
-module.exports = {
+export default{
     sendMail,
     sendNewUser,
     sendNewEval,

@@ -1,5 +1,8 @@
+import { Indicador } from "./Indicador";
+
 export interface Dimension {
-    id: number;
-    nombre: string;
-    id_instancia: number;
+    id_dimension: number;
+    nombre?: string;
+    id_instancia?: number;
+    indicadores?: Partial<Indicador>[]
 }

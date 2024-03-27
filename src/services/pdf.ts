@@ -1,11 +1,11 @@
 const PDFDocument = require('pdfkit');
 const htmlToPdf = require('html-pdf');
-const projectService = require('./projectService')
-const evalService = require('./evalService');
-const insttitutionCYTService = require('./institutionCYTService')
-const knex = require('knex');
+import projectService from './project';
+import evalService from './eval';
+import insttitutionCYTService from './institutionCYT';
+import knex from 'knex';
 
-const generatePDF = async(id_proyecto, id_admin) => {
+const generatePDF = async(id_proyecto: number, id_admin: number) => {
     return new Promise(async(resolve, reject) => {
       try {
         const id = await insttitutionCYTService.getInstIdFromAdmin(id_admin)
@@ -14,7 +14,7 @@ const generatePDF = async(id_proyecto, id_admin) => {
         const x = 72
 
         const doc = new PDFDocument();
-        const buffers = [];
+        const buffers: any = [];
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', () => {
           const pdfBuffer = Buffer.concat(buffers);
@@ -100,7 +100,7 @@ const generatePDF = async(id_proyecto, id_admin) => {
     });
   };
 
-module.exports = {
+export default {
     generatePDF
 };
 
