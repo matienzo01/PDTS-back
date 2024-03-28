@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const controller = require('../controllers/enuestaController.js')
+const controller = require('../controllers/encuestaController.js')
 const authUser = require('../middlewares/authUser.js')
 const checkRol = require('../middlewares/checkRol.js')
 

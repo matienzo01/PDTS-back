@@ -238,7 +238,6 @@ const postEncuesta = async(id_proyecto, id_evaluador, rawRespuestas) =>{
             .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
             .update({ fecha_fin_op: getFecha() })
 
-        return { response: 'respuestas de la encuesta del sistema guardadas' }
     })
 
 }

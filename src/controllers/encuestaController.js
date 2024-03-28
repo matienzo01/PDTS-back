@@ -31,7 +31,8 @@ const postEncuesta = async(req, res) =>{
     validateNumberParameter(res, id_proyecto, id_usuario)
 
     try {
-        res.status(200).json(await service.postEncuesta(id_proyecto, id_usuario, respuestas))
+        await service.postEncuesta(id_proyecto, id_usuario, respuestas)
+        res.status(200).json(await service.getEncuesta(id_proyecto, id_usuario, 'evaluador'))
     } catch(error) {
         const statusCode = error.status || 500
         res.status(statusCode).json({ message: error.message })
