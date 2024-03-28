@@ -117,7 +117,7 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
         }
     });
 
-    return { name: 'Encuesta de opinion', sections: transformedResult }
+    return { name: 'Encuesta del Sistema', sections: transformedResult }
 }
 
 const getEncuestaRtas = async(id_proyecto, arrayIdsEvaluadores) => {
