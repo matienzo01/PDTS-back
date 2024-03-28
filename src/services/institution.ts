@@ -1,26 +1,26 @@
-const knex = require('../database/knex.js')
+import knex from '../database/knex';
+import { CustomError } from '../types/CustomError';
+import { Institucion } from '../types/Institucion';
 const TABLE_INSTITUCIONES = 'instituciones'
 
 const getInstituciones = async() => {
     return {instituciones: await knex.select().from(TABLE_INSTITUCIONES)};
   }   
   
-const getOneInstitucion = async(id) => {
+const getOneInstitucion = async(id: number) => {
   const inst = await knex.select().where({id}).from(TABLE_INSTITUCIONES).first()
   if(inst === undefined) {
-      const _error = new Error('There is no institution with the provided id ')
-      _error.status = 404
-      throw _error
+    throw new CustomError('There is no institution with the provided id', 404)
   }
   return {institucion: inst}
 }  
   
-const createInstitucion = async(institution) => {
+const createInstitucion = async(institution: Institucion) => {
   const insertId = parseInt(await knex(TABLE_INSTITUCIONES).insert(institution))
   return await getOneInstitucion(insertId)  
 }  
 
-module.exports = {
+export default {
     getInstituciones,
     getOneInstitucion,
     createInstitucion

@@ -1,12 +1,12 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
-const controller = require('../controllers/institutionController')
-const authUser = require('../middlewares/authUser.js')
-const checkRol = require('../middlewares/checkRol.js')
+import controller from '../controllers/institution'
+import authUser from '../middlewares/authUser'
+import checkRol from '../middlewares/checkRol'
 
 router
   .get('/', authUser, checkRol(['admin', 'admin general']), controller.getInstituciones)
   .get('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.getOneInstitucion)
   .post('/', authUser, checkRol(['admin', 'admin general']), controller.createInstitucion)
 
-module.exports = router
+export default router

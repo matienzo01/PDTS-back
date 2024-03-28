@@ -22,4 +22,5 @@ export interface Proyecto {
     obligatoriedad_proposito: number;
     participantes: Participante[];
     instituciones_participantes: InstitucionParticipante[];
+    id_modelo_encuesta: number
 }

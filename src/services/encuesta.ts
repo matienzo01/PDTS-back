@@ -1,28 +1,35 @@
-const knex = require('../database/knex.js')
-const projectService = require('../services/projectService')
+import knex from '../database/knex';
+import projectService from '../services/project';
+import { CustomError } from '../types/CustomError';
+import { Participante } from '../types/Participante';
+import { Proyecto } from '../types/Proyecto';
+import { RespuestaEncuesta } from '../types/RespuestaEncuesta';
 
-const type_and_options = (item, tipos_preguntas, opciones, opciones_x_preguntas) => {
-    const tipo_preg = tipos_preguntas[item.id_tipo_pregunta - 1].tipo
-    let opciones_item = []
-    if (tipo_preg === 'opcion multiple') {
-        const ids_opciones = opciones_x_preguntas
-            .filter(elemento => elemento.id_preguntas_seccion === item.id_pregunta)
-            .map(elemento => elemento.id_opcion)
-        
-        opciones_item = opciones.filter(item => ids_opciones.includes(item.id));
-    }
-    return { tipo_preg, opciones_item }
+const type_and_options = (
+    item: any, 
+    tipos_preguntas: {id: number; tipo: string}[], 
+    opciones: {id: number; valor: string}[], 
+    opciones_x_preguntas: {id_opcion: number; id_preguntas_seccion: number}[]) => 
+    {
+        const tipo_preg = tipos_preguntas[item.id_tipo_pregunta - 1].tipo
+        let opciones_item: {id: number; valor: string}[] = []
+        if (tipo_preg === 'opcion multiple') {
+            const ids_opciones = opciones_x_preguntas
+                .filter(elemento => elemento.id_preguntas_seccion === item.id_pregunta)
+                .map(elemento => elemento.id_opcion)
+            
+            opciones_item = opciones.filter(item => ids_opciones.includes(item.id));
+        }
+        return { tipo_preg, opciones_item }
 }
 
-const verify_date = async (id_proyecto, id_evaluador) => {
+const verify_date = async (id_proyecto: number, id_evaluador: number) => {
     const assigned = await knex('evaluadores_x_proyectos').select()
         .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
         .first()
     
     if(!assigned) {
-        const _error = new Error('The user is not linked to the project')
-        _error.status = 403
-        throw _error
+        throw new CustomError('The user is not linked to the project', 403)
     }
   
     return assigned
@@ -33,7 +40,7 @@ const getFecha = () => {
     return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 }
 
-const generateEncuesta = async(proyecto, respuestas = null) => {
+const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: RespuestaEncuesta[] | null = null, idsNoRespondieron: number[] | null = null) => {
     const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg, modelo] = await Promise.all([
         knex('tipo_preguntas').select(),
         knex('opciones').select(),
@@ -51,13 +58,13 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
         knex('modelos_x_secciones').select('id_seccion').where({ id_modelo: proyecto.id_modelo_encuesta})
     ]);
 
-    const transformedResult = [];
+    const transformedResult: any = [];
 
     all_preguntas.forEach(item => {
         if (item.id_seccion) {
             const pertenece = modelo.some(seccion => seccion.id_seccion === item.id_seccion);
             if (pertenece) {
-                let sectionIndex = transformedResult.findIndex(section => section.sectionId === item.id_seccion);
+                let sectionIndex = transformedResult.findIndex((section: any) => section.sectionId === item.id_seccion);
                 if (sectionIndex === -1) {
                     sectionIndex = transformedResult.push({
                         name: item.nombre_seccion.toLowerCase(),
@@ -68,7 +75,7 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
             
                 const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas);
 
-                const question = {
+                const question: any = {
                     questionId: item.id_pregunta,
                     label: item.enunciado_pregunta,
                     type: tipo_preg,
@@ -77,11 +84,9 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
                 }
 
                 if(respuestas) {
-                    question.respuestas = respuestas.filter(rta => {
-                        return rta.id_pregunta === question.questionId;
-                    })
-                    delete question.respuestas.id_pregunta
-                    delete question.respuestas.id_seccion
+                    question.respuestas = respuestas
+                    .filter(rta => { return rta.id_pregunta === question.questionId;})
+                    .map(({ id_evaluador, respuesta, optionId }) => ({ id_evaluador, respuesta, optionId }));
                 }
 
                 transformedResult[sectionIndex].questions.push(question);
@@ -92,7 +97,7 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
             if (id_padre !== undefined) {
                 const { tipo_preg, opciones_item } = type_and_options(item, tipos_preguntas, opciones, opciones_x_preguntas);
                 
-                const subQuestion = {
+                const subQuestion: any = {
                     questionId: item.id_pregunta,
                     label: item.enunciado_pregunta,
                     type: tipo_preg,
@@ -107,8 +112,8 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
                     delete subQuestion.respuestas.id_seccion
                 }
       
-                transformedResult.forEach(section => {
-                    const question = section.questions.find(q => q.questionId === id_padre);
+                transformedResult.forEach((section: any) => {
+                    const question = section.questions.find((q: any) => q.questionId === id_padre);
                     if (question) {
                         question.subQuestions.push(subQuestion);
                     }
@@ -117,10 +122,28 @@ const generateEncuesta = async(proyecto, respuestas = null) => {
         }
     });
 
-    return { name: 'Encuesta de opinion', sections: transformedResult }
+    
+    if(rol == 'admin' && idsNoRespondieron) {
+        const respuestasVacias: RespuestaEncuesta[]  = idsNoRespondieron.map(id => ({
+          id_evaluador: id,
+          respuesta: null,
+          optionId: null
+        }));
+        
+        transformedResult.forEach((result: any) => {
+            result.questions.forEach((question: any) => {
+                question.respuestas = question.respuestas ? [...question.respuestas, ...respuestasVacias] : respuestasVacias;
+                question.subQuestions.forEach((subQuestion: any) => {
+                    subQuestion.respuestas = subQuestion.respuestas ? [...subQuestion.respuestas, ...respuestasVacias] : respuestasVacias;
+                });
+            });
+        });
+      }
+
+    return { name: 'Encuesta del Sistema', sections: transformedResult }
 }
 
-const getEncuestaRtas = async(id_proyecto, arrayIdsEvaluadores) => {
+const getEncuestaRtas = async(id_proyecto: number, arrayIdsEvaluadores: number[]) => {
 
     return await knex('respuestas_encuesta as re')
         .join('preguntas_seccion as p', 're.id_pregunta', 'p.id')
@@ -131,7 +154,7 @@ const getEncuestaRtas = async(id_proyecto, arrayIdsEvaluadores) => {
 
 }
 
-const getIDsNoRespondieron = async(id_proyecto) => {
+const getIDsNoRespondieron = async(id_proyecto: number) => {
     const idsNoRespondieron = await knex('evaluadores_x_proyectos')
         .select('id_evaluador')
         .where({ id_proyecto})
@@ -141,63 +164,55 @@ const getIDsNoRespondieron = async(id_proyecto) => {
     
   }
   
-  const getIDsEvaluadores = async(id_proyecto) => {
-    const participantes  = await projectService.getParticipants(id_proyecto)
-    const arrayIds = []
+  const getIDsEvaluadores = async(id_proyecto: number) => {
+    const participantes: Participante[]  = await projectService.getParticipants(id_proyecto)
+    const arrayIds: number[] = []
     participantes.forEach( async(participante) => {
       arrayIds.push(participante.id)
     })
     return arrayIds
   }
 
-const getEncuesta = async(id_proyecto, id_usuario, rol) => {
+const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) => {
     const { proyecto } = await projectService.getOneProject(id_proyecto)
-    const assigned = await verify_date(id_proyecto, id_usuario)
+    const assigned: Participante = await verify_date(id_proyecto, id_usuario)
   
     if(!proyecto.obligatoriedad_opinion){
         // el mensaje este no va a aparecer, pero lo pono igual
-        const _error = new Error('The survey is not applicable for this project')
-        _error.status = 204
-        throw _error
+        throw new CustomError('The survey is not applicable for this project', 204)
     }
 
     if(rol === 'admin'){
-        const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
-        const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto)
-        return await generateEncuesta(proyecto, await getEncuestaRtas(id_proyecto, idsEvaluadores), idsNoRespondieron)
+        const idsEvaluadores: number[] = await getIDsEvaluadores(id_proyecto)
+        const idsNoRespondieron: number[] = await getIDsNoRespondieron(id_proyecto)
+        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, idsEvaluadores), idsNoRespondieron)
     } else if (assigned.fecha_fin_op !== null) {
-        return await generateEncuesta(proyecto, await getEncuestaRtas(id_proyecto, [id_usuario]))
+        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, [id_usuario]))
     } else {
-        return await generateEncuesta(proyecto)
+        return await generateEncuesta(proyecto, rol)
     }
     
 }
 
-const postEncuesta = async(id_proyecto, id_evaluador, rawRespuestas) =>{
+const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespuestas: {id_indicador: number; answer: string}[]) =>{
     const { proyecto} = await projectService.getOneProject(id_proyecto)
 
     if(!proyecto.obligatoriedad_opinion){
         // el mensaje este no va a aparecer, pero lo pono igual
-        const _error = new Error('The survey is not applicable for this project')
-        _error.status = 204
-        throw _error
+        throw new CustomError('The survey is not applicable for this project', 204)
     }
 
     const assigned = await verify_date(id_proyecto, id_evaluador)
 
     if(assigned.fecha_fin_eval === null){
-        const _error = new Error('You have to complete the project evaluation first')
-        _error.status = 409
-        throw _error
+        throw new CustomError('You have to complete the project evaluation first', 409)
     }
 
     if(assigned.fecha_fin_op !== null){
-        const _error = new Error('You have already finished the project survey')
-        _error.status = 409
-        throw _error
+        throw new CustomError('You have already finished the project survey', 409)
     }
         
-    return await knex.transaction(async (trx) => {
+    await knex.transaction(async (trx) => {
         
         /* 
         const preguntas = await trx('preguntas_seccion').select()
@@ -219,9 +234,7 @@ const postEncuesta = async(id_proyecto, id_evaluador, rawRespuestas) =>{
 
             if(idsOpciones.includes(rta.id_indicador)){
                 if(!valores.includes(rta.answer)) {
-                    const _error = new Error(`The answer '${rta.answer}' its not valid option for the question ${rta.id_indicador}`)
-                    _error.status = 400
-                    throw _error
+                    throw new CustomError(`The answer '${rta.answer}' its not valid option for the question ${rta.id_indicador}`, 400)
                 }
             }
 
@@ -238,13 +251,12 @@ const postEncuesta = async(id_proyecto, id_evaluador, rawRespuestas) =>{
             .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
             .update({ fecha_fin_op: getFecha() })
 
-        return { response: 'respuestas de la encuesta del sistema guardadas' }
     })
 
 }
 
 
-module.exports = {
+export default {
     getEncuesta,
     postEncuesta
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import service from '../services/dimension'
 import { CustomError } from '../types/CustomError';
+import service from '../services/dimension'
 
 const getAllDimensions = async (req: Request, res: Response) => {
     const { id_instancia } = req.query

@@ -11,7 +11,7 @@ INSERT INTO modelos_encuesta(nombre) VALUES
     ('Modelo de encuesta 1');
 
 INSERT INTO secciones(nombre) VALUES
-	('Sistema de evaluacion'),				-- id 1
+	('Sistema de evaluación'),				-- id 1
     ('Instancias e indicadores'),			-- id 2
     ('Evaluadores'),						-- id 3
     ('Software');							-- id 4
@@ -51,7 +51,7 @@ INSERT INTO instancias (nombre) VALUES ('Entidad'), ('Proposito');
 -- Dimensiones e indicadores de la instancia de Entidad ///////////////////////////////////////////////////////////////////
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-INSERT into dimensiones (nombre, id_instancia) VALUES ('Avance congnitivo',1);
+INSERT into dimensiones (nombre, id_instancia) VALUES ('Avance cognitivo',1);
 INSERT into indicadores(pregunta, id_dimension, determinante, descripcion, fundamentacion)
 	VALUES 
     	('¿Hubo producción de conocimiento en el desarrollo del proyecto?', 

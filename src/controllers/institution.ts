@@ -1,30 +1,32 @@
-const service = require('../services/institutionService.js')
+import service from '../services/institution'
+import { Request, Response } from 'express';
+import { CustomError } from '../types/CustomError';
 
-const getInstituciones = async (req, res) => {
+const getInstituciones = async (req: Request, res: Response) => {
   try {
     res.status(200).json(await service.getInstituciones())
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-const getOneInstitucion = async (req, res) => {
+const getOneInstitucion = async(req: Request, res: Response) => {
   const { params: { inst_id } } = req
 
-  if (isNaN(inst_id)) {
+  if (isNaN(parseInt(inst_id))) {
     return res.status(400).json({ error: "Parameter ':inst_id' should be a number" })
   }
 
   try {
-    res.status(200).json(await service.getOneInstitucion(inst_id))
+    res.status(200).json(await service.getOneInstitucion(parseInt(inst_id)))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-const createInstitucion = async (req, res) => {
+const createInstitucion = async(req: Request, res: Response) => {
 
   if(!req.body.hasOwnProperty('institucion')){
     return res.status(400).json({ error: "Missing institution" })
@@ -47,12 +49,12 @@ const createInstitucion = async (req, res) => {
   try {
     res.status(200).json(await service.createInstitucion(institucion))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-module.exports = {
+export default {
   getInstituciones,
   getOneInstitucion,
   createInstitucion

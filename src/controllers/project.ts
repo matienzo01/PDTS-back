@@ -1,52 +1,55 @@
-const service = require('../services/projectService')
-const institutionCytService = require('../services/institutionCYTService')
+import service from '../services/project';
+import institutionCytService from '../services/institutionCYT';
+import { Request, Response } from 'express';
+import { CustomError } from '../types/CustomError.js';
 
 // va a haber que modificarlo para que:
 //- Sos admin general -> te devolvemos todos los proyectos
 //- Sos admin CyT -> los de tu institucion
 //- Sos eval -> a los que estás asignado
-const getAllProjects = async (req, res) => {
+const getAllProjects = async (req: Request, res: Response) => {
   const { params: { id_institucion } } = req
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
   }
 
   try {
-    res.status(200).json(await service.getAllProjects(id_institucion))
+    res.status(200).json(await service.getAllProjects(parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-const getOneProject = async (req, res) => {
+const getOneProject = async (req: Request, res: Response) => {
   const { params: { id_institucion, id_proyecto } } = req
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
   }
 
-  if (isNaN(id_proyecto)) {
+  if (isNaN(parseInt(id_proyecto))) {
     res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
     return ;
   }
 
   try {
-    res.status(200).json(await service.getOneProject(id_proyecto, id_institucion))
-  } catch (_error) {
-    const statusCode = _error.status || 500
-    res.status(statusCode).json({ error: _error.message })
+    res.status(200).json(await service.getOneProject(parseInt(id_proyecto), parseInt(id_institucion)))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-const createProject = async (req, res) => {
+const createProject = async (req: Request, res: Response) => {
   const { params: { id_institucion } } = req
-  const { proyecto, id_usuario: id_admin } = req.body
+  const { proyecto } = req.body
+  const { id: id_admin } = req.body.userData
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
   }
@@ -83,52 +86,53 @@ const createProject = async (req, res) => {
   try {
     const roles = proyecto.roles
     delete proyecto.roles
-    res.status(200).json(await service.createProject(id_institucion, proyecto, roles, id_admin))
+    res.status(200).json(await service.createProject(parseInt(id_institucion), proyecto, roles))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
   return;
 }
 
-const deleteProject = async (req, res) => {
+const deleteProject = async (req: Request, res: Response) => {
   const { params: { id_institucion, id_proyecto } } = req
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
   }
 
-  if (isNaN(id_proyecto)) {
+  if (isNaN(parseInt(id_proyecto))) {
     res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
     return ;
   }
 
   try {
-    res.status(204).json(await service.deleteProject(id_institucion, id_proyecto))
+    res.status(204).json(await service.deleteProject(parseInt(id_institucion), parseInt(id_proyecto)))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
   return;
 
 }
 
-const assignEvaluador = async (req, res) => {
+const assignEvaluador = async (req: Request, res: Response) => {
   const { params: { id_institucion, id_proyecto } } = req
-  const { id_evaluador, id_usuario: id_admin} = req.body
+  const { id_evaluador} = req.body
+  const { id: id_admin } = req.body.userData
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
   }
 
-  if (isNaN(id_proyecto)) {
+  if (isNaN(parseInt(id_proyecto))) {
     res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
     return ;
   }
 
-  if (isNaN(id_evaluador)) {
+  if (isNaN(parseInt(id_evaluador))) {
     res.status(400).json({ error: "Parameter ':id_evaluador' should be a number" })
     return ;
   }
@@ -146,49 +150,49 @@ const assignEvaluador = async (req, res) => {
   }
 
   try {
-    res.status(201).json(await service.assignEvaluador(data, id_institucion))
+    return res.status(201).json(await service.assignEvaluador(data, parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    return res.status(statusCode).json({ error: (error as CustomError).message })
   }
 
 }
 
-const getParticipants = async (req, res) => {
+const getParticipants = async (req: Request, res: Response) => {
   const { params: { id_institucion, id_proyecto } } = req
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
   }
 
-  if (isNaN(id_proyecto)) {
+  if (isNaN(parseInt(id_proyecto))) {
     return res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
   }
 
   try {
-    await institutionCytService.getOneInstitucionCYT(id_institucion)
-    res.status(200).json({ participantes: await service.getParticipants(id_proyecto) })
+    await institutionCytService.getOneInstitucionCYT(parseInt(id_institucion))
+    res.status(200).json({ participantes: await service.getParticipants(parseInt(id_proyecto)) })
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-const unassignEvaluador = async (req, res) => {
+const unassignEvaluador = async (req: Request, res: Response) => {
   const { params: { id_institucion, id_proyecto, id_evaluador } } = req
-  const { id_usuario: id_admin } = req.body
+  const { id: id_admin } = req.body.userData
 
-  if (isNaN(id_institucion)) {
+  if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
   }
 
-  if (isNaN(id_proyecto)) {
+  if (isNaN(parseInt(id_proyecto))) {
     res.status(400).json({ error: "Parameter ':id_proyecto' should be a number" })
     return ;
   }
 
-  if (isNaN(id_evaluador)) {
+  if (isNaN(parseInt(id_evaluador))) {
     res.status(400).json({ error: "Parameter ':id_evaluador' should be a number" })
     return ;
   }
@@ -198,30 +202,29 @@ const unassignEvaluador = async (req, res) => {
   }
 
   try {
-    res.status(204).json(await service.unassignEvaluador(id_evaluador, id_proyecto))
+    res.status(204).json(await service.unassignEvaluador(parseInt(id_evaluador), parseInt(id_proyecto)))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-const getProjectsByUser = async (req, res) => {
+const getProjectsByUser = async (req: Request, res: Response) => {
   const { params: { id_usuario } } = req
 
-  if (isNaN(id_usuario)) {
+  if (isNaN(parseInt(id_usuario))) {
     return res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
-    return ;
   }
 
   try {
-    res.status(200).json(await service.getProjectsByUser(id_usuario))
+    res.status(200).json(await service.getProjectsByUser(parseInt(id_usuario)))
   } catch (error) {
-    const statusCode = error.status || 500
-    res.status(statusCode).json({ error: error.message })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 
-module.exports = {
+export default {
   getAllProjects,
   getOneProject,
   createProject,

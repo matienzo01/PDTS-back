@@ -1,21 +1,23 @@
-const knex = require('../database/knex')
-const bcrypt = require('bcrypt')
-const mailer = require('./mailer')
+import { Evaluador } from "../types/Evaluador"
+import { CustomError } from "../types/CustomError"
+import knex from '../database/knex'
+import bcrypt from 'bcrypt'
+import mailer from './mailer'
 const TABLE_EVALUADORES = 'evaluadores'
-const institutuionService = require('./institutionCYTService')
+import institutuionService from './institutionCYT'
 
 const getAllUsers = async () => {
   const users = await knex(TABLE_EVALUADORES).select()
   const participaEn = (await knex.raw('CALL obtener_instituciones_de_usuario'))[0][0]
 
-  const institucionesPorIdUsuario = participaEn.reduce((obj, inst) => {
+  const institucionesPorIdUsuario = participaEn.reduce((obj: any, inst: any) => {
     const id = inst.id;
     const participantes = JSON.parse(inst.participa_en); // Convertimos la cadena '[1]' a un array [1]
     obj[id] = participantes;
     return obj;
   }, {});
 
-  const usuarios = users.map(user => {
+  const usuarios = users.map((user: any) => {
       const { password, ...rest } = user
       rest.participaEn = institucionesPorIdUsuario[user.id] ? institucionesPorIdUsuario[user.id] : []
       return rest
@@ -25,11 +27,9 @@ const getAllUsers = async () => {
   return { usuarios: usuarios }
 }
 
-const getAllInstitutionUsers = async (id_institucion) => {
+const getAllInstitutionUsers = async (id_institucion: number) => {
   if (await knex('instituciones_cyt').select().where({ id: id_institucion }).first() === undefined) {
-    const _error = new Error('There is no institution with the provided id')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no institution with the provided id', 404)
   }
 
   const ids = await knex('evaluadores_x_instituciones')
@@ -47,22 +47,20 @@ const getAllInstitutionUsers = async (id_institucion) => {
   return { users: users }
 }
 
-const getOneUser = async (id, trx = null) => {
+const getOneUser = async (id: number, trx: any = null) => {
   const queryBuilder = trx || knex
   const user = await queryBuilder(TABLE_EVALUADORES).select().where({ id }).first()
 
   if (!user) {
-    const _error = new Error('There is no user with the provided id')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no user with the provided id', 404)
   }
   const { password, ...returnedData } = user
   return { usuario: returnedData }
 }
 
-const createHash = async (password) => {
+const createHash = async (password: string) => {
   return new Promise((resolve, reject) => {
-    bcrypt.hash(password, 10, (err, hash) => {
+    bcrypt.hash(password, 10, (err: Error | undefined, hash: string) => {
       if (err) {
         reject(err);
       } else {
@@ -72,16 +70,14 @@ const createHash = async (password) => {
   });
 }
 
-const createUser = async (newUser, institutionId) => {
+const createUser = async (newUser: any, institutionId: number) => {
   await institutuionService.getOneInstitucionCYT(institutionId)
 
   try {
     await getUserByDni(newUser.dni) // debe dar un 404 para asegurarnos de que no exista previamente el usuario
-    const _error = new Error('There is already a user with that DNI')
-    _error.status = 409
-    throw _error
+    throw new CustomError('There is already a user with that DNI', 409)
   } catch (error) {
-    if (error.status !== 404) {
+    if ((error as CustomError).status !== 404) {
       throw error
     }
   }
@@ -99,19 +95,17 @@ const createUser = async (newUser, institutionId) => {
 
 }
 
-const getUserByDni = async (dni) => {
+const getUserByDni = async (dni: number) => {
   const user = await knex(TABLE_EVALUADORES).select().where({ dni }).first()
 
   if (!user) {
-    const _error = new Error('There is no user with the provided dni')
-    _error.status = 404
-    throw _error
+    throw new CustomError('There is no user with the provided dni', 404)
   }
   delete user.password
   return user
 }
 
-const linkUserToInstitution = async (userDni, institutionId, userId = null, trx = null) => {
+const linkUserToInstitution = async (userDni: number, institutionId: number, userId: number | null = null, trx: any = null) => {
   const queryBuilder = trx || knex
   let evaluatorId = userId;
   let user
@@ -129,10 +123,9 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
       //mailer.linkUser(user)
     }
   } catch (error) {
+    // @ts-ignore
     if (error.code === 'ER_DUP_ENTRY') {
-      const _error = new Error('The user is already linked to the institution')
-      _error.status = 409
-      throw _error
+      throw new CustomError('The user is already linked to the institution', 409)
     } else {
       throw error
     }
@@ -142,12 +135,12 @@ const linkUserToInstitution = async (userDni, institutionId, userId = null, trx 
     return { usuario: user }
 }
 
-const updateUser = async (id, user) => {
+const updateUser = async (id: number, user: Partial<Evaluador>) => {
   await knex(TABLE_EVALUADORES).where({ id: id }).update(user)
   return await getOneUser(id)
 }
 
-module.exports = {
+export default {
   getAllUsers,
   getAllInstitutionUsers,
   getUserByDni,

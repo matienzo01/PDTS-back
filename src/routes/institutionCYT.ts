@@ -1,10 +1,10 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
-const institution_controller = require('../controllers/institutionCYTController.js')
-const project_controller = require('../controllers/projectController.js')
-const user_controller = require('../controllers/userController.js')
-const authUser = require('../middlewares/authUser.js')
-const checkRol = require('../middlewares/checkRol.js')
+import institution_controller from '../controllers/institutionCYT'
+import project_controller from '../controllers/project'
+import user_controller from '../controllers/user'
+import authUser from '../middlewares/authUser'
+import checkRol from '../middlewares/checkRol'
 
 router
   .get('/', authUser, checkRol(['admin', 'admin general']), institution_controller.getAllInstitucionesCYT)
@@ -25,4 +25,4 @@ router
   .delete('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['admin']), project_controller.deleteProject)
   .delete('/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador', authUser, checkRol(['admin']), project_controller.unassignEvaluador)
 
-module.exports = router
+export default router

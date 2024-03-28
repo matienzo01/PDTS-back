@@ -27,12 +27,16 @@ const login = async (mail: string, password: string) => {
     }
   }
 
+  if(!user){
+    throw new CustomError('Invalid user or password', 401)
+  }
+
   const passwordCorrect = user === undefined
     ? false
     : await bcrypt.compare(password, user.password)
 
   delete user.password
-  if (!(user && passwordCorrect)) {
+  if (!passwordCorrect) {
     throw new CustomError('Invalid user or password', 401)
   }
 
