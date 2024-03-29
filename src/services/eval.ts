@@ -68,13 +68,17 @@ const getFecha = () => {
   return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 }
 
-const getAmountQuestions = async(id_instancia: number) => {
-  let amount: any =  (await knex('indicadores as i')
-  .join('dimensiones as d', 'i.id_dimension', 'd.id')
-    .where({id_instancia})
+const getAmountQuestions = async(obligatoriedad_proposito: boolean) => {
+  let amount: any
+  if (obligatoriedad_proposito){
+    amount = (await knex('indicadores as i')
+    .join('dimensiones as d', 'i.id_dimension', 'd.id')
     .count().first())
-  if(amount == undefined){
-    throw new CustomError('There is no instancia with the provided id', 404)
+  } else {
+    amount = (await knex('indicadores as i')
+    .join('dimensiones as d', 'i.id_dimension', 'd.id')
+    .where({id_instancia: 1})
+    .count().first())
   }
   
   return amount['count(*)']
@@ -111,10 +115,12 @@ const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: s
       fundamentacion: row.fundamentacion
     };
 
-    if (respuestas && respuestas.length > 0) {
-      newIndicador.respuestas = respuestas.filter(rta => rta.id_indicador === newIndicador.id_indicador);
-      newIndicador.respuestas.forEach(respuesta => delete respuesta.id_indicador);
-  }
+    if (respuestas?.length) {
+      const rtasFiltradas = respuestas.filter(rta => rta.id_indicador === newIndicador.id_indicador);
+      if (rtasFiltradas.length) {
+          newIndicador.respuestas = rtasFiltradas.map(({ id_indicador, ...rest }) => rest);
+      }
+    }
 
     if(!dimensiones[row.nombre_dimension]) {
       dimensiones[row.nombre_dimension] = {
@@ -130,7 +136,6 @@ const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: s
 
   })
 
-
   if(rol == 'admin') {
     const respuestasVacias: RespuestaEval[]  = idsNoRespondieron.map(id => ({
       id_evaluador: id,
@@ -140,18 +145,13 @@ const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: s
     }));
 
     for (const clave in dimensiones) {
-      if (Object.prototype.hasOwnProperty.call(dimensiones, clave)) {
-        const indicadores = dimensiones[clave].indicadores ?? [];
-        for (const ind of indicadores) {
-          ind.respuestas = ind.respuestas 
-            ? [...ind.respuestas, ...respuestasVacias] 
-            : respuestasVacias;
-        }
-      }
+      dimensiones[clave].indicadores?.map(ind => {
+        ind.respuestas = ind.respuestas ? [...ind.respuestas, ...respuestasVacias] : respuestasVacias;
+        return ind;
+      });
     }
   }
   
-
   return { Instancia: 
     {
       nombre_instancia: nombreInstancia,
@@ -161,81 +161,34 @@ const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: s
   }
 }
 
-const getInstanciaRtas = async(id_instancia: number, id_proyecto: number, arrayIdsEvaluadores: number[]) => {
+const getInstanciaRtas = async(id_instancia: number, id_proyecto: number, arrayIdsEvaluadores: number[], rol: string) => {
 
-  return await knex('respuestas_evaluacion as re')
+  let query = knex('respuestas_evaluacion as re')
     .join('indicadores as i', 're.id_indicador', 'i.id')
     .join('dimensiones as d', 'i.id_dimension', 'd.id')
-    .select('id_evaluador','id_indicador', 'respuesta as option', 'calificacion as value', 'justificacion')
-    .where({ id_proyecto })
-    .whereIn('id_evaluador', arrayIdsEvaluadores)
-    .where({id_instancia})
+    .select('re.id_evaluador', 'id_indicador', 'respuesta as option', 'calificacion as value', 'justificacion')
+    .where('re.id_proyecto', id_proyecto)
+    .whereIn('re.id_evaluador', arrayIdsEvaluadores)
+    .where('d.id_instancia', id_instancia)
+    .distinct();
 
-}
-
-const postRtas = async(proyecto: Proyecto, id_usuario: number, id_instancia: number, raw_respuestas: any[]) => {
-
-  if(raw_respuestas.length != await getAmountQuestions(id_instancia)) {
-    throw new CustomError('The amount of answers does not match those expected', 400)
+  if (rol === 'admin') {
+    query = query
+      .join('evaluadores_x_proyectos as ep', 're.id_proyecto', 'ep.id_proyecto')
+      .whereNotNull('ep.fecha_fin_eval');
   }
 
-  let respuestas = raw_respuestas.map((rta: any)=> {
-    return {
-      id_indicador: rta.id_indicador,
-      id_evaluador: id_usuario,
-      id_proyecto: proyecto.id,
-      respuesta: rta.answer,
-      calificacion: rta.value,
-      justificacion: rta.justificacion
-    }
-  })
-
-  await knex.transaction(async (trx) => { 
-    await trx('respuestas_evaluacion').insert(respuestas)
-
-    if (id_instancia === 1) {
-      await trx('evaluadores_x_proyectos')
-        .where({ id_proyecto: proyecto.id, id_evaluador: id_usuario })
-        .update({ respondio_entidad: 1 });
-    } 
-
-    // si las respuestas son del proposito o si el proyecto no tiene instancia de proposito
-    if (id_instancia === 2 || !proyecto.obligatoriedad_proposito ) {
-      
-      await trx('evaluadores_x_proyectos')
-        .where({ id_proyecto: proyecto.id, id_evaluador: id_usuario })
-        .update({ fecha_fin_eval: getFecha() });
-
-      
-      if (proyecto.id_director === id_usuario) { // es director
-        const participantes = proyecto.participantes.filter(participante => participante.rol !== 'director');
-        const users = await trx('evaluadores').whereIn('id', participantes.map(participante => participante.id));
-        // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
-
-        await trx('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
-      } 
-    }
-  });
+  return await query;
 }
 
-const getIDsNoRespondieron = async(id_proyecto: number, id_instancia: number) => {
-  if (id_instancia == 1) {
-    const idsNoRespondieron = await knex('evaluadores_x_proyectos')
-      .select('id_evaluador')
-      .where({ id_proyecto, respondio_entidad: 0})
-
-    const arrayIds: number[] = idsNoRespondieron.map(objeto => objeto.id_evaluador)
-    return arrayIds
-  } else if(id_instancia == 2) {
-    const idsNoRespondieron = await knex('evaluadores_x_proyectos')
+const getIDsNoRespondieron = async(id_proyecto: number) => {
+  const idsNoRespondieron = await knex('evaluadores_x_proyectos')
       .select('id_evaluador')
       .where({ id_proyecto})
       .whereNull('fecha_fin_eval')
 
-    const arrayIds: number[] = idsNoRespondieron.map(objeto => objeto.id_evaluador)
-    return arrayIds
-  }
-  
+  const arrayIds: number[] = idsNoRespondieron.map(objeto => objeto.id_evaluador)
+  return arrayIds
 }
 
 const getIDsEvaluadores = async(id_proyecto: number) => {
@@ -254,17 +207,12 @@ const getEntidad = async(id_proyecto: number, id_usuario: number, rol: string) =
     await verifyProject(id_proyecto, true, id_usuario)
 
     const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
-    const idsNoRespondieron: number[] = (await getIDsNoRespondieron(id_proyecto, id_instancia) as number[])
-    return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores), idsNoRespondieron)
+    const idsNoRespondieron: number[] = (await getIDsNoRespondieron(id_proyecto) as number[])
+    return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
   } else {
     await verifyProject(id_proyecto, true)
-    const assigned = await verify_date(id_proyecto, id_usuario)
-
-    if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
-      return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
-    } else {
-      return await getInstancia(id_instancia, 'Entidad', rol)
-    }
+    await verify_date(id_proyecto, id_usuario)
+    return await getInstancia(id_instancia, 'Entidad', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario], rol))
   }
 
 }
@@ -290,78 +238,113 @@ const getProposito = async(id_proyecto: number, id_usuario: number, rol: string)
   if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
     await verifyProject(id_proyecto, false, id_usuario)
     const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
-    const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto, id_instancia)
-    return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores), idsNoRespondieron)
+    const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto)
+    return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
   } else {
     await verifyProject(id_proyecto, false)
-    const assigned = await verify_date(id_proyecto, id_usuario)
-
-    if(assigned.respondio_entidad) { // ya respondio las preguntas de la instancia de entidad
-      return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario]))
-    } else {
-      return await getInstancia(id_instancia, 'Proposito', rol)
-    }
-
+    await verify_date(id_proyecto, id_usuario)
+    return await getInstancia(id_instancia, 'Proposito', rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario], rol))
   }
 
+}
+
+const canAnswer = async(id_proyecto: number, id_usuario: number, proyecto: Proyecto, id_instancia: number) => {
+  const assigned = await verify_date(id_proyecto, id_usuario)
+  if(!(assigned.fecha_fin_eval == null)){
+    throw new CustomError("The user already finished the evaluation", 409)
+  }
+
+  if(id_instancia == 2 && !proyecto.obligatoriedad_proposito){
+    throw new CustomError("The proposito instance should not be evaluated in this project", 400)
+  }
 }
 
 const postEntidad = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
-  const { proyecto } = await projectService.getOneProject(id_proyecto)
-  const assigned = await verify_date(id_proyecto, id_usuario)
-
-  if(assigned.respondio_entidad == 1){
-    throw new CustomError("The user already answered the 'Entidad' instance questions", 409)
-  } 
-
-  await postRtas(proyecto, id_usuario, 1, respuestas)
-
-  return await getEntidad(id_proyecto, id_usuario, 'evaluador')
+  return await post(id_proyecto, id_usuario, respuestas, 1)
 }
 
 const postProposito = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
-  const { proyecto } = await projectService.getOneProject(id_proyecto)
-  const assigned = await verify_date(id_proyecto, id_usuario)
-
-  if(!assigned.respondio_entidad) {
-    throw new CustomError("The user should answer first the 'Entidad' instance questions", 409)
-  }
-
-  if(assigned.fecha_fin_eval !== null) {
-    throw new CustomError("The user should answer first the 'Proposito' instance questions", 409)
-  } 
-
-  await postRtas(proyecto, id_usuario, 2, respuestas)
-
-  return await getProposito(id_proyecto, id_usuario, 'evaluador')
+  return await post(id_proyecto, id_usuario, respuestas, 2)
 }
 
-const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number) => {
+const post = async(id_proyecto: number, id_usuario: number, respuestas: any, id_instancia: number) => {
+  const { proyecto } = await projectService.getOneProject(id_proyecto)
+  await canAnswer(id_proyecto, id_usuario, proyecto, id_instancia)
+  await postRtas(proyecto, id_usuario, id_instancia, respuestas)
 
-  const id_inst  = await insttitutionCYTService.getInstIdFromAdmin(id_usuario)
-  await projectService.getOneProject(id_proyecto, id_inst)
+  return (id_instancia === 1) 
+    ? await getEntidad(id_proyecto, id_usuario, 'evaluador')
+    : await getProposito(id_proyecto, id_usuario, 'evaluador');
 
-  const { cantidad: evaluadoresTotales} = (await knex('evaluadores_x_proyectos')
-      .where({ id_proyecto })
-      .count('id_evaluador as cantidad'))[0];
+}
 
-  const { cantidad: evaluadoresActivos} = (await knex('evaluadores_x_proyectos')
-      .where({ id_proyecto, fecha_fin_eval: null })
-      .count('id_evaluador as cantidad'))[0];
+const postRtas = async(proyecto: Proyecto, id_usuario: number, id_instancia: number, raw_respuestas: any[]) => {
 
-  //console.log('evalaudores totales:  ', evaluadoresTotales)
-  //console.log('evaluadores restantes:',evaluadoresActivos)
+  let respuestas = raw_respuestas.map((rta: any)=> {
+    return {
+      id_indicador: rta.id_indicador,
+      id_evaluador: id_usuario,
+      id_proyecto: proyecto.id,
+      respuesta: rta.answer,
+      calificacion: rta.value,
+      justificacion: rta.justificacion
+    }
+  })
 
-  /*
-  if(evaluadoresTotales - evaluadoresActivos< 4){
-    const _error = new Error('To complete an evaluation, at least 4 evaluators are required to complete the project evaluation')
-    _error.status = 409
-    throw _error
-  }*/
+  respuestas.forEach(async(rta) => {
+    try {
+      await knex('respuestas_evaluacion').insert(rta);
+    } catch (error) {
+      if ((error as any).code === 'ER_DUP_ENTRY') { 
+        await knex('respuestas_evaluacion')
+          .where({id_indicador: rta.id_indicador})
+          .where({id_evaluador: rta.id_evaluador})
+          .where({id_proyecto: rta.id_proyecto})
+          .update(rta);
+      } else {
+        throw error
+      }
+    }
+  })
+}
 
-  await knex('proyectos').where({ id: id_proyecto }).update({ id_estado_eval: 4 })
+const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: string) => {
 
-  return {msg: 'Evaluacion concluida'}
+  if( rol == 'admin'){
+    const { proyecto } = await projectService.getOneProject(id_proyecto, await insttitutionCYTService.getInstIdFromAdmin(id_usuario))
+    if(proyecto.id_estado_eval != 3){
+      throw new CustomError('The evaluation cannot be closed at this time', 409)
+    }
+    await knex('proyectos').where({ id: id_proyecto }).update({ id_estado_eval: 4 })
+    return {msg: 'Evaluacion concluida'}
+  } 
+  
+  const { proyecto } = await projectService.getOneProject(id_proyecto)                           // existe el proyecto?
+  const assigned = await verify_date(id_proyecto, id_usuario)               // el usuario esta linkeado al proyecto?
+  
+  if(assigned.fecha_fin_eval != null){
+    throw new CustomError('The evaluation had already been closed.', 409)
+  }
+  
+  const { cant_respuestas } = (await knex('respuestas_evaluacion')
+    .count('* as cant_respuestas')
+    .where({id_proyecto})
+    .where({id_evaluador: id_usuario}))[0]
+  
+  if (cant_respuestas != await getAmountQuestions(proyecto.obligatoriedad_proposito) ) {
+    throw new CustomError('The amount of answers does not match those expected', 400)
+  }
+
+  await knex('evaluadores_x_proyectos')
+    .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
+    .update({ fecha_fin_eval: getFecha() });
+
+  if (proyecto.id_director === id_usuario) { 
+    const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
+    const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
+    // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
+    await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
+  } 
 }
 
 export default {

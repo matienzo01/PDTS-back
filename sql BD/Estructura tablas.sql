@@ -152,7 +152,6 @@ CREATE TABLE evaluadores_x_proyectos (
     fecha_inicio_eval date,
     fecha_fin_eval date DEFAULT null,
     fecha_fin_op date DEFAULT null,
-    respondio_entidad boolean DEFAULT false,
     PRIMARY KEY (id_proyecto, id_evaluador),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
     FOREIGN KEY (id_evaluador) REFERENCES evaluadores(id)

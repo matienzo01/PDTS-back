@@ -649,12 +649,12 @@ INSERT INTO respuestas_encuesta(id_pregunta, id_evaluador, id_proyecto, respuest
     (40,2,3,'pertinente'),
     (41,2,3,'pertinente');
 
-UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW(), respondio_entidad = 1 WHERE id_proyecto = 2 AND id_evaluador = 1;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 2 AND id_evaluador = 1;
 UPDATE proyectos SET id_estado_eval = 3 WHERE id = 2 ;
 
-UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW(), respondio_entidad = 1 WHERE id_proyecto = 3 AND id_evaluador = 1;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 3 AND id_evaluador = 1;
 UPDATE evaluadores_x_proyectos SET fecha_fin_op = NOW() WHERE id_proyecto = 3 AND id_evaluador = 1;
-UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW(), respondio_entidad = 1 WHERE id_proyecto = 3 AND id_evaluador = 2;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 3 AND id_evaluador = 2;
 UPDATE evaluadores_x_proyectos SET fecha_fin_op = NOW() WHERE id_proyecto = 3 AND id_evaluador = 2;
 UPDATE proyectos SET id_estado_eval = 4 WHERE id = 3 ;
 

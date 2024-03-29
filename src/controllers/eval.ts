@@ -89,11 +89,11 @@ const postProposito = async(req: Request, res: Response) => {
 
 const finalizarEvaluacion = async(req: Request, res: Response) => {
   const { params: { id_proyecto } } = req
-  const { id:id_usuario } = req.body.userData
+  const { id:id_usuario, rol } = req.body.userData
 
   try {
     validateNumberParameter(id_proyecto, id_usuario)
-    res.status(200).json(await service.finalizarEvaluacion(parseInt(id_proyecto), parseInt(id_usuario)))
+    res.status(200).json(await service.finalizarEvaluacion(parseInt(id_proyecto), parseInt(id_usuario), rol))
   } catch(error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
