@@ -200,6 +200,18 @@ const verifyState = async( id_proyecto: number, state: string ) => {
   return proyecto.id_estado_eval === estados.filter((estado: any) => estado.nombre == state)[0].id
 }
 
+const verify_date = async (id_proyecto: number, id_evaluador: number) => {
+  const assigned = await knex('evaluadores_x_proyectos').select()
+      .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
+      .first()
+  
+  if(!assigned) {
+      throw new CustomError('The user is not linked to the project', 403)
+  }
+
+  return assigned
+}
+
 export default {
   getAllProjects,
   getOneProject,
@@ -209,5 +221,6 @@ export default {
   unassignEvaluador,
   getParticipants,
   getProjectsByUser,
-  verifyState
+  verifyState,
+  verify_date
 }

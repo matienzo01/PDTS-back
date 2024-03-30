@@ -22,18 +22,6 @@ const type_and_options = (
         }
         return { tipo_preg, opciones_item }
 }
-
-const verify_date = async (id_proyecto: number, id_evaluador: number) => {
-    const assigned = await knex('evaluadores_x_proyectos').select()
-        .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
-        .first()
-    
-    if(!assigned) {
-        throw new CustomError('The user is not linked to the project', 403)
-    }
-  
-    return assigned
-}
   
 const getFecha = () => {
     const fecha = new Date()
@@ -83,10 +71,13 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
                     subQuestions: []
                 }
 
-                if(respuestas) {
-                    question.respuestas = respuestas
-                    .filter(rta => { return rta.id_pregunta === question.questionId;})
-                    .map(({ id_evaluador, respuesta, optionId }) => ({ id_evaluador, respuesta, optionId }));
+                if(respuestas?.length) {
+                    const rtasFiltradas = respuestas
+                        .filter(rta => { return rta.id_pregunta === question.questionId;})
+                        .map(({ id_evaluador, respuesta, optionId }) => ({ id_evaluador, respuesta, optionId }));
+                    if(rtasFiltradas.length) {
+                        question.respuestas = rtasFiltradas
+                    }
                 }
 
                 transformedResult[sectionIndex].questions.push(question);
@@ -104,12 +95,13 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
                     options: opciones_item
                 };
 
-                if(respuestas) {
-                    subQuestion.respuestas = respuestas.filter(rta => {
-                        return rta.id_pregunta === subQuestion.questionId;
-                    })
-                    delete subQuestion.respuestas.id_pregunta
-                    delete subQuestion.respuestas.id_seccion
+                if(respuestas?.length) {
+                    const rtasFiltradas = respuestas
+                        .filter(rta => { return rta.id_pregunta === subQuestion.questionId;})
+                        .map(({ id_evaluador, respuesta, optionId }) => ({ id_evaluador, respuesta, optionId }));
+                    if(rtasFiltradas.length){
+                        subQuestion.respuestas = rtasFiltradas
+                    }
                 }
       
                 transformedResult.forEach((section: any) => {
@@ -123,11 +115,11 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
     });
 
     
-    if(rol == 'admin' && idsNoRespondieron) {
+    if(rol == 'admin general' && idsNoRespondieron) {
         const respuestasVacias: RespuestaEncuesta[]  = idsNoRespondieron.map(id => ({
-          id_evaluador: id,
-          respuesta: null,
-          optionId: null
+            id_evaluador: id,
+            respuesta: null,
+            optionId: null
         }));
         
         transformedResult.forEach((result: any) => {
@@ -143,15 +135,22 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
     return { name: 'Encuesta del Sistema', sections: transformedResult }
 }
 
-const getEncuestaRtas = async(id_proyecto: number, arrayIdsEvaluadores: number[]) => {
+const getEncuestaRtas = async(id_proyecto: number, arrayIdsEvaluadores: number[], rol: string) => {
 
-    return await knex('respuestas_encuesta as re')
+    let query = knex('respuestas_encuesta as re')
         .join('preguntas_seccion as p', 're.id_pregunta', 'p.id')
         .leftJoin('opciones as o', 're.respuesta', 'o.valor')
-        .select('id_evaluador','id_pregunta', 'respuesta', 'o.id as optionId')
-        .where({ id_proyecto })
-        .whereIn('id_evaluador', arrayIdsEvaluadores)
+        .select('re.id_evaluador','id_pregunta', 'respuesta', 'o.id as optionId')
+        .where('re.id_proyecto', id_proyecto)
+        .whereIn('re.id_evaluador', arrayIdsEvaluadores)
 
+    if( rol == 'admin general') {
+        query = query
+            .join('evaluadores_x_proyectos as ep', 're.id_proyecto', 'ep.id_proyecto')
+            .whereNotNull('ep.fecha_fin_op');
+    } 
+
+    return await query
 }
 
 const getIDsNoRespondieron = async(id_proyecto: number) => {
@@ -175,53 +174,46 @@ const getIDsNoRespondieron = async(id_proyecto: number) => {
 
 const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) => {
     const { proyecto } = await projectService.getOneProject(id_proyecto)
-    const assigned: Participante = await verify_date(id_proyecto, id_usuario)
   
     if(!proyecto.obligatoriedad_opinion){
         // el mensaje este no va a aparecer, pero lo pono igual
         throw new CustomError('The survey is not applicable for this project', 204)
     }
 
-    if(rol === 'admin'){
+    if(rol === 'admin general'){
         const idsEvaluadores: number[] = await getIDsEvaluadores(id_proyecto)
         const idsNoRespondieron: number[] = await getIDsNoRespondieron(id_proyecto)
-        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, idsEvaluadores), idsNoRespondieron)
-    } else if (assigned.fecha_fin_op !== null) {
-        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, [id_usuario]))
+        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
     } else {
-        return await generateEncuesta(proyecto, rol)
+        await projectService.verify_date(id_proyecto, id_usuario)
+        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, [id_usuario], rol))
     }
     
 }
 
-const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespuestas: {id_indicador: number; answer: string}[]) =>{
+const canAnswer = async(id_proyecto: number, id_evaluador: number) => {
     const { proyecto} = await projectService.getOneProject(id_proyecto)
 
     if(!proyecto.obligatoriedad_opinion){
-        // el mensaje este no va a aparecer, pero lo pono igual
+        // el mensaje este no va a aparecer, pero lo pongo igual
         throw new CustomError('The survey is not applicable for this project', 204)
     }
 
-    const assigned = await verify_date(id_proyecto, id_evaluador)
+    const assigned = await projectService.verify_date(id_proyecto, id_evaluador)
 
-    if(assigned.fecha_fin_eval === null){
+    if(assigned.fecha_fin_eval == null){
         throw new CustomError('You have to complete the project evaluation first', 409)
     }
 
-    if(assigned.fecha_fin_op !== null){
+    if(assigned.fecha_fin_op != null){
         throw new CustomError('You have already finished the project survey', 409)
     }
+}
+
+const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespuestas: {id_indicador: number; answer: string}[]) =>{
+    await canAnswer(id_proyecto, id_evaluador)
         
     await knex.transaction(async (trx) => {
-        
-        /* 
-        const preguntas = await trx('preguntas_seccion').select()
-        if(rawRespuestas.length != preguntas.length) {
-            const _error = new Error('The amount of answers does not match those expected')
-            _error.status = 400
-            throw _error
-        }
-        */
 
         const opciones = await trx('opciones').select('valor')
         const valores = opciones.map(objeto => objeto.valor)
@@ -246,17 +238,58 @@ const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespues
             }
         })
 
-        await trx('respuestas_encuesta').insert(respuestas)
-        await trx('evaluadores_x_proyectos')
-            .where({ id_proyecto: id_proyecto, id_evaluador: id_evaluador })
-            .update({ fecha_fin_op: getFecha() })
+        respuestas.forEach(async(rta) => {
+            try {
+              await knex('respuestas_encuesta').insert(rta);
+            } catch (error) {
+              if ((error as any).code === 'ER_DUP_ENTRY') { 
+                await knex('respuestas_encuesta')
+                  .where({id_pregunta: rta.id_pregunta})
+                  .where({id_evaluador: rta.id_evaluador})
+                  .where({id_proyecto: rta.id_proyecto})
+                  .update(rta);
+              } else {
+                throw error
+              }
+            }
+          })
 
     })
 
 }
 
+const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
+    await canAnswer(id_proyecto, id_usuario)
+    
+    const [preguntas, respuestas] = await Promise.all([
+        knex('preguntas_seccion')
+            .count('* as cantidad')
+            .first(),
+        knex('respuestas_encuesta')
+            .count('* as cantidad')
+            .where({id_evaluador: id_usuario})
+            .where({id_proyecto})
+            .first()
+    ])
+
+    if (respuestas == undefined || preguntas == undefined) {
+        throw new CustomError('Internal server Error', 500)
+    }
+
+    if(preguntas.cantidad != respuestas.cantidad) {
+        throw new CustomError('The amount of answers does not match those expected', 400)
+    }
+    
+    await knex('evaluadores_x_proyectos')
+        .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
+        .update({ fecha_fin_op: getFecha() })
+
+    return {msg: 'Encuesta del sistema finalizada'}
+}
+
 
 export default {
     getEncuesta,
-    postEncuesta
+    postEncuesta,
+    finallizarEncuesta
 }
