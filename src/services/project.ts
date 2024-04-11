@@ -42,7 +42,7 @@ const getParticipants = async (id_proyecto: number, trx: any = null) => {
   const queryBuilder = trx || knex;
   const participantes = await queryBuilder('evaluadores_x_proyectos')
     .join('evaluadores', 'evaluadores_x_proyectos.id_evaluador', 'evaluadores.id')
-    .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op', 'evaluadores_x_proyectos.respondio_entidad')
+    .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
     .where({ id_proyecto: id_proyecto })
 
   return participantes;
