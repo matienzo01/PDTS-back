@@ -346,7 +346,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
 
   const {Instancia: entidad} = await getEntidad(id_proyecto, id_usuario, rol)
   const {Instancia: proposito} = await getProposito(id_proyecto, id_usuario, rol)
-  return { "Evaluacion del proyecto": [entidad, proposito]}
+  return { "Evaluacion del proyecto": {entidad, proposito}}
 
 }
 
