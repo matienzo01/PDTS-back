@@ -1,6 +1,6 @@
 import service from '../services/institutionCYT';
 import { Request, Response } from 'express';
-import { CustomError } from '../types/CustomError.js';
+import { CustomError } from '../types/CustomError';
 
 const getOneInstitucionCYT = async (req: Request, res: Response) => {
   const { params: { id_institucion } } = req
