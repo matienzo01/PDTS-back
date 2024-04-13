@@ -256,10 +256,16 @@ const postProposito = async(id_proyecto: number, id_usuario: number, respuestas:
   return await post(id_proyecto, id_usuario, respuestas, 'Proposito')
 }
 
+const answersBelongToInstance = async() => {
+  //
+}
+
+
 const post = async(id_proyecto: number, id_usuario: number, respuestas: any, instancia: string) => {
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: instancia}).first()
   const { proyecto } = await projectService.getOneProject(id_proyecto)
   await canAnswer(id_proyecto, id_usuario, proyecto, id_instancia)
+  //aca habria que ver si las respuestas enviadas corresponden a la instancia
   await postRtas(proyecto, id_usuario, id_instancia, respuestas)
 
   return (id_instancia === 1) 
@@ -311,7 +317,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
   
   const { proyecto } = await projectService.getOneProject(id_proyecto)        // existe el proyecto?
   const assigned = await projectService.verify_date(id_proyecto, id_usuario)  // el usuario esta linkeado al proyecto?
-
+  // hay que verificar que la evaluacion no haya terminado
   check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
   
   if(assigned.fecha_fin_eval != null){
@@ -337,6 +343,11 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
     // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
     await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
   } 
+
+  const {Instancia: entidad} = await getEntidad(id_proyecto, id_usuario, rol)
+  const {Instancia: proposito} = await getProposito(id_proyecto, id_usuario, rol)
+  return { "Evaluacion del proyecto": [entidad, proposito]}
+
 }
 
 export default {
