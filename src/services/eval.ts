@@ -50,7 +50,7 @@ const getEvaluationScores = async(id_proyecto: number) => {
 }
 
 const check_director_evaluation = (id_director: number, id_usuario: number, id_estado_eval: number) => {
-  if(id_director != id_usuario && id_estado_eval == 2){
+  if(id_director != id_usuario && id_estado_eval < 3){
     throw new CustomError("The project manager must complete the evaluation first", 409)
   }
 }
@@ -222,8 +222,8 @@ const get = async(id_proyecto: number, id_usuario: number, rol: string, instanci
 
   if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
     await verifyProject(id_proyecto, false, id_usuario)
-    const idsEvaluadores = await getIDsEvaluadores(id_proyecto)
     const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto)
+    const idsEvaluadores = (await getIDsEvaluadores(id_proyecto)).filter(element => ! idsNoRespondieron.includes(element))
     return await getInstancia(id_instancia, instancia, rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
   } else {
     const proyecto = await verifyProject(id_proyecto, false)
@@ -320,38 +320,53 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
     if(proyecto.id_estado_eval != 3){
       throw new CustomError('The evaluation cannot be closed at this time', 409)
     }
-    await knex('proyectos').where({ id: id_proyecto }).update({ id_estado_eval: 4 })
-    return {msg: 'Evaluacion concluida'}
-  } 
-  
-  const { proyecto } = await projectService.getOneProject(id_proyecto)        // existe el proyecto?
-  const assigned = await projectService.verify_date(id_proyecto, id_usuario)  // el usuario esta linkeado al proyecto?
-  check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
-  
-  if(assigned.fecha_fin_eval != null || proyecto.id_estado_eval == 4){
-    throw new CustomError('The evaluation had already been closed.', 409)
+
+    knex.transaction(async (trx: any) => {
+      await trx('proyectos')
+        .where({ id: id_proyecto })
+        .update({ id_estado_eval: 4 })
+      
+      const noFinalizaron: number[] = (await trx('evaluadores_x_proyectos')
+          .select('id_evaluador as id')
+          .where({id_proyecto})
+          .whereNull('fecha_fin_eval'))
+        .map((objeto: any) => objeto.id)
+      
+      await trx('respuestas_evaluacion')
+        .delete()
+        .where({id_proyecto})
+        .whereIn('id_evaluador', noFinalizaron)
+    })
+  } else {
+    const { proyecto } = await projectService.getOneProject(id_proyecto)        // existe el proyecto?
+    const assigned = await projectService.verify_date(id_proyecto, id_usuario)  // el usuario esta linkeado al proyecto?
+    check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
+    
+    if(assigned.fecha_fin_eval != null || proyecto.id_estado_eval == 4){
+      throw new CustomError('The evaluation had already been closed.', 409)
+    }
+    
+    const { cant_respuestas } = (await knex('respuestas_evaluacion')
+      .count('* as cant_respuestas')
+      .where({id_proyecto})
+      .where({id_evaluador: id_usuario}))[0]
+    
+    if (cant_respuestas != await getAmountQuestions(proyecto.obligatoriedad_proposito) ) {
+      throw new CustomError('The amount of answers does not match those expected', 400)
+    }
+
+    await knex('evaluadores_x_proyectos')
+      .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
+      .update({ fecha_fin_eval: getFecha() });
+
+    if (proyecto.id_director === id_usuario) { 
+      const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
+      const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
+      // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
+      await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
+    } 
   }
   
-  const { cant_respuestas } = (await knex('respuestas_evaluacion')
-    .count('* as cant_respuestas')
-    .where({id_proyecto})
-    .where({id_evaluador: id_usuario}))[0]
-  
-  if (cant_respuestas != await getAmountQuestions(proyecto.obligatoriedad_proposito) ) {
-    throw new CustomError('The amount of answers does not match those expected', 400)
-  }
-
-  await knex('evaluadores_x_proyectos')
-    .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
-    .update({ fecha_fin_eval: getFecha() });
-
-  if (proyecto.id_director === id_usuario) { 
-    const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
-    const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
-    // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
-    await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
-  } 
-
   const {Instancia: entidad} = await getEntidad(id_proyecto, id_usuario, rol)
   const {Instancia: proposito} = await getProposito(id_proyecto, id_usuario, rol)
   return { "Instancias": [entidad, proposito]}
