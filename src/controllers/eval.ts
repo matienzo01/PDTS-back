@@ -57,29 +57,14 @@ const getProposito = async(req: Request, res: Response) => {
   
 }
 
-const postEntidad = async(req: Request, res: Response) => {
+const saveForm = async(req: Request, res: Response) => {
   const { params: { id_proyecto } } = req
   const { id:id_usuario } = req.body.userData
   const { respuestas } = req.body
 
   try {
     validateNumberParameter(id_proyecto, id_usuario)
-    res.status(200).json(await service.postEntidad(parseInt(id_proyecto), parseInt(id_usuario), respuestas))
-  } catch(error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
-  }
-  
-}
-
-const postProposito = async(req: Request, res: Response) => {
-  const { params: { id_proyecto } } = req
-  const { id:id_usuario } = req.body.userData
-  const { respuestas } = req.body
-
-  try {
-    validateNumberParameter(id_proyecto, id_usuario)
-    res.status(200).json(await service.postProposito(parseInt(id_proyecto), parseInt(id_usuario), respuestas))
+    res.status(200).json(await service.saveForm(parseInt(id_proyecto), parseInt(id_usuario), respuestas))
   } catch(error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
@@ -105,7 +90,6 @@ export default {
 
   getEntidad,
   getProposito,
-  postEntidad,
-  postProposito,
+  saveForm,
   finalizarEvaluacion
 }

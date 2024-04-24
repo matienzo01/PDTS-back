@@ -153,6 +153,12 @@ const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: s
   }
 }
 
+const getBothInstances = async(id_proyecto: number, id_usuario: number, rol: string) => {
+  const {Instancia: entidad} = await getEntidad(id_proyecto, id_usuario, rol)
+  const {Instancia: proposito} = await getProposito(id_proyecto, id_usuario, rol)
+  return { "Instancias": [entidad, proposito]}
+}
+
 const getInstanciaRtas = async(id_instancia: number, id_proyecto: number, arrayIdsEvaluadores: number[], rol: string) => {
 
   let query = knex('respuestas_evaluacion as re')
@@ -233,7 +239,7 @@ const get = async(id_proyecto: number, id_usuario: number, rol: string, instanci
   }
 }
 
-const canAnswer = async(id_proyecto: number, id_usuario: number, proyecto: Proyecto, id_instancia: number) => {
+const canAnswer = async(id_proyecto: number, id_usuario: number, proyecto: Proyecto, proposito: boolean) => {
   const assigned = await projectService.verify_date(id_proyecto, id_usuario)
 
   // un evaluador solo puede responder si y solo si el director ya lo hizo previamente
@@ -243,47 +249,36 @@ const canAnswer = async(id_proyecto: number, id_usuario: number, proyecto: Proye
     throw new CustomError("The user already finished the evaluation", 409)
   }
 
-  if(id_instancia == 2 && !proyecto.obligatoriedad_proposito){
+  if(proposito && !proyecto.obligatoriedad_proposito){
     throw new CustomError("The proposito instance should not be evaluated in this project", 400)
   }
 }
 
-const postEntidad = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
-  return await post(id_proyecto, id_usuario, respuestas, 'Entidad')
+const saveForm = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
+  const { proyecto } = await projectService.getOneProject(id_proyecto)
+  await canAnswer(id_proyecto, id_usuario, proyecto, await validateAnswers(respuestas))
+  await postRtas(proyecto, id_usuario, respuestas)
+
+  return await getBothInstances(id_proyecto, id_usuario, 'evaluador')
 }
 
-const postProposito = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
-  return await post(id_proyecto, id_usuario, respuestas, 'Proposito')
-}
-
-const answersBelongToInstance = async(id_instancia: number, respuestas: any) => {
-  const validIds = (await knex('indicadores as i')
-      .join('dimensiones as d','i.id_dimension', 'd.id')
-      .select('i.id')
-      .where({id_instancia: id_instancia}))
-    .map(objeto => objeto.id);
+const validateAnswers = async(respuestas: any) => {
+  const validIds = await knex('indicadores as i')
+    .join('dimensiones as d','i.id_dimension', 'd.id')
+    .select('i.id', 'd.id_instancia')
 
   const idsRtas = respuestas.map((obj: { id_indicador: number }) => obj.id_indicador)
-  
-  if (!idsRtas.every((id: number) => validIds.includes(id)))
-    throw new CustomError('The indicators do not belong to the corresponding instance', 400)
+
+  if (!(idsRtas.every((id: number) => { return validIds.some(item => item.id === id) })))
+    throw new CustomError('There are answers that do not correspond to any existing indicator', 400)
+
+  return idsRtas.some((id: number) => {
+    return validIds.some(item => item.id === id && item.id_instancia === 2);
+  });
   
 }
 
-const post = async(id_proyecto: number, id_usuario: number, respuestas: any, instancia: string) => {
-  const { id: id_instancia } = await knex('instancias').select('id').where({nombre: instancia}).first()
-  const { proyecto } = await projectService.getOneProject(id_proyecto)
-  await canAnswer(id_proyecto, id_usuario, proyecto, id_instancia)
-  await answersBelongToInstance(id_instancia, respuestas)
-  await postRtas(proyecto, id_usuario, id_instancia, respuestas)
-
-  return (id_instancia === 1) 
-    ? await getEntidad(id_proyecto, id_usuario, 'evaluador')
-    : await getProposito(id_proyecto, id_usuario, 'evaluador');
-
-}
-
-const postRtas = async(proyecto: Proyecto, id_usuario: number, id_instancia: number, raw_respuestas: any[]) => {
+const postRtas = async(proyecto: Proyecto, id_usuario: number, raw_respuestas: any[]) => {
 
   let respuestas = raw_respuestas.map((rta: any)=> {
     return {
@@ -366,11 +361,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
       await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
     } 
   }
-  
-  const {Instancia: entidad} = await getEntidad(id_proyecto, id_usuario, rol)
-  const {Instancia: proposito} = await getProposito(id_proyecto, id_usuario, rol)
-  return { "Instancias": [entidad, proposito]}
-
+  return await getBothInstances(id_proyecto, id_usuario, rol)
 }
 
 export default {
@@ -378,7 +369,6 @@ export default {
 
   getEntidad,
   getProposito,
-  postEntidad,
-  postProposito,
+  saveForm,
   finalizarEvaluacion
 }
