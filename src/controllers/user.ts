@@ -77,6 +77,9 @@ const createUser = async (req: Request, res: Response) => {
   const { user } = req.body
   const { id: id_admin } = req.body.userData
 
+  // viene un atributo mail
+  delete user.mail
+
   if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;

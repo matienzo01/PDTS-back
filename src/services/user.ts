@@ -89,7 +89,7 @@ const createUser = async (newUser: any, institutionId: number) => {
     newUser.password = await createHash(oldpass)
     const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0]
     await linkUserToInstitution(newUser.dni, institutionId, insertId, trx)
-    //mailer.sendNewUser(newUser, oldpass)
+    mailer.sendNewUser(newUser, oldpass)
     return await getOneUser(insertId, trx)
   })
 

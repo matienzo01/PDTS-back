@@ -1,13 +1,17 @@
 const nodemailer = require('nodemailer')
-const enlace = 'http://localhost:3001/login'
+const enlace = 'http://seva-pdts.ar/'
 import knex from '../database/knex';
 import { CustomError } from '../types/CustomError';
 import { Evaluador } from '../types/Evaluador';
 import { InstitucionCyT } from '../types/InstitucionCyT';
 import { Proyecto } from '../types/Proyecto';
 
+// no-reply@seva-pdts.ar
+// /EWr_C3uUvVX/iz
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'seva-pdts.ar',
+    port: 587, 
+    secure: false, 
     auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASS
