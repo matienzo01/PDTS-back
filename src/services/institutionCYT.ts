@@ -88,7 +88,8 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
   {
     const id_inst = await knex.transaction(async (trx) => {
       await mailer.checkEmail(newAdmin.email, trx)
-      newAdmin.password = await createHash(newAdmin.password)
+      const oldpass = newAdmin.password
+      newAdmin.password = await createHash(oldpass)
       const adminId = (await trx('admins_cyt').insert(newAdmin))[0];
 
       const newInst = {
@@ -116,6 +117,9 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
       }
 
       await trx(TABLE_INSTITUCIONES_CYT).insert(newInstCyt)
+
+      await mailer.sendNewInst(newAdmin, newInst, oldpass)
+
       return instId
     })
     return await getOneInstitucionCYT(id_inst)

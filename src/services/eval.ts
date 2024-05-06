@@ -7,6 +7,9 @@ import { Dimension } from '../types/Dimension'
 import { RespuestaEval } from '../types/RespuestaEval'
 import { Proyecto } from '../types/Proyecto'
 import { Participante } from '../types/Participante'
+import mailer from './mailer'
+import user from './user'
+import institutionCYT from './institutionCYT'
 
 const getEvaluationScores = async(id_proyecto: number) => {
 
@@ -360,6 +363,10 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
       // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
       await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
     } 
+
+    const {institucion_CYT : inst} = (await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion))
+    const admin = await knex('admins_cyt').select().where({id: inst.id_admin}).first()
+    //await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
   }
   return await getBothInstances(id_proyecto, id_usuario, rol)
 }

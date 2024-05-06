@@ -146,5 +146,6 @@ export default {
   getUserByDni,
   createUser,
   linkUserToInstitution,
-  updateUser
+  updateUser,
+  getOneUser
 }
