@@ -10,7 +10,7 @@ import routerUser from './routes/user';
 import routerEncuesta from './routes/encuesta';
 import cors from 'cors';
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 80;
 
 app.use(express.json())
 app.use(cors())
