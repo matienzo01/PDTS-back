@@ -358,15 +358,16 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
       .update({ fecha_fin_eval: getFecha() });
 
     if (proyecto.id_director === id_usuario) { 
+      const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion)
       const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
       const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
-      // users.forEach(user => mailer.notifyReviewer(newProject.proyecto.titulo, user));
+      users.forEach(user => mailer.notifyReviewer(proyecto.titulo, user, inst));
       await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
     } 
 
     const {institucion_CYT : inst} = (await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion))
     const admin = await knex('admins_cyt').select().where({id: inst.id_admin}).first()
-    //await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
+    await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
   }
   return await getBothInstances(id_proyecto, id_usuario, rol)
 }

@@ -53,7 +53,7 @@ const linkUser = async (user: Evaluador, inst: InstitucionCyT) => {
     const subject = 'Vinculación a Insitutción de Ciencia y Tecnología'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido vinculado a una institución (${inst.nombre}) de modo tal de poder ser elegido para llevar adelante la evaluación de PDTS
+Ha sido vinculado a una institución (${inst.nombre}) de modo tal de poder ser elegido para llevar adelante la evaluación de PDTS.
 
 
 Equipo de SEva-PDTS.`
@@ -62,11 +62,11 @@ Equipo de SEva-PDTS.`
 
 // linea 151 project.ts
 // linea 362 eval.ts
-const notifyReviewer = async(proyecto: any, user: Evaluador) => {
+const notifyReviewer = async(proyecto: any, user: Evaluador, inst: any) => {
     const subject = 'Asignacion a la evaluacion de un proyecto'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido escogido para realizar la evaluacion del proyecto ${proyecto.titulo}.
+Ha sido escogido para realizar la evaluacion del proyecto: "${proyecto.titulo}" perteneciente a la institución: "${inst.nombre}". Podrás hacerlo desde ${enlace}
 
 Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)

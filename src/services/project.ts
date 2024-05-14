@@ -5,6 +5,7 @@ import { InstitucionParticipante } from "../types/InstitucionParticipante"
 const TABLE = 'proyectos'
 import knex from '../database/knex'
 import mailer from './mailer'
+import institutionCYT from "./institutionCYT"
 
 const getAllProjects = async (id_institucion: number) => {
   const proyectos = await knex(TABLE).select().where({ id_institucion: id_institucion })
@@ -125,13 +126,14 @@ const assignInstitutionRoles = async (id_proyecto: number, roles: InstitucionPar
 
 const createProject = async (id_institucion: number, proyecto: any, roles: InstitucionParticipante[]) => {
 
+  const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(id_institucion)
+
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 
   proyecto.fecha_carga = fecha_carga
   proyecto.id_institucion = id_institucion
-  proyecto.id_estado_eval = 1 // 'sin evaluar'. Capaz no tiene mucho sentido este estado pq instantaneamente habria que cambiarlo a
-                              // 'En evaluacion por el director'
+  proyecto.id_estado_eval = 1 
   const result = await knex.transaction(async (trx) => {
 
     const insertId = await trx.insert(proyecto).into(TABLE)
@@ -148,7 +150,7 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
     
     const director = await trx('evaluadores').select().where({ id: newProject.proyecto.id_director }).first()
-    //mailer.notifyReviewer(newProject.proyecto, director )
+    mailer.notifyReviewer(newProject.proyecto, director, inst)
     return newProject
   })
 

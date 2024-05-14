@@ -120,7 +120,7 @@ const linkUserToInstitution = async (userDni: number, institutionId: number, use
     await queryBuilder('evaluadores_x_instituciones')
       .insert({ id_institucion: institutionId, id_evaluador: evaluatorId });
     if (!trx) {
-      //mailer.linkUser(user)
+      mailer.linkUser(user, institucion_CYT)
     }
   } catch (error) {
     // @ts-ignore
