@@ -10,8 +10,8 @@ const knex = Knex({
     password: '20ProySe-va24',
     database: 'seva-pdts'
   }
-});*/
-
+});
+*/
 
 
 const knex = Knex({
@@ -24,5 +24,6 @@ const knex = Knex({
     database: 'pdts'
   }
 });
+
 
 export default knex;
