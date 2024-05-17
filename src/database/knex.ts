@@ -1,6 +1,7 @@
 import Knex from 'knex';
 
 // para conectarse a la base de datos de manera remota
+/*
 const knex = Knex({
   client: 'mysql',
   connection: {
@@ -10,10 +11,9 @@ const knex = Knex({
     password: '20ProySe-va24',
     database: 'seva-pdts'
   }
-});
+});*/
 
 // este debería ser el que se use definitivamente
-/*
 const knex = Knex({
   client: 'mysql',
   connection: {
@@ -23,7 +23,7 @@ const knex = Knex({
     password: '20ProySe-va24',
     database: 'seva-pdts'
   }
-});*/
+});
 
 /* para conectarse con la base de datos localmente
 const knex = Knex({
