@@ -13,7 +13,7 @@ import routerEncuesta from './routes/encuesta';
 import cors from 'cors';
 
 const app = express();
-const PORT = 3000;
+const PORT = 443;
 const privateKey = fs.readFileSync('certificados/seva-pdts.ar.key');
 const certificate = fs.readFileSync('certificados/seva-pdts.ar.crt');
 const credentials = { key: privateKey, cert: certificate };
