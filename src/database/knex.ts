@@ -1,6 +1,6 @@
 import Knex from 'knex';
 
-
+/*
 const knex = Knex({
   client: 'mysql',
   connection: {
@@ -10,10 +10,9 @@ const knex = Knex({
     password: '20ProySe-va24',
     database: 'seva-pdts'
   }
-});
+});*/
 
 
-/*
 const knex = Knex({
   client: 'mysql',
   connection: {
@@ -23,7 +22,7 @@ const knex = Knex({
     password: '',
     database: 'pdts'
   }
-});*/
+});
 
 
 export default knex;
