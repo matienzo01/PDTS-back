@@ -6,12 +6,10 @@ import { Evaluador } from '../types/Evaluador';
 import { InstitucionCyT } from '../types/InstitucionCyT';
 import { Proyecto } from '../types/Proyecto';
 
-// no-reply@seva-pdts.ar
-// /EWr_C3uUvVX/iz
 const transporter = nodemailer.createTransport({
-    host: 'seva-pdts.ar',
-    port: 587, 
-    secure: false, 
+    host: 'vps-4116920-x.dattaweb.com',
+    port: 465, 
+    secure: true, 
     auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASS
