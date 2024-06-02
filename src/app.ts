@@ -28,12 +28,11 @@ app.use('/api/encuesta', routerEncuesta)
 
 // HTTPS 
 /*
-const PORT = 443;
+const PORT = 3000;
 import https from 'https'
 import fs from 'fs';
-const privateKey = fs.readFileSync('certificados/seva-pdts.ar.key');
-const certificate = fs.readFileSync('certificados/seva-pdts.ar.crt');
-
+const privateKey = fs.readFileSync('./certificados/seva-pdts.ar.key');
+const certificate = fs.readFileSync('./certificados/seva-pdts.ar.crt');
 const credentials = { key: privateKey, cert: certificate };
 const server = https.createServer(credentials, app);
 server.listen(PORT, () => {

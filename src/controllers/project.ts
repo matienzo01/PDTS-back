@@ -211,7 +211,6 @@ const unassignEvaluador = async (req: Request, res: Response) => {
 
 const getProjectsByUser = async (req: Request, res: Response) => {
   const { params: { id_usuario } } = req
-
   if (isNaN(parseInt(id_usuario))) {
     return res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
   }

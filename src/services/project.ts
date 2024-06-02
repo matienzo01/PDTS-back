@@ -60,7 +60,10 @@ const getInstParticipants = async (id_proyecto: number, trx: any = null) => {
 
 const getProjectsByUser = async (id_usuario: number) => {
   const proyectos = await knex('evaluadores_x_proyectos').join('proyectos', 'evaluadores_x_proyectos.id_proyecto', 'proyectos.id').select().where({ id_evaluador: id_usuario })
-  return { proyectos: proyectos }
+  return { proyectos: proyectos.filter(proyecto => {
+      return !(proyecto.id_estado_eval < 3 && proyecto.id_director !== id_usuario);
+    }) 
+  }
 }
 
 const userBelongsToInstitution = async (id_evaluador: number, id_institucion: number) => {
