@@ -55,7 +55,7 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
                 let sectionIndex = transformedResult.findIndex((section: any) => section.sectionId === item.id_seccion);
                 if (sectionIndex === -1) {
                     sectionIndex = transformedResult.push({
-                        name: item.nombre_seccion.toLowerCase(),
+                        name: item.nombre_seccion,
                         sectionId: item.id_seccion,
                         questions: []
                     }) - 1;
