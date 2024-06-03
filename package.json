@@ -3,7 +3,8 @@
     "start": "node ./dist/app.js",
     "dev": "nodemon --exec ts-node ./src/app.ts",
     "test:watch": "nodemon --exec npm test",
-    "test": "mocha test/test.js"
+    "test": "mocha test/test.js",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
