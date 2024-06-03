@@ -284,7 +284,7 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
         .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
         .update({ fecha_fin_op: getFecha() })
 
-    return {msg: 'Encuesta del sistema finalizada'}
+    return await getEncuesta(id_proyecto, id_usuario, 'evaluador')
 }
 
 
