@@ -10,9 +10,11 @@ import routerUser from './routes/user';
 import routerEncuesta from './routes/encuesta';
 import routerTest from './routes/test'
 import cors from 'cors';
+import https from 'https'
+import http from 'http'
+import fs from 'fs';
 
 const app = express();
-
 
 app.use(express.json())
 app.use(cors())
@@ -26,25 +28,20 @@ app.use('/api/instituciones', routerInst)
 app.use('/api/usuarios', routerUser)
 app.use('/api/encuesta', routerEncuesta)
 
-// HTTPS 
-/*
-const PORT = 3000;
-import https from 'https'
-import fs from 'fs';
-const privateKey = fs.readFileSync('./certificados/seva-pdts.ar.key');
-const certificate = fs.readFileSync('./certificados/seva-pdts.ar.crt');
-const credentials = { key: privateKey, cert: certificate };
-const server = https.createServer(credentials, app);
+const PORT = process.env.PORT_API
+
+let server
+if(process.env.MODE == 'DEV'){ //http
+  server = http.createServer(app)
+} else { //https
+  const privateKey = fs.readFileSync('./certificados/seva-pdts.ar.key');
+  const certificate = fs.readFileSync('./certificados/seva-pdts.ar.crt');
+  const credentials = { key: privateKey, cert: certificate };
+  server = https.createServer(credentials, app);
+}
+
 server.listen(PORT, () => {
-  console.log('funciona el server')
+  console.log(`Funciona el servidor en el puerto: ${PORT}`);
 });
-*/
-
-// HTTP
-
-const PORT = 3000;
-const server = app.listen(PORT, () => {
-  console.log('funciona el server')
-})
 
 module.exports = server
