@@ -79,7 +79,11 @@ const userBelongsToInstitution = async (id_evaluador: number, id_institucion: nu
 
 const assignEvaluador = async (data: any, id_institucion: number, trx: any = null) => {
   
-  await getOneProject(data.id_proyecto, id_institucion, trx)
+  const { proyecto } = await getOneProject(data.id_proyecto, id_institucion, trx)
+  
+  if(proyecto.id_estado_eval == 4 ) {
+    throw new CustomError('The evaluation has already been closed. You cant add a new evaluator', 409)
+  }
 
   if (!await userBelongsToInstitution(data.id_evaluador, id_institucion)) {
     throw new CustomError('The user is not associated with the institution that owns the project', 409)
@@ -100,8 +104,12 @@ const assignEvaluador = async (data: any, id_institucion: number, trx: any = nul
 }
 
 const unassignEvaluador = async (id_evaluador: number, id_proyecto: number) => {
-  //habria que ver de no eliminar al evaluador director
-  await getOneProject(id_proyecto)
+  const {proyecto} = await getOneProject(id_proyecto)
+
+  if(proyecto.id_estado_eval == 4 ) {
+    throw new CustomError('The evaluation has already been closed. You cant add a new evaluator', 409)
+  }
+
   const evaluador = await knex('evaluadores_x_proyectos').select().where({ id_evaluador, id_proyecto }).first()
   if ( evaluador === undefined ){
     throw new CustomError('There is no user with the providied id linked to the project', 409)
@@ -130,6 +138,14 @@ const assignInstitutionRoles = async (id_proyecto: number, roles: InstitucionPar
 const createProject = async (id_institucion: number, proyecto: any, roles: InstitucionParticipante[]) => {
 
   const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(id_institucion)
+
+  const hasEjecutora = roles.some(item => item.rol.toLocaleLowerCase() === 'ejecutora');
+  const hasDemandante = roles.some(item => item.rol.toLocaleLowerCase() === 'demandante');
+  const hasAdoptante = roles.some(item => item.rol.toLocaleLowerCase() === 'adoptante');
+  
+  if (!hasEjecutora || !hasDemandante || !hasAdoptante) {
+    throw new CustomError("The project must have at least one demanding institution, one executor and one adopter.", 400)
+  }
 
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
