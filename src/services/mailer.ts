@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer')
-const enlace = 'http://seva-pdts.ar/'
+const enlace = 'https://seva-pdts.ar/'
 import knex from '../database/knex';
 import { CustomError } from '../types/CustomError';
 import { Evaluador } from '../types/Evaluador';
@@ -27,7 +27,6 @@ const checkEmail = async(email: string, trx: any = null) => {
     }
 }
 
-// linea 92 user.ts
 const sendNewUser = async(user: Evaluador, oldpass: string) => {
     const subject = '¡Bienvenido/a a SEva-PDTS! Tu cuenta ha sido creada con éxito.'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
@@ -46,7 +45,6 @@ Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-// linea 123 user.ts
 const linkUser = async (user: Evaluador, inst: InstitucionCyT) => {
     const subject = 'Vinculación a Insitutción de Ciencia y Tecnología'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
@@ -58,26 +56,34 @@ Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-// linea 151 project.ts
-// linea 362 eval.ts
 const notifyReviewer = async(proyecto: any, user: Evaluador, inst: any) => {
     const subject = 'Asignacion a la evaluacion de un proyecto'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-Ha sido escogido para realizar la evaluacion del proyecto: "${proyecto.titulo}" perteneciente a la institución: "${inst.nombre}". Podrás hacerlo desde ${enlace}
+Ha sido escogido para realizar la evaluacion del proyecto: "${proyecto}" perteneciente a la institución: "${inst.nombre}". Si usted no es quien dirige el proyecto, deberá esperar a que este complete su evaluación. Podrás acceder al sistema desde ${enlace}
 
 Equipo de SEva-PDTS.`
     sendMail(user.email, subject, text)
 }
 
-// linea 120 insitutionCYT.ts
+const ReadyToEvaluate = async(proyecto: any, user: Evaluador, inst: any) => {
+    const subject = 'Evaluacion lsita para completar'
+    const text = `Estimado/a ${user.nombre} ${user.apellido},
+
+Ya se encuentra disponible el formulario de evaluacion del proyecto: "${proyecto}" perteneciente a la institución: "${inst.nombre}". Podrás completarlo desde ${enlace}
+
+Equipo de SEva-PDTS.`
+    sendMail(user.email, subject, text)
+}
+
+
 async function sendNewInst(newAdmin: any, newInst: any, oldpass: string) {
     const subject = 'Registro de Institución'
     const text = `Estimado/a ${newAdmin.nombre} ${newAdmin.apellido},
 
 ¡Nos complace darte la bienvenida a SEva-PDTS! Te informamos que tu cuenta para la administración de la institución ${newInst.nombre} ha sido creada con éxito.
     
-A continuación, encontrarás algunos detalles importantes sobre tu nueva cuenta:
+A continuación, encontrarás las credenciales de acceso a tu nueva cuenta:
         
 Correo electrónico asociado: ${newAdmin.email}
 Contraseña provisional: ${oldpass}
@@ -88,7 +94,6 @@ Equipo de SEva-PDTS.`
     sendMail(newAdmin.email, subject, text)
 }
 
-//linea 369 eval.ts
 async function finalizacionEval (admin: any, proyecto: any, user: any) {
     const subject = 'Registro de Institución'
     const text = `Estimado/a ${admin.nombre} ${admin.apellido},
@@ -121,5 +126,6 @@ export default{
     linkUser,
     notifyReviewer,
     sendNewInst,
-    finalizacionEval
+    finalizacionEval,
+    ReadyToEvaluate
 };

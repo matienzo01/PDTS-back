@@ -361,7 +361,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
       const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion)
       const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
       const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
-      users.forEach(user => mailer.notifyReviewer(proyecto.titulo, user, inst));
+      users.forEach(user => mailer.ReadyToEvaluate(proyecto.titulo, user, inst));
       await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
     } 
 

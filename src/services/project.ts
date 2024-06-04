@@ -100,6 +100,9 @@ const assignEvaluador = async (data: any, id_institucion: number, trx: any = nul
   const queryBuilder = trx || knex;
   try {
     await queryBuilder('evaluadores_x_proyectos').insert(data)
+    const user = await queryBuilder('evaluadores').where({id: data.id_evaluador}).first()
+    const {institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(id_institucion)
+    mailer.notifyReviewer(proyecto.titulo, user, inst)
   } catch (error) {
     // @ts-ignore
     if (error.code === 'ER_DUP_ENTRY') {
@@ -177,7 +180,7 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
     const newProject = await getOneProject(insertId[0], id_institucion, trx)
     
     const director = await trx('evaluadores').select().where({ id: newProject.proyecto.id_director }).first()
-    mailer.notifyReviewer(newProject.proyecto, director, inst)
+    mailer.notifyReviewer(newProject.proyecto.titulo, director, inst)
     return newProject
   })
 
