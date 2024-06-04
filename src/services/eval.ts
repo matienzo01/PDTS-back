@@ -63,20 +63,17 @@ const getFecha = () => {
   return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 }
 
-const getAmountQuestions = async(obligatoriedad_proposito: boolean) => {
-  let amount: any
+const getQuestionsIds = async(obligatoriedad_proposito: boolean) => {
   if (obligatoriedad_proposito){
-    amount = (await knex('indicadores as i')
+    return await knex('indicadores as i')
+    .select("i.id")
     .join('dimensiones as d', 'i.id_dimension', 'd.id')
-    .count().first())
   } else {
-    amount = (await knex('indicadores as i')
+    return await knex('indicadores as i')
+    .select("i.id")
     .join('dimensiones as d', 'i.id_dimension', 'd.id')
     .where({id_instancia: 1})
-    .count().first())
   }
-  
-  return amount['count(*)']
 }
 
 const getInstancia = async(id_instancia: number, nombreInstancia: string, rol: string, respuestas: RespuestaEval[] | null = null, idsNoRespondieron: number[] = []) => {
@@ -344,12 +341,19 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
       throw new CustomError('The evaluation had already been closed.', 409)
     }
     
-    const { cant_respuestas } = (await knex('respuestas_evaluacion')
-      .count('* as cant_respuestas')
-      .where({id_proyecto})
-      .where({id_evaluador: id_usuario}))[0]
-    
-    if (cant_respuestas != await getAmountQuestions(proyecto.obligatoriedad_proposito) ) {
+    const respuestas_guardadas = (await knex('respuestas_evaluacion')
+    .select("id_indicador")
+    .where({id_proyecto})
+    .where({id_evaluador: id_usuario}))
+
+    const total_preguntas = await getQuestionsIds(proyecto.obligatoriedad_proposito)
+
+    if (respuestas_guardadas.length != total_preguntas.length ) {
+      const ids_respuestas_guardadas = new Set(respuestas_guardadas.map(r => r.id_indicador));
+      const preguntas_no_respondidas = total_preguntas
+        .filter(p => !ids_respuestas_guardadas.has(p.id))
+        .map(p => p.id);
+      //console.log(preguntas_no_respondidas)
       throw new CustomError('The amount of answers does not match those expected', 400)
     }
 
