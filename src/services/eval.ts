@@ -237,7 +237,7 @@ const get = async(id_proyecto: number, id_usuario: number, rol: string, instanci
   } else {
     const proyecto = await verifyProject(id_proyecto, false)
     await projectService.verify_date(id_proyecto, id_usuario)
-    check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
+    //check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
     return await getInstancia(id_instancia, instancia, rol, await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario], rol))
   }
 }
