@@ -64,12 +64,14 @@ const getProjectsByUser = async (id_usuario: number) => {
   for(const proyecto of proyectos){
     proyecto.instituciones_participantes = await getInstParticipants(proyecto.id)
   }
-  //proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
-  
+
+  return {proyectos: proyectos}
+
+  /*
   return { proyectos: proyectos.filter(proyecto => {
       return !(proyecto.id_estado_eval < 3 && proyecto.id_director !== id_usuario);
     }) 
-  }
+  }*/
 }
 
 const userBelongsToInstitution = async (id_evaluador: number, id_institucion: number) => {
