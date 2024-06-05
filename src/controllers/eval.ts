@@ -81,7 +81,8 @@ const finalizarEvaluacion = async(req: Request, res: Response) => {
     res.status(200).json(await service.finalizarEvaluacion(parseInt(id_proyecto), parseInt(id_usuario), rol))
   } catch(error) {
     const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    const questions = (error as CustomError).questions || undefined
+    res.status(statusCode).json({ error: (error as CustomError).message, questions: questions})
   }
 }
 

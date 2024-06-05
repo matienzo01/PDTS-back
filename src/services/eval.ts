@@ -66,11 +66,11 @@ const getFecha = () => {
 const getQuestionsIds = async(obligatoriedad_proposito: boolean) => {
   if (obligatoriedad_proposito){
     return await knex('indicadores as i')
-    .select("i.id")
+    .select("i.id","i.pregunta")
     .join('dimensiones as d', 'i.id_dimension', 'd.id')
   } else {
     return await knex('indicadores as i')
-    .select("i.id")
+    .select("i.id","i.pregunta")
     .join('dimensiones as d', 'i.id_dimension', 'd.id')
     .where({id_instancia: 1})
   }
@@ -344,34 +344,42 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
     const respuestas_guardadas = (await knex('respuestas_evaluacion')
     .select("id_indicador")
     .where({id_proyecto})
-    .where({id_evaluador: id_usuario}))
+    .where({id_evaluador: id_usuario})
+    .whereNotNull("justificacion")
+    .where('justificacion', '!=', '')
+    .whereNotNull("respuesta"))
 
     const total_preguntas = await getQuestionsIds(proyecto.obligatoriedad_proposito)
+    const preguntas_entidad =  new Set((await getQuestionsIds(false)).map(r => r.id))
+    const preguntas_proposito = new Set((total_preguntas.filter(item1 => !preguntas_entidad.has(item1.id))).map(r => r.id))
 
     if (respuestas_guardadas.length != total_preguntas.length ) {
       const ids_respuestas_guardadas = new Set(respuestas_guardadas.map(r => r.id_indicador));
-      const preguntas_no_respondidas = total_preguntas
-        .filter(p => !ids_respuestas_guardadas.has(p.id))
-        .map(p => p.id);
-      //console.log(preguntas_no_respondidas)
-      throw new CustomError('The amount of answers does not match those expected', 400)
+      const preguntas_no_respondidas = {
+        Entidad: total_preguntas.filter(p => !ids_respuestas_guardadas.has(p.id) && preguntas_entidad.has(p.id)),
+        Proposito: total_preguntas.filter(p => !ids_respuestas_guardadas.has(p.id) && preguntas_proposito.has(p.id))
+      }
+      
+      throw new CustomError('The amount of answers does not match those expected', 400, preguntas_no_respondidas)
+    } else {
+      await knex('evaluadores_x_proyectos')
+        .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
+        .update({ fecha_fin_eval: getFecha() });
+
+      if (proyecto.id_director === id_usuario) { 
+        const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion)
+        const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
+        const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
+        users.forEach(user => mailer.ReadyToEvaluate(proyecto.titulo, user, inst));
+        await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
+      } 
+
+      const {institucion_CYT : inst} = (await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion))
+      const admin = await knex('admins_cyt').select().where({id: inst.id_admin}).first()
+      await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
     }
 
-    await knex('evaluadores_x_proyectos')
-      .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
-      .update({ fecha_fin_eval: getFecha() });
-
-    if (proyecto.id_director === id_usuario) { 
-      const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion)
-      const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
-      const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
-      users.forEach(user => mailer.ReadyToEvaluate(proyecto.titulo, user, inst));
-      await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
-    } 
-
-    const {institucion_CYT : inst} = (await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion))
-    const admin = await knex('admins_cyt').select().where({id: inst.id_admin}).first()
-    await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
+    
   }
   return await getBothInstances(id_proyecto, id_usuario, rol)
 }
