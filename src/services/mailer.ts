@@ -27,16 +27,11 @@ const checkEmail = async(email: string, trx: any = null) => {
     }
 }
 
-const sendNewUser = async(user: Evaluador, oldpass: string) => {
+const sendNewUser = async(user: Evaluador) => {
     const subject = '¡Bienvenido/a a SEva-PDTS! Tu cuenta ha sido creada con éxito.'
     const text = `Estimado/a ${user.nombre} ${user.apellido},
 
-¡Nos complace darte la bienvenida a SEva-PDTS! Te informamos que tu cuenta ha sido creada con éxito.
-    
-A continuación, encontrarás algunos detalles importantes sobre tu nueva cuenta:
-    
-Correo electrónico asociado: ${user.email}
-Contraseña provisional: ${oldpass}
+¡Nos complace darte la bienvenida a SEva-PDTS! Te informamos que tu cuenta ha sido creada con éxito. Podrá acceder al sistema usando el correo electrónico asociado a su usario (${user.email}) y su DNI como contraseña.
     
 Te recordamos que tu seguridad es nuestra prioridad. Por favor, asegúrate de mantener tus credenciales de inicio de sesión de forma segura y no compartirlas con terceros. Recomendamos encarecidamente que actualices tu contraseña en tu primera sesión por razones de seguridad. Puedes hacerlo accediendo a la sección de configuración de tu cuenta una vez que inicies sesión. Podrás hacerlo desde ${enlace}
 
@@ -77,16 +72,11 @@ Equipo de SEva-PDTS.`
 }
 
 
-async function sendNewInst(newAdmin: any, newInst: any, oldpass: string) {
+async function sendNewInst(newAdmin: any, newInst: any) {
     const subject = 'Registro de Institución'
     const text = `Estimado/a ${newAdmin.nombre} ${newAdmin.apellido},
 
-¡Nos complace darte la bienvenida a SEva-PDTS! Te informamos que tu cuenta para la administración de la institución ${newInst.nombre} ha sido creada con éxito.
-    
-A continuación, encontrarás las credenciales de acceso a tu nueva cuenta:
-        
-Correo electrónico asociado: ${newAdmin.email}
-Contraseña provisional: ${oldpass}
+¡Nos complace darte la bienvenida a SEva-PDTS! Te informamos que tu cuenta para la administración de la institución ${newInst.nombre} ha sido creada con éxito. Podrá acceder al sistema usando el correo electrónico asociado a su usario (${newAdmin.email}) y su DNI como contraseña.
         
 Te recordamos que tu seguridad es nuestra prioridad. Por favor, asegúrate de mantener tus credenciales de inicio de sesión de forma segura y no compartirlas con terceros. Recomendamos encarecidamente que actualices tu contraseña en tu primera sesión por razones de seguridad. Puedes hacerlo accediendo a la sección de configuración de tu cuenta una vez que inicies sesión. Podrás hacerlo desde ${enlace}
     

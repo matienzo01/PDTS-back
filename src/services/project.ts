@@ -53,7 +53,7 @@ const getInstParticipants = async (id_proyecto: number, trx: any = null) => {
   const queryBuilder = trx || knex;
   const participaciones = await queryBuilder('participacion_instituciones')
     .join('instituciones', 'participacion_instituciones.id_institucion', 'instituciones.id')
-    .select('nombre as institucion', 'rol')
+    .select('nombre as institucion', 'rol','rubro','pais','provincia','localidad','telefono_institucional','mail_institucional')
     .where('participacion_instituciones.id_proyecto', id_proyecto)
   return participaciones
 }

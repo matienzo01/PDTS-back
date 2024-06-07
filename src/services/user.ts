@@ -85,11 +85,11 @@ const createUser = async (newUser: any, institutionId: number) => {
   await mailer.checkEmail(newUser.email)
 
   return await knex.transaction(async (trx) => {
-    const oldpass = newUser.password
+    const oldpass = newUser.dni
     newUser.password = await createHash(oldpass)
     const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0]
     await linkUserToInstitution(newUser.dni, institutionId, insertId, trx)
-    mailer.sendNewUser(newUser, oldpass)
+    mailer.sendNewUser(newUser)
     return await getOneUser(insertId, trx)
   })
 

@@ -48,7 +48,7 @@ const createInstitucionCYT = async (req: Request, res: Response) => {
   if (!admin.nombre ||
     !admin.apellido ||
     !admin.email ||
-    !admin.password) {
+    !admin.dni) {
       return res.status(400).json({ error: "Missing fields in the admin" })
   }
 
@@ -83,9 +83,11 @@ const deleteInstitucionCYT = async (req: Request, res: Response) => {
   }
 
   try {
-    return res.status(204).json(await service.deleteInstitucionCYT(parseInt(id_institucion)))
+    await service.deleteInstitucionCYT(parseInt(id_institucion))
+    return res.status(200).json("Institucion eliminada exitosamente")
   } catch (error) {
-    return res.status(500).json({ error: `Error al eliminar la institucion con id ${id_institucion}` })
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 }
 

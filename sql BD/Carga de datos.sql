@@ -352,11 +352,11 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
 -- CARGA DE DATOS DE PRUEBA /////////////////////////////////////////////////////////////////////////
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
-INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
+INSERT INTO admins_cyt(nombre,apellido,email,password,dni) VALUES
     -- admin1
-    ('Juan','Administrador','admin1@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq'),
+    ('Juan','Administrador','admin1@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq',1234),
     -- admin2
-    ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
+    ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq',1234);
 
 INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional, esCyT) VALUES
     ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1),

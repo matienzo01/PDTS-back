@@ -216,7 +216,7 @@ const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespues
     await knex.transaction(async (trx) => {
 
         const opciones = await trx('opciones').select('valor')
-        const valores = opciones.map(objeto => objeto.valor)
+        const valores = opciones.map(objeto => objeto.valor).concat(undefined)
         valores.push('si', 'no')
 
         const rawIdsOpciones = await trx('preguntas_seccion').select('id').whereIn('id_tipo_pregunta', [1, 3])
@@ -224,19 +224,23 @@ const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespues
 
         const respuestas = rawRespuestas.map(rta => {
 
+            if(rta.answer === undefined){
+                return null
+            }
+
             if(idsOpciones.includes(rta.id_indicador)){
                 if(!valores.includes(rta.answer)) {
                     throw new CustomError(`The answer '${rta.answer}' its not valid option for the question ${rta.id_indicador}`, 400)
                 }
             }
-
+            
             return {
                 id_pregunta: rta.id_indicador,
                 id_evaluador: id_evaluador,
                 id_proyecto: id_proyecto,
                 respuesta: rta.answer
             }
-        })
+        }).filter((rta): rta is {id_pregunta: number, id_evaluador: number, id_proyecto: number, respuesta: string} => rta !== null);
 
         respuestas.forEach(async(rta) => {
             try {
@@ -262,21 +266,63 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     await canAnswer(id_proyecto, id_usuario)
     
     const [preguntas, respuestas] = await Promise.all([
-        knex('preguntas_seccion')
-            .count('* as cantidad')
-            .first(),
+        knex('preguntas_seccion'),
         knex('respuestas_encuesta')
-            .count('* as cantidad')
             .where({id_evaluador: id_usuario})
-            .where({id_proyecto})
-            .first()
+            .where({id_proyecto}),
     ])
 
     if (respuestas == undefined || preguntas == undefined) {
         throw new CustomError('Internal server Error', 500)
     }
 
-    if(preguntas.cantidad != respuestas.cantidad) {
+    const preguntasCual = preguntas.filter(p => p.pregunta == '¿Cual?')
+    const relacion = (await knex('relacion_subpregunta')
+        .whereIn('id_subpregunta', preguntasCual.map(p => p.id)))
+
+    const respuestasCual = respuestas.filter(r => preguntasCual.map(p => p.id).includes(r.id_pregunta))
+    const respuestasSINO = respuestas.filter(r => relacion.map(p => p.id_pregunta_padre).includes(r.id_pregunta))
+
+    /*console.log(respuestasCual)
+    console.log('----------')
+    console.log(relacion)
+    console.log('----------')
+    console.log(respuestasSINO)*/
+
+    const preguntasConPadre = preguntasCual.map(pregunta => {
+        const rel = relacion.find(sub => sub.id_subpregunta === pregunta.id);
+        return {
+          ...pregunta,
+          id_pregunta_padre: rel ? rel.id_pregunta_padre : null
+        };
+    });
+    
+    const preguntasConRespuestasSINO = preguntasConPadre.map(pregunta => {
+        const respuestaSINO = respuestasSINO.find(resp => resp.id_pregunta === pregunta.id_pregunta_padre);
+        return {
+          ...pregunta,
+          respuesta_SINO: respuestaSINO ? respuestaSINO.respuesta : null
+        };
+    });
+      
+    const preguntasCompletas = preguntasConRespuestasSINO.map(pregunta => {
+        const respuestaCual = respuestasCual.find(resp => resp.id_pregunta === pregunta.id);
+        return {
+            respuesta_SINO: pregunta.respuesta_SINO,
+            respuesta_Cual: respuestaCual ? respuestaCual.respuesta : null
+        };
+    });
+
+
+
+    let contador = 0;
+    preguntasCompletas.forEach(respuesta => {
+    if (respuesta.respuesta_SINO === 'no' && respuesta.respuesta_Cual === null) {
+        contador++;
+    }
+    });
+
+    if(respuestas.length + contador != preguntas.length){
         throw new CustomError('The amount of answers does not match those expected', 400)
     }
     

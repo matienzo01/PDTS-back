@@ -90,7 +90,6 @@ const createUser = async (req: Request, res: Response) => {
   }
 
   if (!user.hasOwnProperty('email') ||
-    !user.hasOwnProperty('password') ||
     !user.hasOwnProperty('nombre') ||
     !user.hasOwnProperty('apellido') ||
     !user.hasOwnProperty('dni') ||

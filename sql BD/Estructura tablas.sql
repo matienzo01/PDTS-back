@@ -13,8 +13,7 @@ CREATE TABLE evaluadores ( -- tabla de evaluadores/directores
     password VARCHAR(255),
 	nombre VARCHAR(255),
     apellido VARCHAR(255),
-    dni int, -- no lo usamos como clave primaria, pero nos va a ser de utilidad para verificar si un
-    		 -- evaluador existe en el sistema cuando una institucion quisiera vincularlo a ella
+    dni int, 
     celular  VARCHAR(255),
     especialidad  VARCHAR(255),
     institucion_origen VARCHAR(255),
@@ -28,7 +27,8 @@ CREATE TABLE admins_CyT ( -- tabla de administradores de instituciones cyt
     nombre VARCHAR(255),
     apellido VARCHAR(255),
     email VARCHAR(255),
-    password VARCHAR(255)
+    password VARCHAR(255),
+    dni int
 );
 
 CREATE TABLE tipos_instituciones( 

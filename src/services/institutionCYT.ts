@@ -88,7 +88,7 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
   {
     const id_inst = await knex.transaction(async (trx) => {
       await mailer.checkEmail(newAdmin.email, trx)
-      const oldpass = newAdmin.password
+      const oldpass = newAdmin.dni
       newAdmin.password = await createHash(oldpass)
       const adminId = (await trx('admins_cyt').insert(newAdmin))[0];
 
@@ -118,7 +118,7 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 
       await trx(TABLE_INSTITUCIONES_CYT).insert(newInstCyt)
 
-      await mailer.sendNewInst(newAdmin, newInst, oldpass)
+      await mailer.sendNewInst(newAdmin, newInst)
 
       return instId
     })
@@ -129,19 +129,20 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 }
 
 const deleteInstitucionCYT = async (id: number) => {
-  knex.transaction(async (trx) => {
-    const { id_admin } = (await getOneInstitucionCYT(id, trx)).institucion_CYT
-    const { proyectos } = await projectService.getAllProjects(id)
-    for (const project of proyectos) {
-      await projectService.deleteProject(id, project.id, trx)
+  return knex.transaction(async (trx) => {
+    const { id_admin } = (await getOneInstitucionCYT(id, trx)).institucion_CYT;
+    const { proyectos } = await projectService.getAllProjects(id);
+
+    if (proyectos.length != 0) {
+      throw new CustomError("The institution cannot be deleted, you must first make sure that it does not have any projects in it", 409);
+    } else {
+      await trx('evaluadores_x_instituciones').del().where({ id_institucion: id });
+      await trx(TABLE_INSTITUCIONES_CYT).where({ id }).del();
+      await trx(TABLE_INSTITUCIONES).where({ id }).del();
+      await trx('admins_cyt').where({ id: id_admin }).del();
     }
-    await trx('evaluadores_x_instituciones').del().where({ id_institucion: id })
-    await trx(TABLE_INSTITUCIONES_CYT).where({ id }).del()
-    await trx(TABLE_INSTITUCIONES).where({ id }).del()
-    await trx('admins_cyt').where({ id: id_admin }).del()
-  })
-  return;
-}
+  });
+};
 
 export default {
   getOneInstitucionCYT,
