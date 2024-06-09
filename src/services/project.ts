@@ -6,6 +6,7 @@ const TABLE = 'proyectos'
 import knex from '../database/knex'
 import mailer from './mailer'
 import institutionCYT from "./institutionCYT"
+import user from "./user"
 
 const getAllProjects = async (id_institucion: number) => {
   const proyectos = await knex(TABLE).select().where({ id_institucion: id_institucion })
@@ -46,6 +47,14 @@ const getParticipants = async (id_proyecto: number, trx: any = null) => {
     .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores.dni', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
     .where({ id_proyecto: id_proyecto })
 
+  
+  const director = participantes.find((p: any) => p.rol === 'director')
+  if(director){
+    const { usuario } = await user.getOneUser(director.id)
+    const { id, nombre, apellido, dni, ...otrosDatos } = usuario;
+    Object.assign(director, otrosDatos)
+  }
+
   return participantes;
 }
 
@@ -63,6 +72,7 @@ const getProjectsByUser = async (id_usuario: number) => {
   
   for(const proyecto of proyectos){
     proyecto.instituciones_participantes = await getInstParticipants(proyecto.id)
+    proyecto.participantes = await getParticipants(proyecto.id)
   }
 
   return {proyectos: proyectos}
