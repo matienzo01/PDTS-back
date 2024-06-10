@@ -6,7 +6,36 @@ import mailer from './mailer'
 const TABLE_EVALUADORES = 'evaluadores'
 import institutuionService from './institutionCYT'
 
-const getAllUsers = async () => {
+const getAllAdmins = async() => {
+  const admins = await knex('admins_cyt as a')
+    .join('instituciones_cyt as icyt','icyt.id_admin','a.id')
+    .join('instituciones as i','i.id','icyt.id')
+    .join('tipos_instituciones as t','t.id','icyt.id_tipo')
+    .select(
+      'a.nombre as nombre_admin',
+      'a.apellido as apellido_admin',
+      'a.email as email_admin',
+      'a.dni as dni_admin',
+      'i.id as id_institucion',
+      'i.nombre as nombre_institucion',
+      'icyt.nombre_referente as nombre_referente_institucion',
+      'icyt.apellido_referente as apellido_referente_institucion',
+      'icyt.cargo_referente as cargo_referente_institucion',
+      'icyt.telefono_referente as telefono_referente_institucion',
+      'icyt.mail_referente as mail_referente_institucion',
+      'i.rubro as rubro_institucion',
+      'i.pais as pais_institucion',
+      'i.provincia as provincia_institucion',
+      'i.localidad as localidad_institucion',
+      'telefono_institucional',
+      'mail_institucional',
+      'tipo as tipo_institucion'
+      )
+
+  return { administradores: admins}
+}
+
+const getAllEvaluadores = async () => {
   const users = await knex(TABLE_EVALUADORES).select()
   const participaEn = (await knex.raw('CALL obtener_instituciones_de_usuario'))[0][0]
 
@@ -24,7 +53,7 @@ const getAllUsers = async () => {
     }
   )
 
-  return { usuarios: usuarios }
+  return { evaluadores: usuarios }
 }
 
 const getAllInstitutionUsers = async (id_institucion: number) => {
@@ -141,7 +170,8 @@ const updateUser = async (id: number, user: Partial<Evaluador>) => {
 }
 
 export default {
-  getAllUsers,
+  getAllAdmins,
+  getAllEvaluadores,
   getAllInstitutionUsers,
   getUserByDni,
   createUser,

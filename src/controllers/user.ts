@@ -4,8 +4,21 @@ import { Request, Response } from 'express';
 import { CustomError } from '../types/CustomError.js';
 
 const getAllUsers = async (req: Request, res: Response) => {
+  const { rol } = req.query
+
   try {
-    res.status(200).json(await service.getAllUsers())
+    let response;
+    if (rol === 'evaluadores') {
+      response = await service.getAllEvaluadores();
+    } else if (rol === 'admins') {
+      response = await service.getAllAdmins();
+    } else {
+      const {evaluadores} = await service.getAllEvaluadores();
+      const {administradores} = await service.getAllAdmins();
+      response = { evaluadores, administradores };
+    }
+    res.status(200).json(response);
+
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
