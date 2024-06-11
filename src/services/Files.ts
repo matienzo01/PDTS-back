@@ -20,3 +20,9 @@ const fileFilter = (req: any, file: any, cb: any) => {
 };
 
 export const upload = multer({ storage, fileFilter });
+
+const getFiles = async(id_proyecto: number, id_usuario: number) => {
+  return 'god'
+}
+
+export default { getFiles }

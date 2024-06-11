@@ -5,8 +5,8 @@ import authUser from '../middlewares/authUser'
 import checkRol from '../middlewares/checkRol'
 import renameFile from '../middlewares/renameFile'
 
-import { uploadFile } from '../controllers/uploadFiles';
-import { upload } from '../services/uploadFiles';
+import { uploadFile, getFiles } from '../controllers/uploadFiles';
+import { upload } from '../services/Files';
 
 router
     .get('/entidad/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getEntidad)
@@ -23,6 +23,8 @@ router
             }
             next();
         });
-    }, authUser, checkRol(['evaluador']), renameFile ,uploadFile);
+    }, authUser, checkRol(['evaluador']), renameFile ,uploadFile)
+
+    .get('/form/:id_proyecto/files', authUser, checkRol(['evaluador','admin']), getFiles)
 
 export default router
