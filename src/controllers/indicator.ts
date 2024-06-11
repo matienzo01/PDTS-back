@@ -58,7 +58,6 @@ const createIndicator = async(req: Request, res: Response) => {
     try {
         res.status(201).json(await service.createIndicator(indicador))
     } catch (error){
-        console.log(error)
         const statusCode = (error as CustomError).status || 500
         const message = (error as CustomError).status ? (error as CustomError).message : 'Error creating the indicator'
         res.status(statusCode).json({ error: message})

@@ -283,12 +283,6 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     const respuestasCual = respuestas.filter(r => preguntasCual.map(p => p.id).includes(r.id_pregunta))
     const respuestasSINO = respuestas.filter(r => relacion.map(p => p.id_pregunta_padre).includes(r.id_pregunta))
 
-    /*console.log(respuestasCual)
-    console.log('----------')
-    console.log(relacion)
-    console.log('----------')
-    console.log(respuestasSINO)*/
-
     const preguntasConPadre = preguntasCual.map(pregunta => {
         const rel = relacion.find(sub => sub.id_subpregunta === pregunta.id);
         return {

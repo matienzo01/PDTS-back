@@ -268,7 +268,6 @@ const validateAnswers = async(respuestas: any) => {
     .select('i.id', 'd.id_instancia')
 
   const idsRtas = respuestas.map((obj: { id_indicador: number }) => obj.id_indicador)
-
   if (!(idsRtas.every((id: number) => { return validIds.some(item => item.id === id) })))
     throw new CustomError('There are answers that do not correspond to any existing indicator', 400)
 
@@ -386,9 +385,10 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
 
 export default {
   getEvaluationScores,
-
+  check_director_evaluation,
   getEntidad,
   getProposito,
   saveForm,
-  finalizarEvaluacion
+  finalizarEvaluacion,
+  validateAnswers
 }
