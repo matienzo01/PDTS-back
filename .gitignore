@@ -2,6 +2,7 @@ node_modules
 .env
 dist
 certificados
+uploads
 .vscode/*
 !.vscode/extensions.json
 .idea

@@ -134,7 +134,7 @@ const deleteInstitucionCYT = async (id: number) => {
     const { proyectos } = await projectService.getAllProjects(id);
     const participaciones = await trx('participacion_instituciones').where({id_institucion: id})
 
-    if (/*proyectos.length != 0 ||*/ participaciones.length > 0) {
+    if (proyectos.length != 0 || participaciones.length > 0) {
       throw new CustomError("The institution cannot be deleted, you must first make sure that it does not have any projects in it or that it does not participate in projects of other institutions", 409);
     } else {
       await trx('evaluadores_x_instituciones').del().where({ id_institucion: id });
