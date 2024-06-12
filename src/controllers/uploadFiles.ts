@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import fileService from '../services/Files'
+import { CustomError } from '../types/CustomError';
+
 
 export const uploadFile = (req: Request, res: Response): void => {
   if (!req.file) {
@@ -13,11 +15,16 @@ export const uploadFile = (req: Request, res: Response): void => {
 
 export const getFiles = async(req: Request, res: Response) => {
   const id_proyecto = parseInt(req.params.id_proyecto)
-  const id_usuario = req.body.userData.id; 
+  const {id:id_usuario, rol} = req.body.userData; 
 
   try {
-    res.status(200).json( await fileService.getFiles(id_proyecto, id_usuario))
+    if(rol == 'evaluador'){
+      res.status(200).json(await fileService.getFilesEvaluador(id_proyecto, id_usuario))
+    } else {
+      res.status(200).json(await fileService.getParticipantFiles(id_proyecto, id_usuario))
+    }
   } catch (error) {
-    
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
   }
 };
