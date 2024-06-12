@@ -14,6 +14,7 @@ const getAllProjects = async (id_institucion: number) => {
   for (let i = 0; i < proyectos.length; i++) {
     proyectos[i].participantes = await getParticipants(proyectos[i].id)
     proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
+    proyectos[i].director = await getDirector(proyectos[i])
   }
   return { proyectos: proyectos }
 }
@@ -25,6 +26,7 @@ const getOneProject = async (id_proyecto: number, id_institucion: number | null 
     .select()
     .where({ id: id_proyecto })
     .first();
+
 
   const participants = await getParticipants(id_proyecto, queryBuilder)
   const participating_insts = await getInstParticipants(id_proyecto, queryBuilder)
@@ -47,14 +49,6 @@ const getParticipants = async (id_proyecto: number, trx: any = null) => {
     .select('evaluadores.id', 'evaluadores.nombre', 'evaluadores.apellido', 'evaluadores.dni', 'evaluadores_x_proyectos.rol', 'evaluadores_x_proyectos.fecha_inicio_eval', 'evaluadores_x_proyectos.fecha_fin_eval', 'evaluadores_x_proyectos.fecha_fin_op')
     .where({ id_proyecto: id_proyecto })
 
-  
-  const director = participantes.find((p: any) => p.rol === 'director')
-  if(director){
-    const { usuario } = await user.getOneUser(director.id)
-    const { id, nombre, apellido, dni, ...otrosDatos } = usuario;
-    Object.assign(director, otrosDatos)
-  }
-
   return participantes;
 }
 
@@ -67,12 +61,26 @@ const getInstParticipants = async (id_proyecto: number, trx: any = null) => {
   return participaciones
 }
 
+const getDirector = async(proyecto: any, trx: any = null) => {
+  const queryBuilder = trx || knex;
+  const director = proyecto.participantes.find((p: any) => p.rol === 'director')
+  let usuario;
+  if (trx){
+    usuario  = (await user.getOneUser(director.id, queryBuilder)).usuario
+  } else {
+    usuario  = (await user.getOneUser(director.id)).usuario
+  }
+     
+  return usuario
+}
+
 const getProjectsByUser = async (id_usuario: number) => {
   const proyectos = await knex('evaluadores_x_proyectos').join('proyectos', 'evaluadores_x_proyectos.id_proyecto', 'proyectos.id').select().where({ id_evaluador: id_usuario })
   
   for(const proyecto of proyectos){
     proyecto.instituciones_participantes = await getInstParticipants(proyecto.id)
     proyecto.participantes = await getParticipants(proyecto.id)
+    proyecto.director = await getDirector(proyecto)
   }
 
   return {proyectos: proyectos}
@@ -255,6 +263,7 @@ const verify_date = async (id_proyecto: number, id_evaluador: number) => {
 }
 
 export default {
+  getDirector,
   getAllProjects,
   getOneProject,
   createProject,

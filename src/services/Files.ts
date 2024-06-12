@@ -40,17 +40,14 @@ const getNames = (id_proyecto: number, id_user:number , proposito: boolean): str
 
 const getParticipantFiles = async (id_proyecto: number, id_admin: number) => {
   // hay que chequear que el admin sea de la institucion dueña del proyecto
-  const { obligatoriedad_proposito, participantes } = (await projectService.getOneProject(id_proyecto)).proyecto;
+  const { participantes } = (await projectService.getOneProject(id_proyecto)).proyecto;
   const ids = participantes.filter((obj: any) => obj.fecha_fin_eval == null).map((obj: any) => obj.id);
   const a: {id_evaluador: number, files: any}[] = [];
   
   await Promise.all(ids.map(async (id: number) => {
     const files = await getFilesEvaluador(id_proyecto, id);
-    console.log(`Archivos obtenidos para el ID ${id}:`, files);
     a.push({ id_evaluador: id, files });
   }));
-  console.log('aaaaaaaaaaasdasd-as-d------------------------------------------')
-  console.log(a)
   return a
 }
 

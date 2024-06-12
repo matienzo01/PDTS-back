@@ -37,7 +37,9 @@ const getOneProject = async (req: Request, res: Response) => {
   }
 
   try {
-    res.status(200).json(await service.getOneProject(parseInt(id_proyecto), parseInt(id_institucion)))
+    const { proyecto } = await service.getOneProject(parseInt(id_proyecto), parseInt(id_institucion))
+    proyecto.director = await service.getDirector(proyecto)
+    res.status(200).json(proyecto)
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
