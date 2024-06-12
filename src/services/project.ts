@@ -64,13 +64,10 @@ const getInstParticipants = async (id_proyecto: number, trx: any = null) => {
 const getDirector = async(proyecto: any, trx: any = null) => {
   const queryBuilder = trx || knex;
   const director = proyecto.participantes.find((p: any) => p.rol === 'director')
-  let usuario;
-  if (trx){
-    usuario  = (await user.getOneUser(director.id, queryBuilder)).usuario
-  } else {
-    usuario  = (await user.getOneUser(director.id)).usuario
-  }
-     
+  const {usuario}  = await user.getOneUser(director.id, queryBuilder)
+  usuario.fecha_inicio_eval = director.fecha_inicio_eval
+  usuario.fecha_fin_eval = director.fecha_fin_eval
+  usuario.fecha_fin_op = director.fecha_fin_op
   return usuario
 }
 
