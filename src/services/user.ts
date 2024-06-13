@@ -12,11 +12,12 @@ const getAllAdmins = async() => {
     .join('instituciones as i','i.id','icyt.id')
     .join('tipos_instituciones as t','t.id','icyt.id_tipo')
     .select(
-      'a.nombre as nombre_admin',
-      'a.apellido as apellido_admin',
-      'a.email as email_admin',
-      'a.dni as dni_admin',
-      'i.id as id_institucion',
+      'a.nombre as nombre',
+      'a.apellido as apellido',
+      'a.email as email',
+      'a.dni as dni',
+      'a.id',
+      'i.id as institutionId',
       'i.nombre as nombre_institucion',
       'icyt.nombre_referente as nombre_referente_institucion',
       'icyt.apellido_referente as apellido_referente_institucion',

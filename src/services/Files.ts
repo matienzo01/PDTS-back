@@ -1,3 +1,4 @@
+/*
 import multer from 'multer';
 import fs from 'fs/promises'
 import projectService from '../services/project'
@@ -81,4 +82,4 @@ const getFiles = async (names: string[]) => {
   return filesArray; 
 };
 
-export default { getFilesEvaluador, getParticipantFiles }
+export default { getFilesEvaluador, getParticipantFiles }*/

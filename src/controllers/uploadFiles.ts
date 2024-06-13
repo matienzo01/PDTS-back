@@ -1,3 +1,4 @@
+/*
 import { Request, Response } from 'express';
 import fileService from '../services/Files'
 import { CustomError } from '../types/CustomError';
@@ -27,4 +28,4 @@ export const getFiles = async(req: Request, res: Response) => {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
   }
-};
+};*/
