@@ -316,7 +316,7 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     }
     });
 
-    if(respuestas.length + contador != preguntas.length){
+    if(respuestas.length + contador > preguntas.length){
         throw new CustomError('The amount of answers does not match those expected', 400)
     }
     
