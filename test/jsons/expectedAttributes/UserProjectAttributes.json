@@ -5,7 +5,7 @@
       "fecha_fin_op", "id", "titulo", "id_estado_eval", "id_director",
       "id_institucion", "FechaInicio", "FechaFin", "area_conocim",
       "subarea_conocim", "problema_a_resolver", "producto_a_generar",
-      "resumen", "novedad_u_originalidad", "grado_relevancia",
-      "grado_pertinencia", "grado_demanda", "fecha_carga", "obligatoriedad_proposito"
+      "resumen", "novedad_u_originalidad", "relevancia",
+      "pertinencia", "demanda", "fecha_carga", "obligatoriedad_proposito"
     ]
   }

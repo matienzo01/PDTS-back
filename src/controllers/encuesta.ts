@@ -53,10 +53,21 @@ const finallizarEncuesta = async(req: Request, res: Response) => {
       const questions = (error as CustomError).questions || undefined
       res.status(statusCode).json({ error: (error as CustomError).message, questions: questions})
     }
-  }
+}
+
+const getPromedios = async(req: Request, res: Response) => {
+  
+try {
+    res.status(200).json(await service.getPromedios())
+} catch(error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ message: (error as CustomError).message })
+}
+}
 
 export default {
     getEncuesta,
     postEncuesta,
-    finallizarEncuesta
+    finallizarEncuesta,
+    getPromedios
 }

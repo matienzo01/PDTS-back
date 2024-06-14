@@ -66,9 +66,9 @@ const createProject = async (req: Request, res: Response) => {
     !proyecto.hasOwnProperty("producto_a_generar") ||
     !proyecto.hasOwnProperty("resumen") ||
     !proyecto.hasOwnProperty("novedad_u_originalidad") ||
-    !proyecto.hasOwnProperty("grado_relevancia") ||
-    !proyecto.hasOwnProperty("grado_pertinencia") ||
-    !proyecto.hasOwnProperty("grado_demanda") ||
+    !proyecto.hasOwnProperty("relevancia") ||
+    !proyecto.hasOwnProperty("pertinencia") ||
+    !proyecto.hasOwnProperty("demanda") ||
     !proyecto.hasOwnProperty('obligatoriedad_proposito') ||
     !proyecto.hasOwnProperty('obligatoriedad_opinion') ||
     !proyecto.hasOwnProperty('id_modelo_encuesta') ||

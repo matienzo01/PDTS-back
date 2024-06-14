@@ -15,9 +15,9 @@ export interface Proyecto {
     producto_a_generar: string;
     resumen: string;
     novedad_u_originalidad: string;
-    grado_relevancia: string;
-    grado_pertinencia: string;
-    grado_demanda: string;
+    relevancia: string;
+    pertinencia: string;
+    demanda: string;
     fecha_carga: string;
     obligatoriedad_proposito: number;
     participantes: Participante[];

@@ -18,7 +18,8 @@ const type_and_options = (
                 .filter(elemento => elemento.id_preguntas_seccion === item.id_pregunta)
                 .map(elemento => elemento.id_opcion)
             
-            opciones_item = opciones.filter(item => ids_opciones.includes(item.id));
+            opciones_item = opciones
+                .filter(item => ids_opciones.includes(item.id))
         }
         return { tipo_preg, opciones_item }
 }
@@ -28,7 +29,7 @@ const getFecha = () => {
     return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 }
 
-const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: RespuestaEncuesta[] | null = null, idsNoRespondieron: number[] | null = null) => {
+const generateEncuesta = async(proyecto: any, rol: string, respuestas: any[] | null = null, idsNoRespondieron: number[] | null = null) => {
     const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg, modelo] = await Promise.all([
         knex('tipo_preguntas').select(),
         knex('opciones').select(),
@@ -74,7 +75,8 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
                 if(respuestas?.length) {
                     const rtasFiltradas = respuestas
                         .filter(rta => { return rta.id_pregunta === question.questionId;})
-                        .map(({ id_evaluador, respuesta, optionId }) => ({ id_evaluador, respuesta, optionId }));
+                        .map(({ id_evaluador, respuesta, optionId, id_proyecto }) => ({ id_evaluador, respuesta, optionId, id_proyecto }));
+
                     if(rtasFiltradas.length) {
                         question.respuestas = rtasFiltradas
                     }
@@ -98,7 +100,7 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
                 if(respuestas?.length) {
                     const rtasFiltradas = respuestas
                         .filter(rta => { return rta.id_pregunta === subQuestion.questionId;})
-                        .map(({ id_evaluador, respuesta, optionId }) => ({ id_evaluador, respuesta, optionId }));
+                        .map(({ id_evaluador, respuesta, optionId, id_proyecto }) => ({ id_evaluador, respuesta, optionId, id_proyecto }));
                     if(rtasFiltradas.length){
                         subQuestion.respuestas = rtasFiltradas
                     }
@@ -135,13 +137,13 @@ const generateEncuesta = async(proyecto: Proyecto, rol: string, respuestas: Resp
     return { name: 'Encuesta del Sistema', sections: transformedResult }
 }
 
-const getEncuestaRtas = async(id_proyecto: number, arrayIdsEvaluadores: number[], rol: string) => {
+const getEncuestaRtas = async(id_proyecto: number[], arrayIdsEvaluadores: number[], rol: string) => {
 
     let query = knex('respuestas_encuesta as re')
         .join('preguntas_seccion as p', 're.id_pregunta', 'p.id')
         .leftJoin('opciones as o', 're.respuesta', 'o.valor')
         .select('re.id_evaluador','id_pregunta', 'respuesta', 'o.id as optionId')
-        .where('re.id_proyecto', id_proyecto)
+        .whereIn('re.id_proyecto', id_proyecto)
         .whereIn('re.id_evaluador', arrayIdsEvaluadores)
 
     if( rol == 'admin general') {
@@ -183,10 +185,10 @@ const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) 
     if(rol === 'admin general'){
         const idsEvaluadores: number[] = await getIDsEvaluadores(id_proyecto)
         const idsNoRespondieron: number[] = await getIDsNoRespondieron(id_proyecto)
-        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
+        return await generateEncuesta(proyecto, rol, await getEncuestaRtas([id_proyecto], idsEvaluadores, rol), idsNoRespondieron)
     } else {
         await projectService.verify_date(id_proyecto, id_usuario)
-        return await generateEncuesta(proyecto, rol, await getEncuestaRtas(id_proyecto, [id_usuario], rol))
+        return await generateEncuesta(proyecto, rol, await getEncuestaRtas([id_proyecto], [id_usuario], rol))
     }
     
 }
@@ -313,9 +315,69 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     return await getEncuesta(id_proyecto, id_usuario, 'evaluador')
 }
 
+const calculaPorcentaje = (question: any, totalRespuestas: number) => {
+    if (question.type === 'opcion multiple') {
+        calcularPorcentajesOpcionMultiple(question, totalRespuestas);
+    } else if (question.type === 'si/no') {
+        const percentageSiNo = calcularPorcentajeSiNo(question.respuestas);
+        question.percentage = percentageSiNo.toFixed(2);
+    }
+}
+
+function calcularPorcentajeSiNo(respuestas: any) {
+    const totalRespuestas = respuestas.length;
+    const countSi = respuestas.filter((respuesta: any) => respuesta.respuesta === 'si').length;
+    return (countSi / totalRespuestas) * 100;
+}
+
+const calcularPorcentajesOpcionMultiple = (question: any, totalRespuestas: number) => {
+    const counts = question.options.reduce((acc: any, option: any) => {
+        acc[option.id] = 0;
+        return acc;
+    }, {});
+    
+    question.respuestas.forEach((respuesta: any) => {
+        counts[respuesta.optionId]++;
+    });
+    
+    question.options.forEach((option: any) => {
+        const optionId = option.id;
+        const percentage = (counts[optionId] / totalRespuestas) * 100;
+        option.percentage = percentage.toFixed(2);
+    });
+}
+
+const getPromedios = async() => {
+    const responses = await knex('respuestas_encuesta')
+    .leftJoin('opciones as o', 'respuestas_encuesta.respuesta', 'o.valor')
+    .join('evaluadores_x_proyectos', function() {
+        this.on('respuestas_encuesta.id_proyecto', '=', 'evaluadores_x_proyectos.id_proyecto')
+            .andOn('respuestas_encuesta.id_evaluador', '=', 'evaluadores_x_proyectos.id_evaluador');
+    })
+    .whereNotNull('evaluadores_x_proyectos.fecha_fin_op')
+    .select('respuestas_encuesta.*', 'o.id as optionId');
+
+    const cantidad = (await knex('evaluadores_x_proyectos').whereNotNull('fecha_fin_op')).length
+    const encuesta: any =  await generateEncuesta({id_modelo_encuesta: 1}, 'admin_general', responses)
+    
+    if(cantidad > 0) {
+        encuesta.sections.forEach((section: any) => {
+            section.questions.forEach( (question: any) => {
+                calculaPorcentaje(question, cantidad)
+                question.subQuestions.forEach ( (subq: any) => {
+                    calculaPorcentaje(subq, cantidad)
+                })
+            })
+        })
+    }
+    
+    return encuesta
+}
+
 
 export default {
     getEncuesta,
     postEncuesta,
-    finallizarEncuesta
+    finallizarEncuesta,
+    getPromedios
 }
