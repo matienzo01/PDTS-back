@@ -13,8 +13,8 @@ router
 
   .get('/rubros', authUser, checkRol(['admin', 'admin general']), controller.getRubros)
   .post('/rubros', authUser, checkRol(['admin', 'admin general']), controller.createRubro)
-  .put('/rubros', authUser, checkRol(['admin', 'admin general']), controller.updateRubro)
-  .delete('/rubros', authUser, checkRol(['admin', 'admin general']), controller.deleteRubro)
+  .put('/rubros/:id_rubro', authUser, checkRol(['admin', 'admin general']), controller.updateRubro)
+  .delete('/rubros/:id_rubro', authUser, checkRol(['admin', 'admin general']), controller.deleteRubro)
 
 
   .get('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.getOneInstitucion)

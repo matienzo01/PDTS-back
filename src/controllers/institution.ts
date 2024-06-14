@@ -31,10 +31,11 @@ const createRubro = async (req: Request, res: Response) => {
 }
 
 const updateRubro = async(req: Request, res: Response) => {
+  const { params: { id_rubro} } = req
   const { updatedRubro } = req.body
 
   try {
-    return res.status(200).json(await service.updateRubro(updatedRubro))
+    return res.status(200).json(await service.updateRubro(parseInt(id_rubro), updatedRubro))
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
@@ -42,10 +43,10 @@ const updateRubro = async(req: Request, res: Response) => {
 }
 
 const deleteRubro = async(req: Request, res: Response) => {
-  const {id} = req.body
+  const { params: { id_rubro} } = req
 
   try {
-    return res.status(200).json(await service.deleteRubro(id))
+    return res.status(200).json(await service.deleteRubro(parseInt(id_rubro)))
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })

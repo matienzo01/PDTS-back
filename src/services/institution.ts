@@ -30,10 +30,10 @@ const verify = async(id: number) => {
   }
 }
 
-const updateRubro = async(updatedRubro: any) => {
-  await verify(updatedRubro.id)
-  await knex('rubros').where({ id: updatedRubro.id }).update(updatedRubro)
-  return await knex('rubros').select().where({id: updatedRubro.id})
+const updateRubro = async(id:number, updatedRubro: any) => {
+  await verify(id)
+  await knex('rubros').where({ id}).update(updatedRubro)
+  return await knex('rubros').select().where({id: id})
 }
 
 const deleteRubro = async(id: number) => {
