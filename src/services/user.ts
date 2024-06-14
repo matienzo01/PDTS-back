@@ -10,7 +10,6 @@ const getAllAdmins = async() => {
   const admins = await knex('admins_cyt as a')
     .join('instituciones_cyt as icyt','icyt.id_admin','a.id')
     .join('instituciones as i','i.id','icyt.id')
-    .join('tipos_instituciones as t','t.id','icyt.id_tipo')
     .select(
       'a.nombre as nombre',
       'a.apellido as apellido',
@@ -24,13 +23,11 @@ const getAllAdmins = async() => {
       'icyt.cargo_referente as cargo_referente_institucion',
       'icyt.telefono_referente as telefono_referente_institucion',
       'icyt.mail_referente as mail_referente_institucion',
-      'i.rubro as rubro_institucion',
       'i.pais as pais_institucion',
       'i.provincia as provincia_institucion',
       'i.localidad as localidad_institucion',
       'telefono_institucional',
-      'mail_institucional',
-      'tipo as tipo_institucion'
+      'mail_institucional'
       )
 
   return { administradores: admins}

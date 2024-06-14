@@ -4,10 +4,10 @@ import controller from '../controllers/eval'
 import authUser from '../middlewares/authUser'
 import checkRol from '../middlewares/checkRol'
 
-/*
+
 import renameFile from '../middlewares/renameFile'
-import { uploadFile, getFiles } from '../controllers/uploadFiles';
-import { upload } from '../services/Files';*/
+import { uploadFile, getFileNames, getFile } from '../controllers/uploadFiles';
+import { upload } from '../services/Files';
 
 router
     .get('/entidad/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getEntidad)
@@ -17,7 +17,7 @@ router
     .get('/:id_proyecto/respuestas/pdf', authUser, checkRol(['admin']), controller.generatePDF)
     .put('/:id_proyecto/finalizar', authUser, checkRol(['evaluador','admin']), controller.finalizarEvaluacion)
 
-    /*
+    
     .post('/form/:id_proyecto/files', (req, res, next) => {
         upload.single('file')(req, res, (err) => {
             if (err) {
@@ -27,6 +27,7 @@ router
         });
     }, authUser, checkRol(['evaluador']), renameFile ,uploadFile)
 
-    .get('/form/:id_proyecto/files', authUser, checkRol(['evaluador','admin']), getFiles)*/
+    .get('/form/:id_proyecto/files', authUser, checkRol(['evaluador','admin']), getFileNames)
+    .get('/form/:id_proyecto/files/:file_name', authUser, checkRol(['evaluador','admin']), getFile)
 
 export default router

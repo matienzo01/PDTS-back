@@ -1,4 +1,4 @@
-/*import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import projectService from '../services/project'
 import evalService from '../services/eval';
@@ -52,4 +52,4 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export default renameFile;*/
+export default renameFile;
