@@ -265,61 +265,47 @@ const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespues
 const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     await canAnswer(id_proyecto, id_usuario)
     
-    const [preguntas, respuestas] = await Promise.all([
-        knex('preguntas_seccion'),
+    const [rawPreguntas, respuestas, relacion] = await Promise.all([
+        knex('preguntas_seccion')
+            .where('id_tipo_pregunta','<>','4'),
         knex('respuestas_encuesta')
             .where({id_evaluador: id_usuario})
-            .where({id_proyecto}),
+            .where({id_proyecto})
+            .whereNotNull('respuesta'),
+        knex('relacion_subpregunta')
     ])
 
-    if (respuestas == undefined || preguntas == undefined) {
+    if (respuestas == undefined || rawPreguntas == undefined) {
         throw new CustomError('Internal server Error', 500)
     }
 
-    const preguntasCual = preguntas.filter(p => p.pregunta == '¿Cual?')
-    const relacion = (await knex('relacion_subpregunta')
-        .whereIn('id_subpregunta', preguntasCual.map(p => p.id)))
-
-    const respuestasCual = respuestas.filter(r => preguntasCual.map(p => p.id).includes(r.id_pregunta))
-    const respuestasSINO = respuestas.filter(r => relacion.map(p => p.id_pregunta_padre).includes(r.id_pregunta))
-
-    const preguntasConPadre = preguntasCual.map(pregunta => {
-        const rel = relacion.find(sub => sub.id_subpregunta === pregunta.id);
-        return {
-          ...pregunta,
-          id_pregunta_padre: rel ? rel.id_pregunta_padre : null
-        };
-    });
+    const CUAL = rawPreguntas.filter(item => item.pregunta === '¿Cual?');
+    const respuestasCUAL = respuestas.filter(rta => CUAL.map(p => p.id).includes(rta.id_pregunta))
+    const SINO = relacion.filter(item => CUAL.map(p => p.id).includes(item.id_subpregunta))
+    const respuestasSINO = respuestas.filter(rta => SINO.map(p => p.id_pregunta_padre).includes(rta.id_pregunta))
     
-    const preguntasConRespuestasSINO = preguntasConPadre.map(pregunta => {
-        const respuestaSINO = respuestasSINO.find(resp => resp.id_pregunta === pregunta.id_pregunta_padre);
-        return {
-          ...pregunta,
-          respuesta_SINO: respuestaSINO ? respuestaSINO.respuesta : null
-        };
-    });
-      
-    const preguntasCompletas = preguntasConRespuestasSINO.map(pregunta => {
-        const respuestaCual = respuestasCual.find(resp => resp.id_pregunta === pregunta.id);
-        return {
-            respuesta_SINO: pregunta.respuesta_SINO,
-            respuesta_Cual: respuestaCual ? respuestaCual.respuesta : null
-        };
-    });
+    let contador = 0
+    SINO.forEach( p => {
+        const rtaSINO = respuestasSINO.find(q => q.id_pregunta == p.id_pregunta_padre)
+        const rtaCUAL = respuestasCUAL.find(q => q.id_pregunta == p.id_subpregunta)
 
+        if (rtaSINO.respuesta == 'si' && rtaCUAL == undefined) {
+            const question = {
+                id: p.id_subpregunta,
+                pregunta: CUAL.find(c => c.id == p.id_subpregunta).pregunta
+            }
+            throw new CustomError('The amount of answers does not match those expected', 400, [question])
+        }
+        
+        if (rtaSINO.respuesta == 'no' && rtaCUAL == undefined) {
+            contador++
+        }
+    })
 
-
-    let contador = 0;
-    preguntasCompletas.forEach(respuesta => {
-    if (respuesta.respuesta_SINO === 'no' && respuesta.respuesta_Cual === null) {
-        contador++;
-    }
-    });
-
-    if(respuestas.length + contador > preguntas.length){
+    if(respuestas.length + contador !== rawPreguntas.length){
         throw new CustomError('The amount of answers does not match those expected', 400)
     }
-    
+
     await knex('evaluadores_x_proyectos')
         .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
         .update({ fecha_fin_op: getFecha() })

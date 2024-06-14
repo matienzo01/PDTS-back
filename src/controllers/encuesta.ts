@@ -50,7 +50,8 @@ const finallizarEncuesta = async(req: Request, res: Response) => {
       res.status(200).json(await service.finallizarEncuesta(parseInt(id_proyecto), parseInt(id_usuario)))
     } catch(error) {
       const statusCode = (error as CustomError).status || 500
-      res.status(statusCode).json({ error: (error as CustomError).message })
+      const questions = (error as CustomError).questions || undefined
+      res.status(statusCode).json({ error: (error as CustomError).message, questions: questions})
     }
   }
 
