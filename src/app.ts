@@ -9,6 +9,7 @@ import routerInst from './routes/institution';
 import routerUser from './routes/user';
 import routerEncuesta from './routes/encuesta';
 import routerTest from './routes/test'
+import routerTerritorio from './routes/territorio'
 import cors from 'cors';
 import https from 'https'
 import http from 'http'
@@ -27,6 +28,7 @@ app.use('/api/instituciones_cyt', routerInstCYT)
 app.use('/api/instituciones', routerInst)
 app.use('/api/usuarios', routerUser)
 app.use('/api/encuesta', routerEncuesta)
+app.use('/api/territorio', routerTerritorio)
 
 const PORT = process.env.PORT_API
 
