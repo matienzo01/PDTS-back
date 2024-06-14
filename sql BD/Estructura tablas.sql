@@ -31,6 +31,11 @@ CREATE TABLE admins_CyT ( -- tabla de administradores de instituciones cyt
     dni int
 );
 
+CREATE TABLE rubros (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre varchar(255)
+);
+
 CREATE TABLE tipos_instituciones( 
     id INT AUTO_INCREMENT PRIMARY KEY,
     tipo varchar(255)
@@ -39,35 +44,36 @@ CREATE TABLE tipos_instituciones(
 CREATE TABLE instituciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255),
-    rubro varchar(255),
+    id_rubro int,
+    id_tipo INT,
     pais VARCHAR(255),
     provincia VARCHAR(255),
     localidad VARCHAR(255),
     telefono_institucional VARCHAR(255),
     mail_institucional VARCHAR(255),
-    esCyT tinyint(1) NOT NULL
+    esCyT tinyint(1) NOT NULL,
+    FOREIGN key (id_rubro) REFERENCES rubros(id),
+    FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
 );
 
 CREATE TABLE instituciones_cyt (
     id INT PRIMARY KEY,
     id_admin INT,
-    id_tipo INT,
     nombre_referente VARCHAR(255),
     apellido_referente VARCHAR(255),
     cargo_referente VARCHAR(255),
     telefono_referente VARCHAR(255),
     mail_referente VARCHAR(255),
     FOREIGN KEY (id) REFERENCES instituciones(id),
-    FOREIGN KEY (id_admin) REFERENCES admins_CyT(id),
-    FOREIGN KEY (id_tipo) REFERENCES tipos_instituciones(id)
+    FOREIGN KEY (id_admin) REFERENCES admins_CyT(id)
 );
 
-CREATE TABLE estado_eval( -- tabla de estados posibles de los proyectos
+CREATE TABLE estado_eval( 
   	id INT AUTO_INCREMENT PRIMARY KEY,
     nombre varchar(255)
 );
 
-CREATE TABLE modelos_encuesta ( -- tabla de los diferentes modelos de encuesta
+CREATE TABLE modelos_encuesta ( 
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre varchar(255)
 );
@@ -112,16 +118,16 @@ CREATE TABLE proyectos (
     FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id)
 );
 
-CREATE TABLE participacion_instituciones( -- relacion entre una inst cyt con otras instituciones para su participacion en un proyecto
+CREATE TABLE participacion_instituciones( 
     id_proyecto INT,
     id_institucion INT,
-    rol varchar(255), -- ejecutora, financiadora, adoptante, demandante o promotora
+    rol varchar(255), 
     PRIMARY KEY (id_institucion,id_proyecto,rol),
     FOREIGN KEY (id_institucion) REFERENCES instituciones(id),
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)
 );
 
-CREATE TABLE participantes( -- tabla de los integrantes del grupo de trabajo del pdts
+CREATE TABLE participantes( 
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_institucion INT, 
     nombre varchar(255),
@@ -132,7 +138,7 @@ CREATE TABLE participantes( -- tabla de los integrantes del grupo de trabajo del
 CREATE TABLE participantes_x_proyectos(
 	id_proyecto INT,
     id_participante INT,
-    funcion varchar(255), -- la funcion que tomaron dentro del grupo de trabajo
+    funcion varchar(255), 
     FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),
     FOREIGN KEY (id_participante) REFERENCES participantes(id)
 );

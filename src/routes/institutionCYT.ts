@@ -8,7 +8,6 @@ import checkRol from '../middlewares/checkRol'
 
 router
   .get('/', authUser, checkRol(['admin', 'admin general']), institution_controller.getAllInstitucionesCYT)
-  .get('/tipos', authUser, checkRol(['admin', 'admin general']), institution_controller.getTiposInstituciones)
   .get('/:id_institucion', authUser, checkRol(['evaluador','admin', 'admin general']), institution_controller.getOneInstitucionCYT)
   .get('/:id_institucion/proyectos', authUser, checkRol(['admin', 'admin general']), project_controller.getAllProjects)
   .get('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['evaluador', 'admin', 'admin general']), project_controller.getOneProject)

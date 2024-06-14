@@ -2667,3 +2667,4 @@ INSERT INTO `paises` (`id`, `nombre`) VALUES
 (231, 'Yibuti'),
 (232, 'Zambia'),
 (233, 'Zimbabue');
+

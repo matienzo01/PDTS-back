@@ -16,50 +16,32 @@ const getInstIdFromAdmin = async (id_admin: number) => {
 
 const getOneInstitucionCYT = async (id: number , trx: any = null) => {
   const queryBuilder = trx || knex;
-
-  const [tipos_inst, inst] = await Promise.all([
-    queryBuilder('tipos_instituciones').select(),
-    queryBuilder(TABLE_INSTITUCIONES)
-      .select('*')
-      .innerJoin(TABLE_INSTITUCIONES_CYT, 'instituciones.id', 'instituciones_cyt.id')
-      .where('instituciones.id', id)
-      .first()
-  ])
-
+  const inst = await queryBuilder(TABLE_INSTITUCIONES)
+    .select('*')
+    .innerJoin(TABLE_INSTITUCIONES_CYT, 'instituciones.id', 'instituciones_cyt.id')
+    .where('instituciones.id', id)
+    .first()
+  
   if (inst === undefined) {
     throw new CustomError('There is no institution with that id', 404)
   }
 
-  const tipoCorrespondiente = tipos_inst.find((tipo: any) => tipo.id === inst.id_tipo);
-  if (tipoCorrespondiente) {
-    inst.tipo = tipoCorrespondiente.tipo;
-    delete inst.id_tipo;
-  }
+  delete inst.id_rubro
+  delete inst.id_tipo
 
   return { institucion_CYT: inst }
 }
 
 const getAllInstitucionesCYT = async () => {
-  const [tipos_inst, inst] = await Promise.all([
-    knex('tipos_instituciones').select(),
-    knex(TABLE_INSTITUCIONES)
-      .select('*')
-      .innerJoin(TABLE_INSTITUCIONES_CYT, 'instituciones.id', 'instituciones_cyt.id')
-  ])
+  const inst = await knex(TABLE_INSTITUCIONES)
+    .select('*')
+    .innerJoin(TABLE_INSTITUCIONES_CYT, 'instituciones.id', 'instituciones_cyt.id')
 
   inst.forEach(institucion => {
-    const tipoCorrespondiente = tipos_inst.find(tipo => tipo.id === institucion.id_tipo);
-    if (tipoCorrespondiente) {
-      institucion.tipo = tipoCorrespondiente.tipo;
-      delete institucion.id_tipo;
-    }
+    delete institucion.id_rubro
+    delete institucion.id_tipo
   });
   return { instituciones_CYT: inst }
-}
-
-const getTiposInstituciones = async () => {
-  const tipos = await knex('tipos_instituciones').select()
-  return { tipos: tipos }
 }
 
 const createHash = async (password: string) => {
@@ -94,7 +76,8 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 
       const newInst = {
         nombre: institucion.nombre,
-        rubro: institucion.rubro,
+        id_rubro: 1,
+        id_tipo: 1,
         pais: institucion.pais,
         provincia: institucion.provincia,
         localidad: institucion.localidad,
@@ -108,7 +91,6 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
       const newInstCyt = {
         id: instId,
         id_admin: adminId,
-        id_tipo: institucion.id_tipo, //hay que fijarnos que exista el tipo a insertar
         nombre_referente: institucion.nombre_referente,
         apellido_referente: institucion.apellido_referente,
         cargo_referente: institucion.cargo_referente,
@@ -150,6 +132,5 @@ export default {
   getAllInstitucionesCYT,
   createInstitucionCYT,
   deleteInstitucionCYT,
-  getTiposInstituciones,
   getInstIdFromAdmin
 }

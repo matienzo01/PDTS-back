@@ -2,6 +2,56 @@ import service from '../services/institution'
 import { Request, Response } from 'express';
 import { CustomError } from '../types/CustomError';
 
+const getTiposInstituciones = async (req: Request, res: Response) => {
+  try {
+    return res.status(200).json(await service.getTiposInstituciones())
+  } catch (error) {
+    return res.status(500).json({ error: 'Error al obtener los tipos de instituciones' })
+  }
+}
+
+const getRubros = async (req: Request, res: Response) => {
+  try {
+    return res.status(200).json(await service.getRubros())
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const createRubro = async (req: Request, res: Response) => {
+  const { nombre } = req.body
+
+  try {
+    return res.status(200).json(await service.createRubro(nombre))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const updateRubro = async(req: Request, res: Response) => {
+  const { updatedRubro } = req.body
+
+  try {
+    return res.status(200).json(await service.updateRubro(updatedRubro))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const deleteRubro = async(req: Request, res: Response) => {
+  const {id} = req.body
+
+  try {
+    return res.status(200).json(await service.deleteRubro(id))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
 const getInstituciones = async (req: Request, res: Response) => {
   try {
     res.status(200).json(await service.getInstituciones())
@@ -39,7 +89,8 @@ const createInstitucion = async(req: Request, res: Response) => {
     !institucion.hasOwnProperty('pais') ||
     !institucion.hasOwnProperty('provincia') ||
     !institucion.hasOwnProperty('localidad') ||
-    !institucion.hasOwnProperty('rubro') ||
+    !institucion.hasOwnProperty('id_rubro') ||
+    !institucion.hasOwnProperty('id_tipo') ||
     !institucion.hasOwnProperty('telefono_institucional') ||
     !institucion.hasOwnProperty('mail_institucional') ||
     !institucion.esCyt === undefined) {
@@ -57,5 +108,10 @@ const createInstitucion = async(req: Request, res: Response) => {
 export default {
   getInstituciones,
   getOneInstitucion,
-  createInstitucion
+  createInstitucion,
+  getRubros,
+  getTiposInstituciones,
+  createRubro,
+  updateRubro,
+  deleteRubro
 }

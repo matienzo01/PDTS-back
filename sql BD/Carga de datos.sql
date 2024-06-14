@@ -29,6 +29,7 @@ INSERT INTO tipo_preguntas (tipo) VALUES
     ('contenedora');			-- id 4
 
 INSERT INTO tipos_instituciones(tipo) VALUES
+    ('cyt'),
 	('Organizacion Gubernamental'),
 	('Asociación Civil'),
 	('Cámara'),
@@ -46,6 +47,8 @@ INSERT into estado_eval(nombre) VALUES
     ('Evaluado');
 
 INSERT INTO instancias (nombre) VALUES ('Entidad'), ('Proposito');
+
+INSERT INTO rubros (nombre) VALUE ('cyt');
 
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 -- Dimensiones e indicadores de la instancia de Entidad ///////////////////////////////////////////////////////////////////
@@ -358,14 +361,13 @@ INSERT INTO admins_cyt(nombre,apellido,email,password,dni) VALUES
     -- admin2
     ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq',1234);
 
-INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional, esCyT) VALUES
-    ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1),
-    ('UTN', 'RUBRO B', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com', 1),
-    ('Hospital General', 'Salud', 'Argentina', 'Buenos Aires', 'Ciudad C', '2264588978', 'contacto@hospitalgeneral.ar', 0);
+INSERT INTO instituciones(nombre,id_rubro,pais,provincia,localidad,telefono_institucional,mail_institucional, esCyT, id_tipo) VALUES
+    ('Universidad XYZ',1, 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1, 1),
+    ('UTN', 1, 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com', 1, 1);
 
-INSERT INTO instituciones_cyt(id,id_admin,id_tipo,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
-    (1,1,1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
-    (2,2,8,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
+INSERT INTO instituciones_cyt(id,id_admin,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
+    (1,1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
+    (2,2,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
 
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 
@@ -374,14 +376,6 @@ VALUES
 ('evaluador3@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'UTN', 'España', 'Madrid', 'Ciudad D'),
 ('evaluador4@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'UTN', 'Colombia', 'Bogotá', 'Ciudad E'),
 ('evaluador5@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Hospital General', 'Chile', 'Santiago', 'Ciudad F');
-
--- contraseñas:
--- 
---  evaluador 1 --> contrasena123
---  evaluador 2 --> password456
---  evaluador 3 --> clave789
---  evaluador 4 --> segura987
---  evaluador 5 --> miclave123
 
 INSERT INTO evaluadores_x_instituciones(id_institucion,id_evaluador) VALUES
     (1,1),
