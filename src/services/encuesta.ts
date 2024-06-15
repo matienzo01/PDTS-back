@@ -331,20 +331,56 @@ function calcularPorcentajeSiNo(respuestas: any) {
 }
 
 const calcularPorcentajesOpcionMultiple = (question: any, totalRespuestas: number) => {
+
+    /*
     const counts = question.options.reduce((acc: any, option: any) => {
         acc[option.id] = 0;
         return acc;
     }, {});
     
+    // Contar las respuestas por opción
     question.respuestas.forEach((respuesta: any) => {
-        counts[respuesta.optionId]++;
+        if (respuesta.optionId !== null) { // asegurarse de que optionId no sea null
+            counts[respuesta.optionId]++;
+        }
     });
     
+    // Calcular los porcentajes para las opciones pertinentes
     question.options.forEach((option: any) => {
-        const optionId = option.id;
-        const percentage = (counts[optionId] / totalRespuestas) * 100;
-        option.percentage = percentage.toFixed(2);
+        if (option.id in counts) {
+            const percentage = (counts[option.id] / totalRespuestas) * 100;
+            option.percentage = percentage.toFixed(2);
+        }
+    });*/
+
+    console.log(question.questionId)
+    question.options.forEach((o: any) => {
+        o.percentage = 0
+    })
+
+    question.respuestas.forEach((rta: any) => {
+        console.log(rta)
+        question.options.find((o: any) => o.id === rta.optionId).percentage += (100 / totalRespuestas)
+        console.log(question.options.find((o: any) => o.id === rta.optionId))
+    })
+
+    console.log('-----------------')
+    console.log('-----------------')
+
+    question.options.forEach((o: any) => {
+        o.percentage = o.percentage.toFixed(2);
     });
+    /*
+    console.log(question.respuestas)
+    console.log(a)
+    console.log('------------------')
+    console.log('------------------')
+    console.log('------------------')
+
+    question.options.forEach((o: any) => {
+        o.percentage = (a.find(p => p.id == o.id).tot / totalRespuestas).toFixed(2)
+    });*/
+
 }
 
 const getPromedios = async() => {

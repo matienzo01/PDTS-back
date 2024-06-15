@@ -297,7 +297,7 @@ INSERT INTO opciones(valor) VALUES
     ('pertinente'),
     ('muy pertinente'),
     
-    ('no agregan valor'),
+    ('no agrega valor'),
     ('agrega poco valor'),
     ('agrega valor'),
     ('agrega mucho valor'),
