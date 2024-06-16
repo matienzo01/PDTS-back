@@ -91,7 +91,7 @@ const getOneAdmin = async(id: number) => {
   if (!user) {
     throw new CustomError('There is no user with the provided id', 404)
   }
-  console.log(user)
+  //console.log(user)
   const { password, ...returnedData } = user
   return { admin: returnedData }
 }
