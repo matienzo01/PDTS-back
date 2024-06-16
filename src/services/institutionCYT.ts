@@ -127,6 +127,8 @@ const deleteInstitucionCYT = async (id: number) => {
   });
 };
 
+
+
 export default {
   getOneInstitucionCYT,
   getAllInstitucionesCYT,

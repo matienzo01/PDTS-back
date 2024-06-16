@@ -1,6 +1,6 @@
-drop database pdts;
-CREATE DATABASE pdts;
-use pdts;
+drop database seva_pdts_prueba;
+CREATE DATABASE seva_pdts_prueba;
+use seva_pdts_prueba;
 
 CREATE TABLE admin ( -- administrador general del sistema
 	email VARCHAR(255) NOT NULL PRIMARY KEY,
@@ -22,7 +22,7 @@ CREATE TABLE evaluadores ( -- tabla de evaluadores/directores
     localidad_residencia VARCHAR(255)  
 );
 
-CREATE TABLE admins_CyT ( -- tabla de administradores de instituciones cyt
+CREATE TABLE admins_cyt ( -- tabla de administradores de instituciones cyt
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255),
     apellido VARCHAR(255),
@@ -65,7 +65,7 @@ CREATE TABLE instituciones_cyt (
     telefono_referente VARCHAR(255),
     mail_referente VARCHAR(255),
     FOREIGN KEY (id) REFERENCES instituciones(id),
-    FOREIGN KEY (id_admin) REFERENCES admins_CyT(id)
+    FOREIGN KEY (id_admin) REFERENCES admins_cyt(id)
 );
 
 CREATE TABLE estado_eval( 

@@ -20,6 +20,8 @@ router
   .post('/:id_institucion/usuarios', authUser, checkRol(['admin']), user_controller.createUser)
   .post('/:id_institucion/usuarios/vincular_usuario', authUser, checkRol(['admin', 'admin general']), user_controller.linkUserToInstitution)
 
+  .put('/:id_institucion/admin/:id_admin', authUser, checkRol(['admin']), user_controller.updateAdminCYT)
+
   .delete('/:id_institucion', authUser, checkRol(['admin general']), institution_controller.deleteInstitucionCYT)
   .delete('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['admin']), project_controller.deleteProject)
   .delete('/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador', authUser, checkRol(['admin']), project_controller.unassignEvaluador)

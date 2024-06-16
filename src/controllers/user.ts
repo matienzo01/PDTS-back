@@ -134,13 +134,40 @@ const updateUser = async (req: Request, res: Response) => {
     return ;
   }
 
-  if (id_usuario != req.body.id_usuario){
+  if (id_usuario != req.body.userData.id){
     res.status(401).json({ error: "you can only update your own user" })
     return ;
   }
 
   try {
-    res.status(200).json(await service.updateUser(parseInt(id_usuario), user))
+    res.status(200).json(await service.updateUser(parseInt(id_usuario), user,'evaluador'))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const updateAdminCYT = async(req: Request, res: Response) => {
+  const { params: { id_institucion, id_admin } } = req
+  const { admin } = req.body
+
+  if (isNaN(parseInt(id_institucion))) {
+    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
+
+  if (id_admin != req.body.userData.id){
+    res.status(401).json({ error: "you can only update your own user" })
+    return ;
+  }
+
+  if (id_institucion != req.body.userData.institutionId){
+    res.status(401).json({ error: "You can only update the admin of your own institution" })
+    return ;
+  }
+
+  try {
+    res.status(200).json( await service.updateUser(parseInt(id_admin), admin,'admin'))
+   
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
@@ -153,5 +180,6 @@ export default {
   getUserByDni,
   linkUserToInstitution,
   createUser,
-  updateUser
+  updateUser,
+  updateAdminCYT
 }

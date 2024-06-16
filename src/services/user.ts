@@ -85,6 +85,17 @@ const getOneUser = async (id: number, trx: any = null) => {
   return { usuario: returnedData }
 }
 
+const getOneAdmin = async(id: number) => {
+  const user = await knex('admins_cyt').select().where({ id }).first()
+
+  if (!user) {
+    throw new CustomError('There is no user with the provided id', 404)
+  }
+  console.log(user)
+  const { password, ...returnedData } = user
+  return { admin: returnedData }
+}
+
 const createHash = async (password: string) => {
   return new Promise((resolve, reject) => {
     bcrypt.hash(password, 10, (err: Error | undefined, hash: string) => {
@@ -162,9 +173,20 @@ const linkUserToInstitution = async (userDni: number, institutionId: number, use
     return { usuario: user }
 }
 
-const updateUser = async (id: number, user: Partial<Evaluador>) => {
-  await knex(TABLE_EVALUADORES).where({ id: id }).update(user)
-  return await getOneUser(id)
+const updateUser = async(id: number, user: any, rol: string) => {
+  if (user.email) {
+    await mailer.checkEmail(user.email)
+  }
+  if(user.password) {
+    user.password = await createHash(user.password)
+  }
+  if(rol == 'admin') {
+    await knex('admins_cyt').where({id: id}).update(user)
+    return await getOneAdmin(id)
+  } else {
+    await knex(TABLE_EVALUADORES).where({ id: id }).update(user)
+    return await getOneUser(id)
+  }
 }
 
 export default {
