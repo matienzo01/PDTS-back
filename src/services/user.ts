@@ -174,19 +174,41 @@ const linkUserToInstitution = async (userDni: number, institutionId: number, use
 }
 
 const updateUser = async(id: number, user: any, rol: string) => {
-  if (user.email) {
+  let userActual
+  if(rol == 'admin') {
+    userActual = (await getOneAdmin(id)).admin
+  } else {
+    userActual = (await getOneUser(id)).usuario
+  }
+
+  if (user.email && user.email != userActual.email) {
     await mailer.checkEmail(user.email)
   }
+
+  const userToUpdate: any = {
+    email:  user.email,
+    nombre: user.nombre,
+    apellido: user.apellido,
+  }
+
   if(user.password) {
-    user.password = await createHash(user.password)
+    userToUpdate.password = await createHash(user.password)
   }
+
   if(rol == 'admin') {
-    await knex('admins_cyt').where({id: id}).update(user)
+    await knex('admins_cyt').where({id: id}).update(userToUpdate)
     return await getOneAdmin(id)
-  } else {
-    await knex(TABLE_EVALUADORES).where({ id: id }).update(user)
-    return await getOneUser(id)
   }
+
+  userToUpdate.celular = user.celular
+  userToUpdate.institucion_origen = user.institucion_origen
+  userToUpdate.pais_residencia = user.pais_residencia
+  userToUpdate.provincia_residencia = user.provincia_residencia
+  userToUpdate.localidad_residencia = user.localidad_residencia
+  userToUpdate.especialidad = user.especialidad
+
+  await knex(TABLE_EVALUADORES).where({ id: id }).update(userToUpdate)
+  return await getOneUser(id)
 }
 
 export default {
