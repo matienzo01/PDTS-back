@@ -21,6 +21,7 @@ router
   .post('/:id_institucion/usuarios/vincular_usuario', authUser, checkRol(['admin', 'admin general']), user_controller.linkUserToInstitution)
 
   .put('/:id_institucion/admin/:id_admin', authUser, checkRol(['admin']), user_controller.updateAdminCYT)
+  .put('/:id_institucion', authUser, checkRol(['admin', 'admin general']), institution_controller.updateInstitucionCYT)
 
   .delete('/:id_institucion', authUser, checkRol(['admin general']), institution_controller.deleteInstitucionCYT)
   .delete('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['admin']), project_controller.deleteProject)

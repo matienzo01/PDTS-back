@@ -106,10 +106,23 @@ const createInstitucion = async(req: Request, res: Response) => {
   }
 }
 
+const updateInstitucion = async(req: Request, res: Response) => {
+  const { params: { inst_id} } = req
+  const { institucion } = req.body
+
+  try {
+    return res.status(200).json(await service.updateInstitucion(parseInt(inst_id), institucion))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
 export default {
   getInstituciones,
   getOneInstitucion,
   createInstitucion,
+  updateInstitucion,
   getRubros,
   getTiposInstituciones,
   createRubro,

@@ -81,9 +81,28 @@ const deleteInstitucionCYT = async (req: Request, res: Response) => {
   }
 }
 
+
+const updateInstitucionCYT = async (req: Request, res: Response) => {
+  const { params: { id_institucion } } = req
+  const {institucion, userData } = req.body
+  
+  if(userData.rol != 'admin general' && userData.institutionId != id_institucion) {
+    res.status(401).json({ error: "You can only update your own institution" })
+    return ;
+  }
+
+  try {
+    return res.status(200).json(await service.updateInstitucionCYT(parseInt(id_institucion), institucion))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
 export default {
   getOneInstitucionCYT,
   getAllInstitucionesCYT,
   createInstitucionCYT,
-  deleteInstitucionCYT
+  deleteInstitucionCYT,
+  updateInstitucionCYT
 }

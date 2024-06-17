@@ -16,6 +16,6 @@ router
   .put('/rubros/:id_rubro', authUser, checkRol(['admin', 'admin general']), controller.updateRubro)
   .delete('/rubros/:id_rubro', authUser, checkRol(['admin', 'admin general']), controller.deleteRubro)
 
-
   .get('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.getOneInstitucion)
+  .put('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.updateInstitucion)
 export default router

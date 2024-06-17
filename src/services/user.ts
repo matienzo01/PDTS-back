@@ -174,11 +174,10 @@ const linkUserToInstitution = async (userDni: number, institutionId: number, use
 }
 
 const updateUser = async(id: number, user: any, rol: string) => {
-  let userActual
-  if(rol == 'admin') {
-    userActual = (await getOneAdmin(id)).admin
-  } else {
-    userActual = (await getOneUser(id)).usuario
+  const userActual = rol === 'admin' ? (await getOneAdmin(id)).admin : (await getOneUser(id)).usuario;
+
+  if (user.email && user.email !== userActual.email) {
+    await mailer.checkEmail(user.email);
   }
 
   if (user.email && user.email != userActual.email) {

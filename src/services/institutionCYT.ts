@@ -1,5 +1,6 @@
 import knex from '../database/knex'
 import projectService from './project'
+import institutionService from './institution'
 import bcrypt from 'bcrypt'
 import mailer from './mailer'
 import { CustomError } from '../types/CustomError'
@@ -127,12 +128,30 @@ const deleteInstitucionCYT = async (id: number) => {
   });
 };
 
-
+const updateInstitucionCYT = async(id_institucion: number, institucion: any) => {
+  return knex.transaction(async (trx) => {
+    //me aseguro que no existan estos atributos para que no haya error
+    delete institucion.id_tipo
+    delete institucion.id_rubro
+    await institutionService.updateInstitucion(id_institucion, institucion, trx)
+    await trx('instituciones_cyt')
+      .where({id: id_institucion})
+      .update({
+        nombre_referente: institucion.nombre_referente,
+        apellido_referente: institucion.apellido_referente,
+        cargo_referente: institucion.cargo_referente,
+        telefono_referente: institucion.telefono_referente,
+        mail_referente: institucion.mail_referente
+      })
+    return await getOneInstitucionCYT(id_institucion, trx);
+  })
+}
 
 export default {
   getOneInstitucionCYT,
   getAllInstitucionesCYT,
   createInstitucionCYT,
   deleteInstitucionCYT,
-  getInstIdFromAdmin
+  getInstIdFromAdmin,
+  updateInstitucionCYT
 }

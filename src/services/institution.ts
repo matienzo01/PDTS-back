@@ -78,12 +78,12 @@ const setTipoyRubro= async(inst: any, tipos_inst: any, rubros: any) => {
   return {tipo, rubro}
 }
 
-const getOneInstitucion = async(id: number) => {
-
+const getOneInstitucion = async(id: number, trx: any = null) => {
+  const queryBuilder = trx || knex;
   const [inst, tipos_inst, rubros] = await Promise.all([
-    knex.select().where({id}).from(TABLE_INSTITUCIONES).first(),
-    knex('tipos_instituciones'),
-    knex('rubros')
+    queryBuilder.select().where({id}).from(TABLE_INSTITUCIONES).first(),
+    queryBuilder('tipos_instituciones'),
+    queryBuilder('rubros')
   ])
 
   if(inst === undefined) {
@@ -99,15 +99,52 @@ const getOneInstitucion = async(id: number) => {
   return {institucion: inst}
 }  
   
-const createInstitucion = async(institution: Institucion) => {
+const createInstitucion = async(institution: any) => {
+
+  if (institution.id_rubro == 1 || await (knex('rubros').select().where({id: institution.id_rubro})).first() == undefined) {
+    throw new CustomError("There is no 'Rubro' with the provided id",404)
+  }
+
+  if (institution.id_tipo == 1 || await (knex('tipos_instituciones').select().where({id: institution.id_tipo})).first() == undefined) {
+    throw new CustomError("There is no institution type with the provided id",404)
+  }
+
   const insertId = parseInt(await knex(TABLE_INSTITUCIONES).insert(institution))
   return await getOneInstitucion(insertId)  
 }  
+
+const updateInstitucion = async(id_institucion: number, institucion: any, trx: any = null) => {
+  const queryBuilder = trx || knex;
+
+  if(institucion.id_rubro && (institucion.id_rubro == 1 || await (knex('rubros').select().where({id: institucion.id_rubro})).first() == undefined)) {
+    throw new CustomError("There is no 'Rubro' with the provided id",404)
+  }
+
+  if(institucion.id_tipo && (institucion.id_tipo == 1 || await (knex('tipos_instituciones').select().where({id: institucion.id_tipo})).first() == undefined)) {
+    throw new CustomError("There is no institution type with the provided id",404)
+  }
+
+  await queryBuilder('instituciones')
+    .where({id: id_institucion})
+    .update({
+      nombre: institucion.nombre,
+      id_rubro: institucion.id_rubro,
+      id_tipo: institucion.id_tipo,
+      pais: institucion.pais,
+      provincia: institucion.provincia,
+      localidad: institucion.localidad,
+      telefono_institucional: institucion.telefono_institucional,
+      mail_institucional: institucion.mail_institucional
+    })
+  return await getOneInstitucion(id_institucion, queryBuilder)
+
+}
 
 export default {
     getInstituciones,
     getOneInstitucion,
     createInstitucion,
+    updateInstitucion,
     getRubros,
     getTiposInstituciones,
     createRubro,
