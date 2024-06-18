@@ -3,11 +3,16 @@ import institutionCytService from '../services/institutionCYT';
 import { Request, Response } from 'express';
 import { CustomError } from '../types/CustomError.js';
 
-// va a haber que modificarlo para que:
-//- Sos admin general -> te devolvemos todos los proyectos
-//- Sos admin CyT -> los de tu institucion
-//- Sos eval -> a los que estás asignado
-const getAllProjects = async (req: Request, res: Response) => {
+const getAllProjects = async(req: Request, res: Response) => {
+  try {
+    res.status(200).json(await service.getAllProjects())
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const getAllInstitutionProjects = async (req: Request, res: Response) => {
   const { params: { id_institucion } } = req
 
   if (isNaN(parseInt(id_institucion))) {
@@ -16,7 +21,7 @@ const getAllProjects = async (req: Request, res: Response) => {
   }
 
   try {
-    res.status(200).json(await service.getAllProjects(parseInt(id_institucion)))
+    res.status(200).json(await service.getAllInstitutionProjects(parseInt(id_institucion)))
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })
@@ -226,6 +231,7 @@ const getProjectsByUser = async (req: Request, res: Response) => {
 }
 
 export default {
+  getAllInstitutionProjects,
   getAllProjects,
   getOneProject,
   createProject,

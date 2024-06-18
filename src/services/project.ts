@@ -8,8 +8,19 @@ import mailer from './mailer'
 import institutionCYT from "./institutionCYT"
 import user from "./user"
 
-const getAllProjects = async (id_institucion: number) => {
-  const proyectos = await knex(TABLE).select().where({ id_institucion: id_institucion })
+const getAllProjects = async() => {
+  const proyectos = await knex('proyectos').select()
+
+  for (let i = 0; i < proyectos.length; i++) {
+    proyectos[i].participantes = await getParticipants(proyectos[i].id)
+    proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
+    proyectos[i].director = await getDirector(proyectos[i])
+  }
+  return { proyectos: proyectos }
+}
+
+const getAllInstitutionProjects = async (id_institucion: number) => {
+  const proyectos = await knex('proyectos').select().where({ id_institucion: id_institucion })
 
   for (let i = 0; i < proyectos.length; i++) {
     proyectos[i].participantes = await getParticipants(proyectos[i].id)
@@ -260,8 +271,9 @@ const verify_date = async (id_proyecto: number, id_evaluador: number) => {
 }
 
 export default {
-  getDirector,
   getAllProjects,
+  getDirector,
+  getAllInstitutionProjects,
   getOneProject,
   createProject,
   deleteProject,

@@ -114,7 +114,7 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 const deleteInstitucionCYT = async (id: number) => {
   return knex.transaction(async (trx) => {
     const { id_admin } = (await getOneInstitucionCYT(id, trx)).institucion_CYT;
-    const { proyectos } = await projectService.getAllProjects(id);
+    const { proyectos } = await projectService.getAllInstitutionProjects(id);
     const participaciones = await trx('participacion_instituciones').where({id_institucion: id})
 
     if (proyectos.length != 0 || participaciones.length > 0) {
