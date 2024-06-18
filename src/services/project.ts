@@ -203,10 +203,9 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
     }
 
     await assignEvaluador(data, id_institucion, trx)
-    const newProject = await getOneProject(insertId[0], id_institucion, trx)
-    
-    const director = await trx('evaluadores').select().where({ id: newProject.proyecto.id_director }).first()
-    mailer.notifyReviewer(newProject.proyecto.titulo, director, inst)
+    const {proyecto: newProject} = await getOneProject(insertId[0], id_institucion, trx)
+    newProject.director = await getDirector(newProject, trx)
+    mailer.notifyReviewer(newProject.titulo, newProject.director, inst)
     return newProject
   })
 
