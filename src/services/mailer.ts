@@ -104,12 +104,12 @@ async function sendMail(to: string, subject: string, text: string) {
         text: text
     };
 
-    /*
+    
     try {
         transporter.sendMail(mailOptions)
     } catch(error) {
         throw error;
-    }*/
+    }
     
 }
 
