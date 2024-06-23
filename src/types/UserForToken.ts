@@ -5,4 +5,5 @@ export interface UserForToken {
     institutionId?: number;
     nombre?: string;
     apellido?: string;
+    dni?: string;
 }

@@ -9,7 +9,7 @@ const login = async (mail: string, password: string) => {
   const tablesToCheck = [
     { rol: 'admin general', tableName: 'admin', columns: ['email', 'password'] },
     { rol: 'admin', tableName: 'admins_cyt', columns: ['id', 'email', 'password', 'nombre', 'apellido'] },
-    { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido'] }
+    { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido', 'dni'] }
   ];
 
   let user: any = null;
@@ -46,7 +46,8 @@ const login = async (mail: string, password: string) => {
     rol: user.rol,
     institutionId: user.institutionId,
     nombre: user.nombre,
-    apellido: user.apellido
+    apellido: user.apellido,
+    dni : user.dni
   }
 
   const token = jwt.sign(userForToken, process.env.SECRET || 'clave')
