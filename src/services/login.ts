@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { UserForToken } from '../types/UserForToken';
 import { CustomError } from '../types/CustomError';
 
-const login = async (mail: string, password: string) => {
+const login = async (email: string, password: string) => {
 
   const tablesToCheck = [
     { rol: 'admin general', tableName: 'admin', columns: ['email', 'password'] },
@@ -15,7 +15,7 @@ const login = async (mail: string, password: string) => {
   let user: any = null;
 
   for (const table of tablesToCheck) {
-    user = await knex(table.tableName).select(...table.columns).where({ email: mail }).first();
+    user = await knex(table.tableName).select(...table.columns).where({ email: email }).first();
     if (user) {
       user.rol = table.rol
       if (table.tableName === 'admin') {
@@ -42,7 +42,7 @@ const login = async (mail: string, password: string) => {
 
   const userForToken: UserForToken = {
     id: user.id,
-    mail: user.email,
+    email: user.email,
     rol: user.rol,
     institutionId: user.institutionId,
     nombre: user.nombre,

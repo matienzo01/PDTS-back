@@ -20,7 +20,7 @@ const authUser = (req: Request, res: Response, next: NextFunction) => {
         const decodedToken: DecodedToken = {
             id: dt.id,
             rol: dt.rol,
-            mail: dt.mail,
+            email: dt.email,
             iat: dt.iat,
             institutionId: dt.institutionId,
             nombre: dt.nombre,

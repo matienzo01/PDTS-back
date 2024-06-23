@@ -90,9 +90,6 @@ const createUser = async (req: Request, res: Response) => {
   const { user } = req.body
   const { id: id_admin } = req.body.userData
 
-  // viene un atributo mail
-  delete user.mail
-
   if (isNaN(parseInt(id_institucion))) {
     res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
     return ;
@@ -138,6 +135,9 @@ const updateUser = async (req: Request, res: Response) => {
     res.status(401).json({ error: "you can only update your own user" })
     return ;
   }
+
+  console.log(user);
+  
 
   try {
     res.status(200).json(await service.updateUser(parseInt(id_usuario), user,'evaluador'))

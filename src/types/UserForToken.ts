@@ -1,6 +1,6 @@
 export interface UserForToken {
     id: number;
-    mail: string;
+    email: string;
     rol: string;
     institutionId?: number;
     nombre?: string;
