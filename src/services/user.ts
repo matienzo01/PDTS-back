@@ -139,12 +139,14 @@ const createUser = async (newUser: any, institutionId: number) => {
   const trx = await knex.transaction()
   try {
     const oldpass = newUser.dni;
-    newUser.password = await createHash(oldpass);
+    newUser.password = await createHash(String(oldpass));
     const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0];
     await linkUserToInstitution(newUser.dni, institutionId, insertId, trx);
     await trx.commit()
     return await getOneUser(insertId)
   } catch (error) {
+    console.log(error);
+    
     await trx.rollback()
   }
 }
