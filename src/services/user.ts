@@ -139,14 +139,12 @@ const createUser = async (newUser: any, institutionId: number) => {
   const trx = await knex.transaction()
   try {
     const oldpass = newUser.dni;
-    newUser.password = await createHash(String(oldpass));
+    newUser.password = await createHash(oldpass);
     const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0];
     await linkUserToInstitution(newUser.dni, institutionId, insertId, trx);
     await trx.commit()
     return await getOneUser(insertId)
   } catch (error) {
-    console.log(error);
-    
     await trx.rollback()
   }
 }
@@ -228,6 +226,31 @@ const updateUser = async(id: number, user: any, rol: string) => {
   return await getOneUser(id)
 }
 
+const createAdminGeneral = async(newAdmin: any) => {
+  await mailer.checkEmail(newAdmin.email)
+  newAdmin.password = await createHash(newAdmin.password)
+
+  await knex('admin').insert(newAdmin)
+  return { administrador : await knex('admin').select('email').where({email: newAdmin.email})}
+}
+
+const deleteAdminGeneral = async(id: number) => {
+
+}
+
+const getAllAdminsGenerales = async() => {
+  return {administradores: await knex('admin').select('email')}
+}
+
+//hay que cambiar esto para que sea con el id, pero como requiere un refactor de la base de datos mejor esperar
+const getOneAdminGeneral = async(id: number) => {
+  const admin = await knex('admin').select().where({id})
+  if (admin == undefined) {
+    throw new CustomError('There is not admin with the provided id', 404)
+  }
+  return { admin_general: admin}
+}
+
 export default {
   getAllAdmins,
   getAllEvaluadores,
@@ -237,5 +260,9 @@ export default {
   linkUserToInstitution,
   updateUser,
   getOneUser,
-  getOneAdmin
+  getOneAdmin,
+  createAdminGeneral,
+  deleteAdminGeneral,
+  getAllAdminsGenerales,
+  getOneAdminGeneral
 }

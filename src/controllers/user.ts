@@ -18,7 +18,6 @@ const getOneAdmin = async(req: Request, res: Response) => {
     res.status(statusCode).json({ error: (error as CustomError).message })
   }
 
-
 }
 
 const getAllUsers = async (req: Request, res: Response) => {
@@ -192,6 +191,43 @@ const updateAdminCYT = async(req: Request, res: Response) => {
   }
 }
 
+const createAdminGeneral = async(req: Request, res: Response) => {
+  const { newAdmin } = req.body 
+
+  if(!newAdmin.email ||
+    !newAdmin.password) {
+      res.status(400).json({ error: "Missing fields in the admin" })
+      return;
+  }
+
+  try {
+    res.status(200).json( await service.createAdminGeneral(newAdmin))
+   
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const deleteAdminGeneral = async(req: Request, res: Response) => {
+
+}
+
+const getAllAdminsGenerales = async(req: Request, res: Response) => {
+  try {
+    res.status(200).json( await service.getAllAdminsGenerales())
+   
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
+const getOneAdminGeneral = async(req: Request, res: Response) => {
+  
+}
+
+
 export default {
   getAllUsers,
   getAllInstitutionUsers,
@@ -200,5 +236,9 @@ export default {
   createUser,
   updateUser,
   updateAdminCYT,
-  getOneAdmin
+  getOneAdmin,
+  createAdminGeneral,
+  deleteAdminGeneral,
+  getAllAdminsGenerales,
+  getOneAdminGeneral
 }
