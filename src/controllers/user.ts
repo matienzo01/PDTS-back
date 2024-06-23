@@ -3,6 +3,24 @@ import institutionCytService from '../services/institutionCYT'
 import { Request, Response } from 'express';
 import { CustomError } from '../types/CustomError.js';
 
+const getOneAdmin = async(req: Request, res: Response) => {
+  const id = parseInt(req.params.id_admin)
+  const { userData } = req.body
+
+  if (userData.rol == 'admin' && userData.id != id) {
+    return res.status(403).json({ error: "An admin can only obtain his own information" })
+  }
+
+  try {
+    res.status(200).json(await service.getOneAdmin(id));
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+
+
+}
+
 const getAllUsers = async (req: Request, res: Response) => {
   const { rol } = req.query
 
@@ -181,5 +199,6 @@ export default {
   linkUserToInstitution,
   createUser,
   updateUser,
-  updateAdminCYT
+  updateAdminCYT,
+  getOneAdmin
 }

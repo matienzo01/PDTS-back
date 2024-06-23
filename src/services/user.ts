@@ -111,6 +111,10 @@ const createHash = async (password: string) => {
 const createUser = async (newUser: any, institutionId: number) => {
   await institutuionService.getOneInstitucionCYT(institutionId)
 
+  if(await knex('evaluadores').select().where({dni: newUser.dni}).first() != undefined) {
+    throw new CustomError('There is already a user with that DNI', 409)
+  }
+
   try {
     await getUserByDni(newUser.dni) // debe dar un 404 para asegurarnos de que no exista previamente el usuario
     throw new CustomError('There is already a user with that DNI', 409)
@@ -130,7 +134,6 @@ const createUser = async (newUser: any, institutionId: number) => {
     mailer.sendNewUser(newUser)
     return await getOneUser(insertId, trx)
   })
-
 }
 
 const getUserByDni = async (dni: number) => {
@@ -218,5 +221,6 @@ export default {
   createUser,
   linkUserToInstitution,
   updateUser,
-  getOneUser
+  getOneUser,
+  getOneAdmin
 }
