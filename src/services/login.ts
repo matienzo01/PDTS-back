@@ -8,7 +8,7 @@ const login = async (email: string, password: string) => {
 
   const tablesToCheck = [
     { rol: 'admin general', tableName: 'admin', columns: ['email', 'password'] },
-    { rol: 'admin', tableName: 'admins_cyt', columns: ['id', 'email', 'password', 'nombre', 'apellido'] },
+    { rol: 'admin', tableName: 'admins_cyt', columns: ['id', 'email', 'password', 'nombre', 'apellido', 'dni'] },
     { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido', 'dni'] }
   ];
 
