@@ -323,11 +323,11 @@ const calculaPorcentaje = (question: any, totalRespuestas: number) => {
 
         question.options.push({
             "valor": "si",
-            "percentaje": percentageSiNo.toFixed(2)
+            "percentage": percentageSiNo.toFixed(2)
         });
         question.options.push({
             "valor": "no",
-            "percentaje": percentageNo.toFixed(2)
+            "percentage": percentageNo.toFixed(2)
         });
     }
 }
