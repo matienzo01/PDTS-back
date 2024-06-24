@@ -318,19 +318,27 @@ const calculaPorcentaje = (question: any, totalRespuestas: number) => {
     if (question.type === 'opcion multiple') {
         calcularPorcentajesOpcionMultiple(question, totalRespuestas);
     } else if (question.type === 'si/no') {
-        const percentageSiNo = calcularPorcentajeSiNo(question.respuestas);
-        question.percentage = percentageSiNo.toFixed(2);
+        const percentageSiNo = totalRespuestas > 0 ? calcularPorcentajeSiNo(question.respuestas, totalRespuestas) : 0;
+        const percentageNo = totalRespuestas > 0 ? (100 - percentageSiNo) : 0;
+
+        question.options.push({
+            "valor": "si",
+            "percentaje": percentageSiNo.toFixed(2)
+        });
+        question.options.push({
+            "valor": "no",
+            "percentaje": percentageNo.toFixed(2)
+        });
     }
 }
 
-function calcularPorcentajeSiNo(respuestas: any) {
-    const totalRespuestas = respuestas.length;
+function calcularPorcentajeSiNo(respuestas: any, totalRespuestas: number) {
     const countSi = respuestas.filter((respuesta: any) => respuesta.respuesta === 'si').length;
     return (countSi / totalRespuestas) * 100;
 }
 
 const calcularPorcentajesOpcionMultiple = (question: any, totalRespuestas: number) => {
-
+    
     const porcentajes: {optionId: number, percentage: number, valor: string} [] = []
     question.options.forEach((o: any) => {
         porcentajes.push({
@@ -340,13 +348,15 @@ const calcularPorcentajesOpcionMultiple = (question: any, totalRespuestas: numbe
         })
     })
 
-    question.respuestas.forEach((rta: any) => {
-        const a = porcentajes.find((p: any) => p.optionId == rta.optionId)
-        if ( a != undefined) {
-            a.percentage += (100 / totalRespuestas)
-        }
-    })
-
+    if(totalRespuestas > 0 ) {
+        question.respuestas.forEach((rta: any) => {
+            const a = porcentajes.find((p: any) => p.optionId == rta.optionId)
+            if ( a != undefined) {
+                a.percentage += (100 / totalRespuestas)
+            }
+        })
+    }
+    
     question.options = porcentajes.map(p => ({
         ...p,
         percentage: p.percentage.toFixed(2)
@@ -369,16 +379,14 @@ const getPromedios = async() => {
     
     encuesta.cantidadEncuestas = cantidad
 
-    if(cantidad > 0) {
-        encuesta.sections.forEach((section: any) => {
-            section.questions.forEach( (question: any) => {
-                calculaPorcentaje(question, cantidad)
-                question.subQuestions.forEach ( (subq: any) => {
-                    calculaPorcentaje(subq, cantidad)
-                })
+    encuesta.sections.forEach((section: any) => {
+        section.questions.forEach( (question: any) => {
+            calculaPorcentaje(question, cantidad)
+            question.subQuestions.forEach ( (subq: any) => {
+                calculaPorcentaje(subq, cantidad)
             })
         })
-    }
+    })
     
     return encuesta
 }
