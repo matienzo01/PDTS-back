@@ -62,6 +62,26 @@ const getAllInstitutionUsers = async (req: Request, res: Response) => {
   }
 }
 
+const getAllInstitutionAdmins = async (req: Request, res: Response) => {
+  const { params: { id_institucion } } = req
+  const { id: id_admin, rol } = req.body.userData
+
+  if (isNaN(parseInt(id_institucion))) {
+    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
+  }
+
+  if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+    return res.status(403).json({ error: "An admin can only manage his own institution" })
+  }
+
+  try {
+    res.status(200).json(await service.getAllInstitutionAdmins(parseInt(id_institucion)))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
 const getUserByDni = async (req: Request, res: Response) => {
   const { params: { id_institucion, dni } } = req
   if (isNaN(parseInt(dni))) {
@@ -152,10 +172,7 @@ const updateUser = async (req: Request, res: Response) => {
     res.status(401).json({ error: "you can only update your own user" })
     return ;
   }
-
-  console.log(user);
   
-
   try {
     res.status(200).json(await service.updateUser(parseInt(id_usuario), user,'evaluador'))
   } catch (error) {
@@ -227,18 +244,44 @@ const getOneAdminGeneral = async(req: Request, res: Response) => {
   
 }
 
+const createAdmin = async(req: Request, res: Response) => {
+  const { admin } = req.body 
+  const id_institucion = parseInt(req.params.id_institucion)
+  const { userData }= req.body
+
+  if(userData.rol != 'admin general' && !await service.adminPerteneceInstitucion(id_institucion, userData.id)) {
+    return res.status(403).json({ error: "Unauthorized to create an admin for this institution" })
+  }
+
+  if (!admin.nombre ||
+    !admin.apellido ||
+    !admin.email ||
+    !admin.dni) {
+      return res.status(400).json({ error: "Missing fields in the admin" })
+  }
+
+  try {
+    res.status(200).json(await service.createAdmin(id_institucion, admin))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+
+}
 
 export default {
   getAllUsers,
   getAllInstitutionUsers,
+  getAllInstitutionAdmins,
+  getAllAdminsGenerales,
   getUserByDni,
+  getOneAdmin,
   linkUserToInstitution,
   createUser,
+  createAdmin,
+  createAdminGeneral,
   updateUser,
   updateAdminCYT,
-  getOneAdmin,
-  createAdminGeneral,
   deleteAdminGeneral,
-  getAllAdminsGenerales,
   getOneAdminGeneral
 }

@@ -4,7 +4,6 @@
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
 INSERT INTO admin(email,password) VALUES
-    -- admingeneral
     ('admin@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
 INSERT INTO modelos_encuesta(nombre) VALUES
@@ -365,9 +364,13 @@ INSERT INTO instituciones(nombre,id_rubro,pais,provincia,localidad,telefono_inst
     ('Universidad XYZ',1, 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1, 1),
     ('UTN', 1, 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com', 1, 1);
 
-INSERT INTO instituciones_cyt(id,id_admin,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
-    (1,1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
-    (2,2,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
+INSERT INTO instituciones_cyt(id,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
+    (1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
+    (2,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
+
+INSERT INTO instituciones_x_admins(id_institucion, id_admin) VALUES 
+    (1,1),
+    (2,2);
 
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 

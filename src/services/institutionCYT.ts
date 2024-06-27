@@ -8,7 +8,7 @@ const TABLE_INSTITUCIONES = 'instituciones'
 const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
 
 const getInstIdFromAdmin = async (id_admin: number) => {
-  const { id } =  await knex('instituciones_cyt').select('id').where({ id_admin }).first()
+  const { id_institucion: id } =  await knex('instituciones_x_admins').select('id_institucion').where({ id_admin }).first()
   if ( id == undefined) {
     throw new CustomError('There is no institution with that admin id', 404)
   }
@@ -91,7 +91,6 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 
       const newInstCyt = {
         id: instId,
-        id_admin: adminId,
         nombre_referente: institucion.nombre_referente,
         apellido_referente: institucion.apellido_referente,
         cargo_referente: institucion.cargo_referente,
@@ -100,6 +99,7 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
       }
 
       await trx(TABLE_INSTITUCIONES_CYT).insert(newInstCyt)
+      await trx('instituciones_x_admins').insert({id_institucion: instId, id_admin: adminId})
 
       await mailer.sendNewInst(newAdmin, newInst)
 
@@ -112,8 +112,16 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
 }
 
 const deleteInstitucionCYT = async (id: number) => {
+  if ((await knex('instituciones_cyt').where({id})).length == 0) {
+    throw new CustomError('There is no institution with the provided id', 404)
+  }
+
   return knex.transaction(async (trx) => {
-    const { id_admin } = (await getOneInstitucionCYT(id, trx)).institucion_CYT;
+    const admins =  (await trx('instituciones_x_admins')
+      .select()
+      .where({id_institucion: id}))
+        .map(p => p.id_admin)
+
     const { proyectos } = await projectService.getAllInstitutionProjects(id);
     const participaciones = await trx('participacion_instituciones').where({id_institucion: id})
 
@@ -121,9 +129,10 @@ const deleteInstitucionCYT = async (id: number) => {
       throw new CustomError("The institution cannot be deleted, you must first make sure that it does not have any projects in it or that it does not participate in projects of other institutions", 409);
     } else {
       await trx('evaluadores_x_instituciones').del().where({ id_institucion: id });
+      await trx('instituciones_x_admins').where({id_institucion: id}).del();
       await trx(TABLE_INSTITUCIONES_CYT).where({ id }).del();
       await trx(TABLE_INSTITUCIONES).where({ id }).del();
-      await trx('admins_cyt').where({ id: id_admin }).del();
+      await trx('admins_cyt').whereIn('id', admins).del();
     }
   });
 };

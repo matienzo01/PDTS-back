@@ -6,9 +6,14 @@ import mailer from './mailer'
 const TABLE_EVALUADORES = 'evaluadores'
 import institutuionService from './institutionCYT'
 
+const adminPerteneceInstitucion = async(id_institucion: number, id_admin: number) => {
+  return (await knex('instituciones_x_admins').select().where({id_institucion, id_admin})).length == 1
+}
+
 const getAllAdmins = async() => {
   const admins = await knex('admins_cyt as a')
-    .join('instituciones_cyt as icyt','icyt.id_admin','a.id')
+    .join('instituciones_x_admins as ixa', 'ixa.id_admin', 'a.id' )
+    .join('instituciones_cyt as icyt','icyt.id','ixa.id_admin')
     .join('instituciones as i','i.id','icyt.id')
     .select(
       'a.nombre as nombre',
@@ -74,6 +79,45 @@ const getAllInstitutionUsers = async (id_institucion: number) => {
   return { users: users }
 }
 
+const getAllInstitutionAdmins = async (id_institucion: number) => {
+  if (await knex('instituciones_cyt').select().where({ id: id_institucion }).first() === undefined) {
+    throw new CustomError('There is no institution with the provided id', 404)
+  }
+
+  return {administradores: await knex('instituciones_x_admins as ixa')
+    .join('admins_cyt as a', 'a.id', 'ixa.id_admin')
+    .where('ixa.id_institucion', id_institucion)
+    .select(
+      'a.id',
+      'a.nombre',
+      'a.apellido',
+      'a.email',
+      'a.dni'
+    )}
+}
+
+const createAdmin = async(institutionId: number, newAdmin: any) => {
+  const inst = (await institutuionService.getOneInstitucionCYT(institutionId)).institucion_CYT
+  if(await knex('admins_cyt').select().where({dni: newAdmin.dni}).first() != undefined) {
+    throw new CustomError('There is already an admin with that DNI', 409)
+  }
+
+  await mailer.checkEmail(newAdmin.email)
+
+  const trx = await knex.transaction()
+  try {
+    const oldpass = newAdmin.dni;
+    newAdmin.password = await createHash(oldpass);
+    const insertId = (await trx('admins_cyt').insert(newAdmin))[0];
+    await trx('instituciones_x_admins').insert({id_institucion: institutionId, id_admin: insertId})
+    await trx.commit()
+    mailer.sendNewInst(newAdmin, inst)
+    return await getOneAdmin(insertId)
+  } catch (error) {
+    await trx.rollback()
+  }
+}
+
 const getOneUser = async (id: number, trx: any = null) => {
   const queryBuilder = trx || knex
   const user = await queryBuilder(TABLE_EVALUADORES).select().where({ id }).first()
@@ -91,7 +135,6 @@ const getOneAdmin = async(id: number) => {
   if (!user) {
     throw new CustomError('There is no user with the provided id', 404)
   }
-  //console.log(user)
   const { password, ...returnedData } = user
   return { admin: returnedData }
 }
@@ -126,16 +169,6 @@ const createUser = async (newUser: any, institutionId: number) => {
 
   await mailer.checkEmail(newUser.email)
 
-  /*
-  return await knex.transaction(async (trx) => {
-    const oldpass = newUser.dni
-    newUser.password = await createHash(oldpass)
-    const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0]
-    await linkUserToInstitution(newUser.dni, institutionId, insertId, trx)
-    mailer.sendNewUser(newUser)
-    return await getOneUser(insertId, trx)
-  })*/
-
   const trx = await knex.transaction()
   try {
     const oldpass = newUser.dni;
@@ -143,6 +176,7 @@ const createUser = async (newUser: any, institutionId: number) => {
     const insertId = (await trx(TABLE_EVALUADORES).insert(newUser))[0];
     await linkUserToInstitution(newUser.dni, institutionId, insertId, trx);
     await trx.commit()
+    mailer.sendNewUser(newUser)
     return await getOneUser(insertId)
   } catch (error) {
     await trx.rollback()
@@ -231,7 +265,7 @@ const createAdminGeneral = async(newAdmin: any) => {
   newAdmin.password = await createHash(newAdmin.password)
 
   await knex('admin').insert(newAdmin)
-  return { administrador : await knex('admin').select('email').where({email: newAdmin.email})}
+  return { administrador : (await knex('admin').select('email').where({email: newAdmin.email}))[0]}
 }
 
 const deleteAdminGeneral = async(id: number) => {
@@ -255,14 +289,17 @@ export default {
   getAllAdmins,
   getAllEvaluadores,
   getAllInstitutionUsers,
+  getAllInstitutionAdmins,
   getUserByDni,
   createUser,
+  createAdmin,
+  createAdminGeneral,
   linkUserToInstitution,
   updateUser,
   getOneUser,
   getOneAdmin,
-  createAdminGeneral,
   deleteAdminGeneral,
   getAllAdminsGenerales,
-  getOneAdminGeneral
+  getOneAdminGeneral,
+  adminPerteneceInstitucion
 }

@@ -3,7 +3,8 @@ CREATE DATABASE seva_pdts_prueba;
 use seva_pdts_prueba;
 
 CREATE TABLE admin ( -- administrador general del sistema
-	email VARCHAR(255) NOT NULL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+	email VARCHAR(255),
     password VARCHAR(255)
 );
 
@@ -58,14 +59,20 @@ CREATE TABLE instituciones (
 
 CREATE TABLE instituciones_cyt (
     id INT PRIMARY KEY,
-    id_admin INT,
     nombre_referente VARCHAR(255),
     apellido_referente VARCHAR(255),
     cargo_referente VARCHAR(255),
     telefono_referente VARCHAR(255),
     mail_referente VARCHAR(255),
-    FOREIGN KEY (id) REFERENCES instituciones(id),
-    FOREIGN KEY (id_admin) REFERENCES admins_cyt(id)
+    FOREIGN KEY (id) REFERENCES instituciones(id)
+);
+
+CREATE TABLE instituciones_x_admins (
+    id_institucion INT,
+    id_admin INT,
+    PRIMARY KEY (id_institucion, id_admin),
+    FOREIGN KEY (id_admin) REFERENCES admins_cyt(id),
+    FOREIGN KEY (id_institucion) REFERENCES instituciones_cyt(id)
 );
 
 CREATE TABLE estado_eval( 

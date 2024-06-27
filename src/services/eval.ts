@@ -373,9 +373,12 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
         await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
       } 
 
-      const {institucion_CYT : inst} = (await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion))
-      const admin = await knex('admins_cyt').select().where({id: inst.id_admin}).first()
-      await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
+      const admins = await knex('instituciones_x_admins as ixa')
+        .join('admins_cyt as a', 'a.id', 'ixa.id_admin')
+        .where('ixa.id_institucion', proyecto.id_institucion)
+      admins.forEach( async(admin) => {
+        await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
+      })
     }
 
     

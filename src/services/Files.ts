@@ -3,6 +3,7 @@ import multer from 'multer';
 import fs from 'fs/promises'
 import projectService from '../services/project'
 import { CustomError } from '../types/CustomError';
+import knex from '../database/knex'
 
 const customFileName = (req: any, file: any, cb: any) => {
   cb(null, file.originalname);
@@ -38,9 +39,16 @@ const getNames = (id_proyecto: number, id_user:number , proposito: boolean): str
 }
 
 const getParticipantFileNames = async (id_proyecto: number, id_admin: number) => {
-  // hay que chequear que el admin sea de la institucion dueña del proyecto
-  const { participantes } = (await projectService.getOneProject(id_proyecto)).proyecto;
-  const ids = participantes.filter((obj: any) => obj.fecha_fin_eval == null).map((obj: any) => obj.id);
+  const proyecto = (await projectService.getOneProject(id_proyecto)).proyecto;
+  const cond = (await knex('instituciones_x_admins')
+    .where({id_institucion: proyecto.id_institucion}))
+    .some(p => p.id_admin == id_admin)
+
+  if(!cond) {
+    throw new CustomError('The admin dont belong to the institution that owns the project', 403)
+  }
+
+  const ids = proyecto.participantes.filter((obj: any) => obj.fecha_fin_eval == null).map((obj: any) => obj.id);
   const a: {id_evaluador: number, files: any}[] = [];
   
   await Promise.all(ids.map(async (id: number) => {

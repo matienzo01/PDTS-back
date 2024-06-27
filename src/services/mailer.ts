@@ -86,13 +86,12 @@ Equipo de SEva-PDTS.`
 
 async function finalizacionEval (admin: any, proyecto: any, user: any) {
     const {usuario} = user
-    const subject = 'Registro de Institución'
+    const subject = 'Evaluación de usuario'
     const text = `Estimado/a ${admin.nombre} ${admin.apellido},
 
 Ya se encuentra disponible para su visualización la evaluación del usuario ${usuario.nombre} ${usuario.apellido} (DNI: ${usuario.dni}) sobre el proyecto: ${proyecto.titulo}.
     
 Equipo de SEva-PDTS.`
-    console.log(text)
     sendMail(admin.email, subject, text)
 }
 

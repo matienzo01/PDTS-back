@@ -13,11 +13,13 @@ router
   .get('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['evaluador', 'admin', 'admin general']), project_controller.getOneProject)
   .get('/:id_institucion/proyectos/:id_proyecto/evaluadores', authUser, checkRol(['admin', 'admin general']), project_controller.getParticipants)
   .get('/:id_institucion/usuarios', authUser, checkRol(['admin', 'admin general']), user_controller.getAllInstitutionUsers)
+  .get('/:id_institucion/admins', authUser, checkRol(['admin', 'admin general']), user_controller.getAllInstitutionAdmins)
 
   .post('/', authUser, checkRol(['admin general']), institution_controller.createInstitucionCYT)
   .post('/:id_institucion/proyectos', authUser, checkRol(['admin']), project_controller.createProject)
   .post('/:id_institucion/proyectos/:id_proyecto/evaluadores', authUser, checkRol(['admin']), project_controller.assignEvaluador)
   .post('/:id_institucion/usuarios', authUser, checkRol(['admin']), user_controller.createUser)
+  .post('/:id_institucion/admins', authUser, checkRol(['admin', 'admin general']), user_controller.createAdmin)
   .post('/:id_institucion/usuarios/vincular_usuario', authUser, checkRol(['admin', 'admin general']), user_controller.linkUserToInstitution)
 
   .put('/:id_institucion/admin/:id_admin', authUser, checkRol(['admin']), user_controller.updateAdminCYT)
