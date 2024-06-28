@@ -230,6 +230,22 @@ const getProjectsByUser = async (req: Request, res: Response) => {
   }
 }
 
+const updateProject = async (req: Request, res: Response) => {
+  const { params: { id_institucion, id_proyecto } } = req
+  const { proyecto, userData } = req.body
+  
+  if(userData.rol == 'admin' && userData.institutionId != id_institucion) {
+    return res.status(403).json({ error: "An admin can only manage his own projects" })
+  }
+
+  try {
+    res.status(200).json(await service.updateProject(proyecto, parseInt(id_proyecto)))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
 export default {
   getAllInstitutionProjects,
   getAllProjects,
@@ -239,5 +255,6 @@ export default {
   assignEvaluador,
   unassignEvaluador,
   getParticipants,
-  getProjectsByUser
+  getProjectsByUser,
+  updateProject
 }

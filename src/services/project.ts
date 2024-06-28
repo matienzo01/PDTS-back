@@ -269,6 +269,28 @@ const verify_date = async (id_proyecto: number, id_evaluador: number) => {
   return assigned
 }
 
+const updateProject = async(project: any, id:number) => {
+  await getOneProject(id)
+  const roles = project.roles
+
+  const hasEjecutora = roles.some((item: any) => item.rol.toLocaleLowerCase() === 'ejecutora');
+  const hasDemandante = roles.some((item: any) => item.rol.toLocaleLowerCase() === 'demandante');
+  const hasAdoptante = roles.some((item: any) => item.rol.toLocaleLowerCase() === 'adoptante');
+  
+  if (!hasEjecutora || !hasDemandante || !hasAdoptante) {
+    throw new CustomError("The project must have at least one demanding institution, one executor and one adopter.", 400)
+  }
+
+  delete project.roles
+  await knex.transaction(async (trx: any): Promise<any> => { 
+    await trx('proyectos').where({id}).update(project)
+    await trx('participacion_instituciones').where({id_proyecto: id}).delete()
+    await assignInstitutionRoles(id, roles, trx)
+  })
+
+  return await getOneProject(id)
+}
+
 export default {
   getAllProjects,
   getDirector,
@@ -281,5 +303,6 @@ export default {
   getParticipants,
   getProjectsByUser,
   verifyState,
-  verify_date
+  verify_date,
+  updateProject
 }
