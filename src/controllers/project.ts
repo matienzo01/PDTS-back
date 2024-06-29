@@ -2,6 +2,8 @@ import service from '../services/project';
 import institutionCytService from '../services/institutionCYT';
 import { Request, Response } from 'express';
 import { CustomError } from '../types/CustomError.js';
+const ROLES = ['ADOPTANTE','DEMANDANTE','EJECUTORA','PROMOTORA','FINANCIADORA']
+
 
 const getAllProjects = async(req: Request, res: Response) => {
   try {
@@ -84,6 +86,14 @@ const createProject = async (req: Request, res: Response) => {
       data: { error: "Missing fields" }
     })
     return;
+  }
+
+  for (let element of proyecto.roles) {
+    if (!ROLES.includes(element.rol)) {
+      return res.status(400).json({ 
+        error: `An invalid role was entered (id: ${element.institucion_id}, rol: ${element.rol})`
+      });
+    }
   }
 
   if(await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
@@ -236,6 +246,14 @@ const updateProject = async (req: Request, res: Response) => {
   
   if(userData.rol == 'admin' && userData.institutionId != id_institucion) {
     return res.status(403).json({ error: "An admin can only manage his own projects" })
+  }
+
+  for (let element of proyecto.roles) {
+    if (!ROLES.includes(element.rol)) {
+      return res.status(400).json({ 
+        error: `An invalid role was entered (id: ${element.institucion_id}, rol: ${element.rol})`
+      });
+    }
   }
 
   try {

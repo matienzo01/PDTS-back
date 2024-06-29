@@ -173,7 +173,6 @@ const assignInstitutionRoles = async (id_proyecto: number, roles: InstitucionPar
 }
 
 const createProject = async (id_institucion: number, proyecto: any, roles: InstitucionParticipante[]) => {
-
   const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(id_institucion)
 
   const hasEjecutora = roles.some(item => item.rol.toLocaleLowerCase() === 'ejecutora');
