@@ -8,7 +8,6 @@ router
   .get('/', authUser, checkRol(['admin', 'admin general']), controller.getInstituciones)
   .post('/', authUser, checkRol(['admin', 'admin general']), controller.createInstitucion)
 
-
   .get('/tipos', authUser, checkRol(['admin', 'admin general']), controller.getTiposInstituciones)
 
   .get('/rubros', authUser, checkRol(['admin', 'admin general']), controller.getRubros)
@@ -18,4 +17,5 @@ router
 
   .get('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.getOneInstitucion)
   .put('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.updateInstitucion)
+  .delete('/:inst_id', authUser, checkRol(['admin', 'admin general']), controller.deleteInstitucion)
 export default router

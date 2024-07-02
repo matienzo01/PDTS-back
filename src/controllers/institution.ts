@@ -118,6 +118,17 @@ const updateInstitucion = async(req: Request, res: Response) => {
   }
 }
 
+const deleteInstitucion = async(req: Request, res: Response) => {
+  const { params: { inst_id} } = req
+
+  try {
+    return res.status(200).json(await service.deleteInstitucion(parseInt(inst_id)))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+}
+
 export default {
   getInstituciones,
   getOneInstitucion,
@@ -127,5 +138,6 @@ export default {
   getTiposInstituciones,
   createRubro,
   updateRubro,
-  deleteRubro
+  deleteRubro,
+  deleteInstitucion
 }

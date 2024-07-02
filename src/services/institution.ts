@@ -141,12 +141,16 @@ const updateInstitucion = async(id_institucion: number, institucion: any, trx: a
 }
 
 const deleteInstitucion = async(id: number) => {
-  if ((await knex('instituciones').where({id})).length == 0) {
-    throw new CustomError('There is no institution with the provided id', 404)
+  if ((await knex('instituciones').where({id,esCyT: 0})).length == 0) {
+    throw new CustomError('There is no institution (no cyt) with the provided id', 404)
   }
 
-  
+  if ((await knex('participacion_instituciones').select().where({id_institucion: id})).length > 0) {
+    throw new CustomError('The institution cannot be deleted, it participates in at least one project. You must make sure that he does not participate in any project first', 409)
+  }
 
+  await knex('instituciones').where({id}).del()
+  return await getInstituciones()
 }
 
 export default {
