@@ -140,6 +140,15 @@ const updateInstitucion = async(id_institucion: number, institucion: any, trx: a
 
 }
 
+const deleteInstitucion = async(id: number) => {
+  if ((await knex('instituciones').where({id})).length == 0) {
+    throw new CustomError('There is no institution with the provided id', 404)
+  }
+
+  
+
+}
+
 export default {
     getInstituciones,
     getOneInstitucion,
@@ -149,5 +158,6 @@ export default {
     getTiposInstituciones,
     createRubro,
     updateRubro,
-    deleteRubro
+    deleteRubro,
+    deleteInstitucion
 }

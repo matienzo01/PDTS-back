@@ -230,10 +230,6 @@ const updateUser = async(id: number, user: any, rol: string) => {
     await mailer.checkEmail(user.email);
   }
 
-  if (user.email && user.email != userActual.email) {
-    await mailer.checkEmail(user.email)
-  }
-
   const userToUpdate: any = {
     email:  user.email,
     nombre: user.nombre,
@@ -258,6 +254,22 @@ const updateUser = async(id: number, user: any, rol: string) => {
 
   await knex(TABLE_EVALUADORES).where({ id: id }).update(userToUpdate)
   return await getOneUser(id)
+}
+
+const deleteAdminCyT = async(id_institucion: number, id_admin: number) => {
+  await getOneAdmin(id_admin)
+
+  const cant = (await knex('instituciones_x_admins').select().where({id_institucion})).length
+  console.log(cant)
+  if (cant < 2) {
+    throw new CustomError('The institution must have al least one administrator', 403)
+  }
+
+  return await knex.transaction(async (trx: any) => {
+    await trx('instituciones_x_admins').where({id_admin, id_institucion}).del()
+    await trx('admins_cyt').where({id: id_admin}).del()
+    return ;
+  })
 }
 
 const createAdminGeneral = async(newAdmin: any) => {
@@ -299,6 +311,7 @@ export default {
   getOneUser,
   getOneAdmin,
   deleteAdminGeneral,
+  deleteAdminCyT,
   getAllAdminsGenerales,
   getOneAdminGeneral,
   adminPerteneceInstitucion

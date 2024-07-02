@@ -22,12 +22,13 @@ router
   .post('/:id_institucion/admins', authUser, checkRol(['admin', 'admin general']), user_controller.createAdmin)
   .post('/:id_institucion/usuarios/vincular_usuario', authUser, checkRol(['admin', 'admin general']), user_controller.linkUserToInstitution)
 
-  .put('/:id_institucion/admin/:id_admin', authUser, checkRol(['admin']), user_controller.updateAdminCYT)
+  .put('/:id_institucion/admins/:id_admin', authUser, checkRol(['admin']), user_controller.updateAdminCYT)
   .put('/:id_institucion', authUser, checkRol(['admin', 'admin general']), institution_controller.updateInstitucionCYT)
   .put('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['admin', 'admin general']), project_controller.updateProject)
 
   .delete('/:id_institucion', authUser, checkRol(['admin general']), institution_controller.deleteInstitucionCYT)
   .delete('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['admin']), project_controller.deleteProject)
+  .delete('/:id_institucion/admins/:id_admin', authUser, checkRol(['admin', 'admin general']), user_controller.deleteAdminCyT)
   .delete('/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador', authUser, checkRol(['admin']), project_controller.unassignEvaluador)
 
 export default router

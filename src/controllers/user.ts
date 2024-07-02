@@ -269,6 +269,24 @@ const createAdmin = async(req: Request, res: Response) => {
 
 }
 
+const deleteAdminCyT = async(req: Request, res: Response) => {
+  const id_institucion = parseInt(req.params.id_institucion)
+  const id_admin = parseInt(req.params.id_admin)
+  const { userData }= req.body
+
+  if(userData.rol != 'admin general' && !await service.adminPerteneceInstitucion(id_institucion, userData.id)) {
+    return res.status(403).json({ error: "Unauthorized to delete an admin for this institution" })
+  }
+
+  try {
+    res.status(200).json(await service.deleteAdminCyT(id_institucion, id_admin))
+  } catch (error) {
+    const statusCode = (error as CustomError).status || 500
+    res.status(statusCode).json({ error: (error as CustomError).message })
+  }
+
+}
+
 export default {
   getAllUsers,
   getAllInstitutionUsers,
@@ -283,5 +301,6 @@ export default {
   updateUser,
   updateAdminCYT,
   deleteAdminGeneral,
+  deleteAdminCyT,
   getOneAdminGeneral
 }
