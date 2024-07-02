@@ -8,11 +8,11 @@ const TABLE_INSTITUCIONES = 'instituciones'
 const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
 
 const getInstIdFromAdmin = async (id_admin: number) => {
-  const { id_institucion: id } =  await knex('instituciones_x_admins').select('id_institucion').where({ id_admin }).first()
-  if ( id == undefined) {
+  const rel =  await knex('instituciones_x_admins').select('id_institucion').where({ id_admin }).first()
+  if ( rel.id_institucion == undefined) {
     throw new CustomError('There is no institution with that admin id', 404)
   }
-  return id
+  return rel.id_institucion
 }
 
 const getOneInstitucionCYT = async (id: number , trx: any = null) => {

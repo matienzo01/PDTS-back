@@ -70,12 +70,12 @@ const getAllInstitutionAdmins = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
   }
 
-  if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
-    return res.status(403).json({ error: "An admin can only manage his own institution" })
-  }
-
   try {
-    res.status(200).json(await service.getAllInstitutionAdmins(parseInt(id_institucion)))
+    if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
+      return res.status(403).json({ error: "An admin can only manage his own institution" })
+    } else {
+      res.status(200).json(await service.getAllInstitutionAdmins(parseInt(id_institucion)))
+    }
   } catch (error) {
     const statusCode = (error as CustomError).status || 500
     res.status(statusCode).json({ error: (error as CustomError).message })

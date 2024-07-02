@@ -11,9 +11,9 @@ const adminPerteneceInstitucion = async(id_institucion: number, id_admin: number
 }
 
 const getAllAdmins = async() => {
-  const admins = await knex('admins_cyt as a')
-    .join('instituciones_x_admins as ixa', 'ixa.id_admin', 'a.id' )
-    .join('instituciones_cyt as icyt','icyt.id','ixa.id_admin')
+  const admins = await knex('instituciones_cyt as icyt')
+    .join('instituciones_x_admins as ixa', 'ixa.id_institucion', 'icyt.id' )
+    .join('admins_cyt as a', 'ixa.id_admin', 'a.id')
     .join('instituciones as i','i.id','icyt.id')
     .select(
       'a.nombre as nombre',
