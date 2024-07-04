@@ -130,7 +130,31 @@ const getOneUser = async (id: number, trx: any = null) => {
 }
 
 const getOneAdmin = async(id: number) => {
-  const user = await knex('admins_cyt').select().where({ id }).first()
+  const user = await knex('admins_cyt as a')
+  .join('instituciones_x_admins as ixa', 'ixa.id_admin', 'a.id')
+  .join('instituciones_cyt as icyt', 'icyt.id','ixa.id_institucion')
+  .join('instituciones as i','i.id','icyt.id')
+  .select(
+    'a.nombre as nombre',
+    'a.apellido as apellido',
+    'a.email as email',
+    'a.dni as dni',
+    'a.id',
+    'i.id as institutionId',
+    'i.nombre as nombre_institucion',
+    'icyt.nombre_referente as nombre_referente_institucion',
+    'icyt.apellido_referente as apellido_referente_institucion',
+    'icyt.cargo_referente as cargo_referente_institucion',
+    'icyt.telefono_referente as telefono_referente_institucion',
+    'icyt.mail_referente as mail_referente_institucion',
+    'i.pais as pais_institucion',
+    'i.provincia as provincia_institucion',
+    'i.localidad as localidad_institucion',
+    'telefono_institucional',
+    'mail_institucional'
+    )
+  .where('a.id', id)
+  .first()
 
   if (!user) {
     throw new CustomError('There is no user with the provided id', 404)
