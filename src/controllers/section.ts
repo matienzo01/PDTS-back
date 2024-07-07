@@ -1,33 +1,27 @@
 import service from '../services/section'
-import { Request, Response } from 'express';
-import { CustomError } from '../types/CustomError';
+import { Request, Response, NextFunction  } from 'express';
+import utils from './utils';
 
 const getAllSecciones = async (req: Request, res: Response) => {
-
     try {
         res.status(200).json(await service.getAllSecciones())
     } catch(error){
-        const statusCode = (error as CustomError).status || 500
-        res.status(statusCode).json({ error: (error as CustomError).message})
+        res.status(500).json({ error: 'Error obteniendo las secciones'})
     }
 }
 
-const getOneSeccion = async (req: Request, res: Response) => {
+const getOneSeccion = async (req: Request, res: Response, next: NextFunction) => {
     const { params: { id_seccion }} = req
 
-    if (id_seccion === undefined || isNaN(parseInt(id_seccion as string))) {
-        return res.status(400).json({ error: "Parameter ':id_seccion' should be a number"})
-    }
-
     try {
-        res.status(200).json(await service.getOneSeccion(parseInt(id_seccion as string)))
+        utils.validateNumberParameter(id_seccion, 'id_seccion')
+        res.status(200).json(await service.getOneSeccion(parseInt(id_seccion)))
     } catch (error) {
-        const statusCode = (error as CustomError).status || 500
-        res.status(statusCode).json({ error: (error as CustomError).message})
+        next(error)
     }
 }
 
-const createSeccion = async (req: Request, res: Response) => {
+const createSeccion = async (req: Request, res: Response, next: NextFunction) => {
     const { seccion } = req.body
 
     if (!seccion.nombre) {
@@ -38,41 +32,30 @@ const createSeccion = async (req: Request, res: Response) => {
     try {
         res.status(201).json( await service.createSeccion(seccion))
     } catch(error) {
-        const statusCode = (error as CustomError).status || 500
-        res.status(statusCode).json({ error: (error as CustomError).message})
+        next(error)
     }
 }
 
-const deleteSeccion = async (req: Request, res: Response) => {
+const deleteSeccion = async (req: Request, res: Response, next: NextFunction) => {
     const { params: { id_seccion } } = req
 
-    if (id_seccion === undefined || isNaN(parseInt(id_seccion as string))) {
-        return res.status(400).json({ error: "Parameter ':id_seccion' should be a number"})
-    }
-
     try {
-        res.status(204).json(await service.deleteSeccion(parseInt(id_seccion as string)))
+        utils.validateNumberParameter(id_seccion, 'id_seccion')
+        res.status(204).json(await service.deleteSeccion(parseInt(id_seccion)))
     } catch (error) {
-        const statusCode = (error as CustomError).status || 500
-        const message = (error as CustomError).status ? (error as CustomError).message : 'Error deleting the seccion'
-        res.status(statusCode).json({ error: message})
+        next(error)
     }
 }
 
-const updateSeccion = async (req: Request, res: Response) => {
+const updateSeccion = async (req: Request, res: Response, next: NextFunction) => {
     const { params: { id_seccion } } = req
     const { seccion } = req.body
 
-    if (id_seccion === undefined || isNaN(parseInt(id_seccion as string))) {
-        return res.status(400).json({ error: "Parameter ':id_seccion' should be a number"})
-    }
-
     try {
-        res.status(200).json(await service.updateSeccion(parseInt(id_seccion as string), seccion))
+        utils.validateNumberParameter(id_seccion, 'id_seccion')
+        res.status(200).json(await service.updateSeccion(parseInt(id_seccion), seccion))
     } catch (error) {
-        const statusCode = (error as CustomError).status || 500
-        const message = (error as CustomError).status ? (error as CustomError).message : 'Error updating the seccion'
-        res.status(statusCode).json({ error: message})
+        next(error)
     }
 }
 

@@ -1,12 +1,13 @@
 import service from '../services/user'
 import institutionCytService from '../services/institutionCYT'
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction  } from 'express';
 import { CustomError } from '../types/CustomError.js';
+import utils from './utils';
 
-const getOneAdmin = async(req: Request, res: Response) => {
+const getOneAdmin = async(req: Request, res: Response, next: NextFunction) => {
   const id = parseInt(req.params.id_admin)
   const { userData } = req.body
-
+  
   if (userData.rol == 'admin' && userData.id != id) {
     return res.status(403).json({ error: "An admin can only obtain his own information" })
   }
@@ -14,8 +15,7 @@ const getOneAdmin = async(req: Request, res: Response) => {
   try {
     res.status(200).json(await service.getOneAdmin(id));
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 
 }
@@ -37,104 +37,66 @@ const getAllUsers = async (req: Request, res: Response) => {
     res.status(200).json(response);
 
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    res.status(500).json({ error: 'error getting the users' })
   }
 }
 
-const getAllInstitutionUsers = async (req: Request, res: Response) => {
+const getAllInstitutionUsers = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
   const { id: id_admin, rol } = req.body.userData
 
-  if (isNaN(parseInt(id_institucion))) {
-    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-  }
-
-  if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
-    return res.status(403).json({ error: "An admin can only manage his own institution" })
-  }
-
   try {
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    await utils.ownInstitution(rol, id_admin, parseInt(id_institucion))
     res.status(200).json(await service.getAllInstitutionUsers(parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const getAllInstitutionAdmins = async (req: Request, res: Response) => {
+const getAllInstitutionAdmins = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
   const { id: id_admin, rol } = req.body.userData
 
-  if (isNaN(parseInt(id_institucion))) {
-    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-  }
-
   try {
-    if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
-      return res.status(403).json({ error: "An admin can only manage his own institution" })
-    } else {
-      res.status(200).json(await service.getAllInstitutionAdmins(parseInt(id_institucion)))
-    }
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    await utils.ownInstitution(rol, id_admin, parseInt(id_institucion))
+    res.status(200).json(await service.getAllInstitutionAdmins(parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const getUserByDni = async (req: Request, res: Response) => {
-  const { params: { id_institucion, dni } } = req
-  if (isNaN(parseInt(dni))) {
-    res.status(400).json({ error: "Parameter ':dni' should be a number" })
-    return ;
-  }
+const getUserByDni = async (req: Request, res: Response, next: NextFunction) => {
+  const { params: { dni } } = req
 
   try {
+    utils.validateNumberParameter(dni, 'dni')
     res.status(200).json({ usuario: await service.getUserByDni(parseInt(dni)) })
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const linkUserToInstitution = async (req: Request, res: Response) => {
+const linkUserToInstitution = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req  
   const { dni } = req.body
   const { id: id_admin, rol } = req.body.userData
 
-  if (isNaN(parseInt(id_institucion))) {
-    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-  }
-
-  if (isNaN(dni)) {
-    return res.status(400).json({ error: "Parameter ':dni' should be a number" })
-  }
-
-  if(rol !== 'admin general' && await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
-    return res.status(403).json({ error: "An admin can only manage his own institution" })
-  }
-
   try {
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    utils.validateNumberParameter(dni, 'dni')
+    await utils.ownInstitution(rol, id_admin, parseInt(id_institucion))
     res.status(200).json(await service.linkUserToInstitution(dni, parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const createUser = async (req: Request, res: Response) => {
+const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
   const { user } = req.body
   const { id: id_admin } = req.body.userData
-
-  if (isNaN(parseInt(id_institucion))) {
-    res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-    return ;
-  }
-
-  if(await institutionCytService.getInstIdFromAdmin(id_admin) != id_institucion){
-    return res.status(403).json({ error: "An admin can only manage his own institution" })
-  }
 
   if (!user.hasOwnProperty('email') ||
     !user.hasOwnProperty('nombre') ||
@@ -151,22 +113,18 @@ const createUser = async (req: Request, res: Response) => {
   }
 
   try {
+    utils.validateNumberParameter(id_institucion, id_institucion)
+    await utils.ownInstitution('admin', id_admin, parseInt(id_institucion))
     res.status(200).json(await service.createUser(user, parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
   return;
 }
 
-const updateUser = async (req: Request, res: Response) => {
+const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_usuario } } = req
   const { user } = req.body
-
-  if (isNaN(parseInt(id_usuario))) {
-    res.status(400).json({ error: "Parameter ':id_usuario' should be a number" })
-    return ;
-  }
 
   if (id_usuario != req.body.userData.id){
     res.status(401).json({ error: "you can only update your own user" })
@@ -174,21 +132,18 @@ const updateUser = async (req: Request, res: Response) => {
   }
   
   try {
+    utils.validateNumberParameter(id_usuario, 'id_usuario')
     res.status(200).json(await service.updateUser(parseInt(id_usuario), user,'evaluador'))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const updateAdminCYT = async(req: Request, res: Response) => {
+const updateAdminCYT = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion, id_admin } } = req
   const { admin } = req.body
 
-  if (isNaN(parseInt(id_institucion))) {
-    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-  }
-
+  // PREGUNTAR ESTOS DOS IF
   if (id_admin != req.body.userData.id){
     res.status(401).json({ error: "you can only update your own user" })
     return ;
@@ -200,15 +155,14 @@ const updateAdminCYT = async(req: Request, res: Response) => {
   }
 
   try {
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
     res.status(200).json( await service.updateUser(parseInt(id_admin), admin,'admin'))
-   
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const createAdminGeneral = async(req: Request, res: Response) => {
+const createAdminGeneral = async(req: Request, res: Response, next: NextFunction) => {
   const { newAdmin } = req.body 
 
   if(!newAdmin.email ||
@@ -219,39 +173,31 @@ const createAdminGeneral = async(req: Request, res: Response) => {
 
   try {
     res.status(200).json( await service.createAdminGeneral(newAdmin))
-   
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const deleteAdminGeneral = async(req: Request, res: Response) => {
+const deleteAdminGeneral = async(req: Request, res: Response, next: NextFunction) => {
 
 }
 
 const getAllAdminsGenerales = async(req: Request, res: Response) => {
   try {
     res.status(200).json( await service.getAllAdminsGenerales())
-   
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    res.status(500).json({ error: 'Error obteniendo los administradores' })
   }
 }
 
-const getOneAdminGeneral = async(req: Request, res: Response) => {
+const getOneAdminGeneral = async(req: Request, res: Response, next: NextFunction) => {
   
 }
 
-const createAdmin = async(req: Request, res: Response) => {
+const createAdmin = async(req: Request, res: Response, next: NextFunction) => {
   const { admin } = req.body 
-  const id_institucion = parseInt(req.params.id_institucion)
-  const { userData }= req.body
-
-  if(userData.rol != 'admin general' && !await service.adminPerteneceInstitucion(id_institucion, userData.id)) {
-    return res.status(403).json({ error: "Unauthorized to create an admin for this institution" })
-  }
+  const { params: { id_institucion } } = req
+  const { id: id_admin, rol } = req.body.userData
 
   if (!admin.nombre ||
     !admin.apellido ||
@@ -261,28 +207,25 @@ const createAdmin = async(req: Request, res: Response) => {
   }
 
   try {
-    res.status(200).json(await service.createAdmin(id_institucion, admin))
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    await utils.ownInstitution(rol, id_admin, parseInt(id_institucion))
+    res.status(200).json(await service.createAdmin(parseInt(id_institucion), admin))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 
 }
 
-const deleteAdminCyT = async(req: Request, res: Response) => {
-  const id_institucion = parseInt(req.params.id_institucion)
-  const id_admin = parseInt(req.params.id_admin)
-  const { userData }= req.body
-
-  if(userData.rol != 'admin general' && !await service.adminPerteneceInstitucion(id_institucion, userData.id)) {
-    return res.status(403).json({ error: "Unauthorized to delete an admin for this institution" })
-  }
+const deleteAdminCyT = async(req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_institucion } } = req
+  const { id: id_admin, rol } = req.body.userData
 
   try {
-    res.status(200).json(await service.deleteAdminCyT(id_institucion, id_admin))
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    await utils.ownInstitution(rol, id_admin, parseInt(id_institucion))
+    res.status(200).json(await service.deleteAdminCyT(parseInt(id_institucion), id_admin))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 
 }

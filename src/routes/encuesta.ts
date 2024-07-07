@@ -10,5 +10,4 @@ router
     .post('/:id_proyecto', authUser, checkRol(['evaluador']), controller.postEncuesta)
     .put('/:id_proyecto/finalizar', authUser, checkRol(['evaluador']), controller.finallizarEncuesta)
     
-
 export default router

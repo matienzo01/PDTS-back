@@ -285,6 +285,10 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     const SINO = relacion.filter(item => CUAL.map(p => p.id).includes(item.id_subpregunta))
     const respuestasSINO = respuestas.filter(rta => SINO.map(p => p.id_pregunta_padre).includes(rta.id_pregunta))
     
+    if(respuestas.length == 0) {
+        throw new CustomError('The amount of answers does not match those expected', 400)
+    }
+
     let contador = 0
     SINO.forEach( p => {
         const rtaSINO = respuestasSINO.find(q => q.id_pregunta == p.id_pregunta_padre)

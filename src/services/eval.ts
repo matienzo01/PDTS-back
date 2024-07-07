@@ -312,7 +312,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
   if( rol == 'admin') {
     const { proyecto } = await projectService.getOneProject(id_proyecto, await insttitutionCYTService.getInstIdFromAdmin(id_usuario))
     if(proyecto.id_estado_eval != 3){
-      throw new CustomError('The evaluation cannot be closed at this time', 409)
+      throw new CustomError('The evaluation cannot be closed at this time, the director must complete his evaluation first', 409)
     }
 
     knex.transaction(async (trx: any) => {

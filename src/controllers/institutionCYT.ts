@@ -1,19 +1,16 @@
 import service from '../services/institutionCYT';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction  } from 'express';
 import { CustomError } from '../types/CustomError';
+import utils from './utils';
 
-const getOneInstitucionCYT = async (req: Request, res: Response) => {
+const getOneInstitucionCYT = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
 
-  if (isNaN(parseInt(id_institucion))) {
-    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-  }
-
   try {
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
     return res.status(200).json(await service.getOneInstitucionCYT(parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    return res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
@@ -25,7 +22,7 @@ const getAllInstitucionesCYT = async (req: Request, res: Response) => {
   }
 }
 
-const createInstitucionCYT = async (req: Request, res: Response) => {
+const createInstitucionCYT = async (req: Request, res: Response, next: NextFunction) => {
 
   if(!req.body.hasOwnProperty('admin')) {
     return res.status(400).json({ error: "Missing admin" })
@@ -61,28 +58,24 @@ const createInstitucionCYT = async (req: Request, res: Response) => {
   try {
     return res.status(200).json(await service.createInstitucionCYT(admin, institucion))
   } catch (error) {
-    return res.status(409).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const deleteInstitucionCYT = async (req: Request, res: Response) => {
+const deleteInstitucionCYT = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
 
-  if (isNaN(parseInt(id_institucion))) {
-    return res.status(400).json({ error: "Parameter ':id_institucion' should be a number" })
-  }
-
   try {
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
     await service.deleteInstitucionCYT(parseInt(id_institucion))
     return res.status(200).json("Institucion eliminada exitosamente")
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
 
-const updateInstitucionCYT = async (req: Request, res: Response) => {
+const updateInstitucionCYT = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
   const {institucion, userData } = req.body
   
@@ -92,10 +85,11 @@ const updateInstitucionCYT = async (req: Request, res: Response) => {
   }
 
   try {
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    await utils.ownInstitution(userData.rol, userData.id, parseInt(id_institucion))
     return res.status(200).json(await service.updateInstitucionCYT(parseInt(id_institucion), institucion))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 

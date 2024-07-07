@@ -8,7 +8,6 @@ import authUser from '../middlewares/authUser'
 import checkRol from '../middlewares/checkRol'
 
 router
-
     .get('/dimensiones', authUser, checkRol(['admin general']), dimensionController.getAllDimensions)
     .get('/dimensiones/:id_dimension', authUser, checkRol(['admin general']), dimensionController.getOneDimension)
     .post('/dimensiones', authUser, checkRol(['admin general']), dimensionController.createDimension)

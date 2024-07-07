@@ -3,9 +3,8 @@ import { Dimension } from '../types/Dimension'
 import { CustomError } from '../types/CustomError';
 const TABLE = 'dimensiones'
 
-const getAllDimensions = async (id_instancia?: number) => {
-    const conds = id_instancia ? {id_instancia: id_instancia} : {};
-    return {dimensiones: await knex.select().where(conds).from(TABLE)};
+const getAllDimensions = async () => {
+    return {dimensiones: await knex.select().from(TABLE)};
 }
 
 const getOneDimension = async(id: number) => { 

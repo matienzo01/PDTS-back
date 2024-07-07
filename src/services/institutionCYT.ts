@@ -107,7 +107,7 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
     })
     return await getOneInstitucionCYT(id_inst)
   } else {
-    throw new Error('The institution already exists in the system')
+    throw new CustomError('The institution already exists in the system', 409)
   }
 }
 

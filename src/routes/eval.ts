@@ -13,11 +13,7 @@ router
     .get('/entidad/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getEntidad)
     .get('/proposito/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getProposito)
     .post('/form/:id_proyecto', authUser, checkRol(['evaluador']), controller.saveForm)
-
-    .get('/:id_proyecto/respuestas/pdf', authUser, checkRol(['admin']), controller.generatePDF)
-    .put('/:id_proyecto/finalizar', authUser, checkRol(['evaluador','admin']), controller.finalizarEvaluacion)
-
-    
+    .put('/:id_proyecto/finalizar', authUser, checkRol(['evaluador','admin']), controller.finalizarEvaluacion) 
     .post('/form/:id_proyecto/files', (req, res, next) => {
         upload.single('file')(req, res, (err) => {
             if (err) {
@@ -26,7 +22,6 @@ router
             next();
         });
     }, authUser, checkRol(['evaluador']), renameFile ,uploadFile)
-
     .get('/form/:id_proyecto/files', authUser, checkRol(['evaluador','admin']), getFileNames)
     .get('/form/:id_proyecto/files/:file_name', authUser, checkRol(['evaluador','admin']), getFile)
 
