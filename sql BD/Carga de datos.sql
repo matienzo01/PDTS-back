@@ -4,14 +4,13 @@
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
 INSERT INTO admin(email,password) VALUES
-    -- admingeneral
     ('admin@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
 INSERT INTO modelos_encuesta(nombre) VALUES
     ('Modelo de encuesta 1');
 
 INSERT INTO secciones(nombre) VALUES
-	('Sistema de evaluacion'),				-- id 1
+	('Sistema de evaluación'),				-- id 1
     ('Instancias e indicadores'),			-- id 2
     ('Evaluadores'),						-- id 3
     ('Software');							-- id 4
@@ -29,6 +28,7 @@ INSERT INTO tipo_preguntas (tipo) VALUES
     ('contenedora');			-- id 4
 
 INSERT INTO tipos_instituciones(tipo) VALUES
+    ('cyt'),
 	('Organizacion Gubernamental'),
 	('Asociación Civil'),
 	('Cámara'),
@@ -47,11 +47,13 @@ INSERT into estado_eval(nombre) VALUES
 
 INSERT INTO instancias (nombre) VALUES ('Entidad'), ('Proposito');
 
+INSERT INTO rubros (nombre) VALUE ('cyt');
+
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 -- Dimensiones e indicadores de la instancia de Entidad ///////////////////////////////////////////////////////////////////
 -- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-INSERT into dimensiones (nombre, id_instancia) VALUES ('Avance congnitivo',1);
+INSERT into dimensiones (nombre, id_instancia) VALUES ('Avance cognitivo',1);
 INSERT into indicadores(pregunta, id_dimension, determinante, descripcion, fundamentacion)
 	VALUES 
     	('¿Hubo producción de conocimiento en el desarrollo del proyecto?', 
@@ -294,7 +296,7 @@ INSERT INTO opciones(valor) VALUES
     ('pertinente'),
     ('muy pertinente'),
     
-    ('no agregan valor'),
+    ('no agrega valor'),
     ('agrega poco valor'),
     ('agrega valor'),
     ('agrega mucho valor'),
@@ -352,20 +354,23 @@ INSERT INTO opciones_x_preguntas(id_opcion, id_preguntas_seccion) VALUES
 -- CARGA DE DATOS DE PRUEBA /////////////////////////////////////////////////////////////////////////
 -- //////////////////////////////////////////////////////////////////////////////////////////////////
 
-INSERT INTO admins_cyt(nombre,apellido,email,password) VALUES
+INSERT INTO admins_cyt(nombre,apellido,email,password,dni) VALUES
     -- admin1
-    ('Juan','Administrador','admin1@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq'),
+    ('Juan','Administrador','admin1@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq',1234),
     -- admin2
-    ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
+    ('Jorge','Administrador','admin2@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq',1234);
 
-INSERT INTO instituciones(nombre,rubro,pais,provincia,localidad,telefono_institucional,mail_institucional, esCyT) VALUES
-    ('Universidad XYZ','RUBRO A', 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1),
-    ('UTN', 'RUBRO B', 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com', 1),
-    ('Hospital General', 'Salud', 'Argentina', 'Buenos Aires', 'Ciudad C', '2264588978', 'contacto@hospitalgeneral.ar', 0);
+INSERT INTO instituciones(nombre,id_rubro,pais,provincia,localidad,telefono_institucional,mail_institucional, esCyT, id_tipo) VALUES
+    ('Universidad XYZ',1, 'Argentina', 'Buenos Aires', 'Ciudad A', '555-1111', 'info@universidadxyz.com', 1, 1),
+    ('UTN', 1, 'Argentina', 'Buenos Aires', 'Ciudad B', '132456798', 'info@utn.com', 1, 1);
 
-INSERT INTO instituciones_cyt(id,id_admin,id_tipo,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
-    (1,1,1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
-    (2,2,8,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
+INSERT INTO instituciones_cyt(id,nombre_referente,apellido_referente,cargo_referente,telefono_referente,mail_referente) VALUES
+    (1,'referente xyz','apellido xyz','decano','2234567894','decano@mail.com'),
+    (2,'referente utn','apellido utn','jefe de mantenimiento','2234567894','mantenimiento@mail.com');  
+
+INSERT INTO instituciones_x_admins(id_institucion, id_admin) VALUES 
+    (1,1),
+    (2,2);
 
 INSERT INTO evaluadores (email, password, nombre, apellido, dni, celular, especialidad, institucion_origen, pais_residencia, provincia_residencia, localidad_residencia) 
 VALUES 
@@ -374,14 +379,6 @@ VALUES
 ('evaluador3@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Luis', 'Rodríguez', 555666777, '555-9876', 'Química', 'UTN', 'España', 'Madrid', 'Ciudad D'),
 ('evaluador4@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Ana', 'Martínez', 444333222, '555-6543', 'Matemáticas', 'UTN', 'Colombia', 'Bogotá', 'Ciudad E'),
 ('evaluador5@example.com', '$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq', 'Carlos', 'López', 111222333, '555-8765', 'Física', 'Hospital General', 'Chile', 'Santiago', 'Ciudad F');
-
--- contraseñas:
--- 
---  evaluador 1 --> contrasena123
---  evaluador 2 --> password456
---  evaluador 3 --> clave789
---  evaluador 4 --> segura987
---  evaluador 5 --> miclave123
 
 INSERT INTO evaluadores_x_instituciones(id_institucion,id_evaluador) VALUES
     (1,1),
@@ -403,9 +400,9 @@ INSERT INTO proyectos (
     producto_a_generar,
     resumen,
     novedad_u_originalidad,
-    grado_relevancia,
-    grado_pertinencia,
-    grado_demanda,
+    relevancia,
+    pertinencia,
+    demanda,
     fecha_carga,
     obligatoriedad_proposito,
     obligatoriedad_opinion,
@@ -649,12 +646,12 @@ INSERT INTO respuestas_encuesta(id_pregunta, id_evaluador, id_proyecto, respuest
     (40,2,3,'pertinente'),
     (41,2,3,'pertinente');
 
-UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW(), respondio_entidad = 1 WHERE id_proyecto = 2 AND id_evaluador = 1;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 2 AND id_evaluador = 1;
 UPDATE proyectos SET id_estado_eval = 3 WHERE id = 2 ;
 
-UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW(), respondio_entidad = 1 WHERE id_proyecto = 3 AND id_evaluador = 1;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 3 AND id_evaluador = 1;
 UPDATE evaluadores_x_proyectos SET fecha_fin_op = NOW() WHERE id_proyecto = 3 AND id_evaluador = 1;
-UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW(), respondio_entidad = 1 WHERE id_proyecto = 3 AND id_evaluador = 2;
+UPDATE evaluadores_x_proyectos SET fecha_fin_eval = NOW() WHERE id_proyecto = 3 AND id_evaluador = 2;
 UPDATE evaluadores_x_proyectos SET fecha_fin_op = NOW() WHERE id_proyecto = 3 AND id_evaluador = 2;
 UPDATE proyectos SET id_estado_eval = 4 WHERE id = 3 ;
 
