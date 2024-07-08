@@ -13,7 +13,7 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
 
     const originalPath = `uploads/${req.file.originalname}`
     const id_proyecto = parseInt(req.params.id_proyecto)
-    const id_indicador = parseInt(req.body.indicadorId)
+    const id_indicador = parseInt(req.params.id_indicador)
     const id_usuario = req.body.userData.id; 
 
     try {
@@ -39,10 +39,23 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
             throw new CustomError("The proposito instance should not be evaluated in this project", 400)
         }
 
-        const newFileName = `${id_proyecto}-${id_indicador}-${id_usuario}.zip`
-        fs.rename(originalPath, `uploads/${newFileName}`, (err) => {})
+        const fileFolder = `uploads/${id_proyecto}-${id_indicador}-${id_usuario}`
+        if (!fs.existsSync(fileFolder)) {
+            fs.mkdirSync(fileFolder, { recursive: true });
+        }
 
-        req.file.filename = newFileName;
+        const files = fs.readdirSync(fileFolder);
+        const fileCount = files.filter(file => {
+            const filePath = `${fileFolder}/${file}`
+            return fs.statSync(filePath).isFile();
+          }).length;
+
+        if(fileCount > 4) {
+            throw new CustomError("Se pueden subir como maximo 5 archivos por indicador", 429)
+        }
+
+        fs.rename(originalPath, `${fileFolder}/${req.file.originalname}`, (err) => {})
+        req.body.files = fs.readdirSync(fileFolder);
         next();
 
     } catch (error){

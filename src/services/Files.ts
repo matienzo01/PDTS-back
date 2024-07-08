@@ -17,26 +17,16 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (file.originalname.endsWith('.zip')) {
+  const allowedExtensions = ['.zip', '.png', '.jpg', '.jpeg', '.pdf', '.doc', '.docx', '.xls', '.xlsx'];
+  const fileExtension = file.originalname.slice(file.originalname.lastIndexOf('.')).toLowerCase();
+  if (allowedExtensions.includes(fileExtension)) {
     cb(null, true);
   } else {
-    cb(new Error('Only .zip files are allowed'), false);
+    cb(new Error('Solo las archivos tipo .zip, .png, .jpg, .jpeg, .pdf, .doc, .docx, .xls, and .xlsx estan permitidos'), false);
   }
 };
 
 export const upload = multer({ storage, fileFilter });
-
-
-// `${id_proyecto}-${id_indicador}-${id_usuario}.zip`
-const getNames = (id_proyecto: number, id_user:number , proposito: boolean): string[] => {
-  const cant = proposito ? 25 : 13;
-  const names: string[] = [];
-
-  for (let j = 1; j < cant; j++) {
-    names.push(`${id_proyecto}-${j}-${id_user}.zip`);
-  }
-  return names;
-}
 
 const getParticipantFileNames = async (id_proyecto: number, id_admin: number) => {
   const proyecto = (await projectService.getOneProject(id_proyecto)).proyecto;
@@ -45,15 +35,18 @@ const getParticipantFileNames = async (id_proyecto: number, id_admin: number) =>
     .some(p => p.id_admin == id_admin)
 
   if(!cond) {
-    throw new CustomError('The admin dont belong to the institution that owns the project', 403)
+    throw new CustomError('El administrador no pertenece a la institucion dueña del proyecto', 403)
   }
 
   const ids = proyecto.participantes.filter((obj: any) => obj.fecha_fin_eval == null).map((obj: any) => obj.id);
-  const a: {id_evaluador: number, files: any}[] = [];
+  const a: {id_evaluador: number, indicadores: any}[] = [];
   
   await Promise.all(ids.map(async (id: number) => {
-    const data = await getFilesEvaluador(id_proyecto, id);
-    a.push(data[0]);
+    const {indicadores} = await getFilesEvaluador(id_proyecto, id);
+    a.push({
+      id_evaluador: id,
+      indicadores: indicadores
+    });
   }));
   return a
 }
@@ -61,43 +54,76 @@ const getParticipantFileNames = async (id_proyecto: number, id_admin: number) =>
 const getFilesEvaluador = async (id_proyecto: number, id_usuario: number) => {
   const { obligatoriedad_proposito } = (await projectService.getOneProject(id_proyecto)).proyecto;
   await projectService.verify_date(id_proyecto, id_usuario);
-  const names: string[] = getNames(id_proyecto, id_usuario, obligatoriedad_proposito);
-  
-  return [{id_evaluador: id_usuario, files: await getFileNamesEvaluador(names)}]
-}
+  const files = []
+  const cantFolders = obligatoriedad_proposito ? 25 : 13;
 
-const getFileNamesEvaluador = async(names: string[]) => {
-  const filesArray: { id_indicador: number, fileName: string }[] = [];
-  try {
-    const files = await fs.readdir('./uploads'); 
-    const matchedFiles = files.filter(file => names.includes(file));
-    
-    for (const fileName of matchedFiles) {
-      try {
-        filesArray.push({ id_indicador : parseInt(fileName.split('-')[1]), fileName  });
-      } catch (err) {
-        throw new CustomError(`Unable to read file ${fileName}`, 500);
-      }
-    }
-  } catch (err) {
-    throw new CustomError('a', 500);
+  for (let j = 1; j < cantFolders; j++) {
+    const fileFolder = `uploads/${id_proyecto}-${j}-${id_usuario}`
+    try {
+      await fs.access(fileFolder);  
+      const fileNames = await fs.readdir(fileFolder);
+      files.push({id_indicador: j, files: fileNames})
+    } catch (err) {}
   }
-
-  return filesArray; 
+  
+  return {indicadores: files}
 }
 
-const getOneFile = async (fileName: string) => {
-
+const getOneFile = async (id_proyecto: number, id_indicador: number, id_usuario: number, fileName: string) => {
   let fileContent
-
   try {
-      const filePath = `./uploads/${fileName}`;
-      fileContent = await fs.readFile(filePath, 'base64'); 
+      const fileFolder = `./uploads/${id_proyecto}-${id_indicador}-${id_usuario}`
+      const filePath = `${fileFolder}/${fileName}`
+
+      await fs.access(fileFolder);
+      const exists = await fs.access(filePath).then(() => true).catch(() => false);
+
+      if (exists) {
+        fileContent = await fs.readFile(filePath, 'base64');
+      } else {
+        throw new CustomError(`El archivo '${fileName}' no existe en el sistema`, 404);
+      }
   } catch (err) {
-    throw new CustomError(`Unable to read file ${fileName}`, 500);
+    if((err as any).code == 'ENOENT') {
+      throw new CustomError(`El directorio donde el archivo debería estar no existe en el sistema`, 500);
+    } 
+    throw err
   }
 
   return {file: fileContent}; 
 };
 
-export default { getFilesEvaluador, getParticipantFileNames, getOneFile }
+const deleteFile = async(id_proyecto: number, id_indicador: number, id_usuario: number, fileName: string)=> {
+
+  try {
+    const fileFolder = `./uploads/${id_proyecto}-${id_indicador}-${id_usuario}`
+    const filePath = `${fileFolder}/${fileName}`
+
+    await fs.access(fileFolder);
+    const exists = await fs.access(filePath).then(() => true).catch(() => false);
+
+    if (exists) {
+      await fs.unlink(filePath);
+    } else {
+      throw new CustomError(`El archivo '${fileName}' no existe en el sistema`, 404);
+    }
+
+    const files = await fs.readdir(fileFolder);
+    if (files.length === 0) {
+      // Elimina el directorio si está vacío
+      await fs.rmdir(fileFolder);
+      return { id_indicador: id_indicador, files: []}
+    }
+
+    return {id_indicador: id_indicador, files: files}
+
+  } catch (err) {
+  if((err as any).code == 'ENOENT') {
+    throw new CustomError(`El directorio donde el archivo debería estar no existe en el sistema`, 500);
+  } 
+  throw err
+}
+
+}
+
+export default { getFilesEvaluador, getParticipantFileNames, getOneFile, deleteFile }
