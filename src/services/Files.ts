@@ -70,7 +70,6 @@ const getFilesEvaluador = async (id_proyecto: number, id_usuario: number) => {
 }
 
 const getOneFile = async (id_proyecto: number, id_indicador: number, id_usuario: number, fileName: string) => {
-  let fileContent
   try {
       const fileFolder = `./uploads/${id_proyecto}-${id_indicador}-${id_usuario}`
       const filePath = `${fileFolder}/${fileName}`
@@ -79,7 +78,7 @@ const getOneFile = async (id_proyecto: number, id_indicador: number, id_usuario:
       const exists = await fs.access(filePath).then(() => true).catch(() => false);
 
       if (exists) {
-        fileContent = await fs.readFile(filePath, 'base64');
+        return filePath
       } else {
         throw new CustomError(`El archivo '${fileName}' no existe en el sistema`, 404);
       }
@@ -88,9 +87,7 @@ const getOneFile = async (id_proyecto: number, id_indicador: number, id_usuario:
       throw new CustomError(`El directorio donde el archivo debería estar no existe en el sistema`, 500);
     } 
     throw err
-  }
-
-  return {file: fileContent}; 
+  }; 
 };
 
 const deleteFile = async(id_proyecto: number, id_indicador: number, id_usuario: number, fileName: string)=> {

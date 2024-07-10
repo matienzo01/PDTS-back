@@ -41,7 +41,7 @@ export const getFile = async(req: Request, res: Response, next: NextFunction) =>
   try {
     utils.validateNumberParameter(id_proyecto, 'id_proyecto')
     utils.validateNumberParameter(id_indicador, 'id_indicador')
-    res.status(200).json(await fileService.getOneFile(parseInt(id_proyecto), parseInt(id_indicador), id_usuario, file_name))
+    res.status(200).contentType('application/pdf').download(await fileService.getOneFile(parseInt(id_proyecto), parseInt(id_indicador), id_usuario, file_name), file_name)
   } catch(error) {
     next(error)
   }
