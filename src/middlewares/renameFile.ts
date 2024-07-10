@@ -4,11 +4,16 @@ import projectService from '../services/project'
 import evalService from '../services/eval';
 import { CustomError } from '../types/CustomError';
 
-const renameFile = async(req: Request, res: Response, next: NextFunction) => {
+const checkFolder = async(folder: string) => {
+    if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+    }
+}
+
+const renameFileFundamentacion = async(req: Request, res: Response, next: NextFunction) => {
     
     if (!req.file) {
-        res.status(400).send('No file uploaded.');
-        return;
+        return res.status(400).send('No se subio ningun archivo.');
     }
 
     const originalPath = `uploads/${req.file.originalname}`
@@ -18,7 +23,7 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
 
     try {
         //1) existe proyecto?
-        const { id_estado_eval, id_director, obligatoriedad_proposito } = (await projectService.getOneProject(id_proyecto)).proyecto
+        const { id_estado_eval, id_director, obligatoriedad_proposito, titulo } = (await projectService.getOneProject(id_proyecto)).proyecto
         //2) el usuario esta vinculado al proyecto?
         const assigned = await projectService.verify_date(id_proyecto, id_usuario)
         //3) puuede responder?
@@ -39,10 +44,10 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
             throw new CustomError("The proposito instance should not be evaluated in this project", 400)
         }
 
-        const fileFolder = `uploads/${id_proyecto}-${id_indicador}-${id_usuario}`
-        if (!fs.existsSync(fileFolder)) {
-            fs.mkdirSync(fileFolder, { recursive: true });
-        }
+        let fileFolder =`uploads/${titulo}/fundamentaciones`
+        checkFolder(fileFolder)
+        fileFolder = fileFolder.concat(`/${id_indicador}-${id_usuario}`)
+        checkFolder(fileFolder)
 
         const files = fs.readdirSync(fileFolder);
         const fileCount = files.filter(file => {
@@ -55,7 +60,10 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
         }
 
         fs.rename(originalPath, `${fileFolder}/${req.file.originalname}`, (err) => {})
-        req.body.files = fs.readdirSync(fileFolder);
+        if (!files.includes(req.file.originalname)){
+            files.push(req.file.originalname)
+        }
+        req.body.files = files
         next();
 
     } catch (error){
@@ -65,4 +73,33 @@ const renameFile = async(req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export default renameFile;
+const renameFileInforme = async(req: Request, res: Response, next: NextFunction) => {
+
+    if (!req.file) {
+        return res.status(400).send('No se subio ningun archivo.');
+    }
+
+    const { titulo } = JSON.parse(req.body.proyecto)
+
+    let fileFolder = `uploads/${titulo}`
+    const originalPath = `uploads/${req.file.originalname}`
+
+    try{
+        fs.mkdirSync(fileFolder, { recursive: true });
+        fileFolder = fileFolder.concat('/informe')
+        fs.mkdirSync(fileFolder, { recursive: true });
+
+        fs.rename(originalPath, `${fileFolder}/${req.file.originalname}`, (err) => {})
+        next();
+    } catch(error) {
+        fs.unlink(originalPath, (err) => {});
+        const statusCode = (error as CustomError).status || 500
+        res.status(statusCode).json({ error: (error as CustomError).message })
+    }
+    
+}
+
+export default {
+    renameFileFundamentacion,
+    renameFileInforme
+};

@@ -39,9 +39,13 @@ const getOneProject = async (req: Request, res: Response, next: NextFunction) =>
 
 const createProject = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
-  const { proyecto } = req.body
+  const proyecto = JSON.parse(req.body.proyecto)
   const { id: id_admin } = req.body.userData
 
+  if(!req.file) {
+    return res.status(400).json({error: 'No se subio ningun archivo'})
+  }
+  
   if (!proyecto.hasOwnProperty("titulo") ||
     !proyecto.hasOwnProperty("id_director") ||
     !proyecto.hasOwnProperty("FechaInicio") ||

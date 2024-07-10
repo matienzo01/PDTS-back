@@ -408,7 +408,7 @@ INSERT INTO proyectos (
     obligatoriedad_opinion,
     id_modelo_encuesta
 ) VALUES (
-    'Proyecto Ejemplo',
+    'Proyecto 1',
     1, -- Reemplaza con el ID correcto de estado_eval
     1, -- Reemplaza con el ID correcto de evaluadores (director)
     1, -- Reemplaza con el ID correcto de instituciones
@@ -429,7 +429,7 @@ INSERT INTO proyectos (
     1 -- modelo de encuesta
 ),
 (
-    'Proyecto de Investigación en Biología Marina',
+    'Proyecto 2',
     1, -- Reemplaza con el ID correcto de estado_eval
     3, -- Reemplaza con el ID correcto de evaluadores (director)
     1, -- Reemplaza con el ID correcto de instituciones
@@ -450,7 +450,7 @@ INSERT INTO proyectos (
     1 -- modelo de encuesta
 ),
 (
-    'Proyecto de Investigación Geológica',
+    'Proyecto 3',
     1, -- Reemplaza con el ID correcto de estado_eval
     1, -- Reemplaza con el ID correcto de evaluadores (director)
     1, -- Reemplaza con el ID correcto de instituciones

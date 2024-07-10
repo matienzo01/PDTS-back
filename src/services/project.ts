@@ -7,11 +7,13 @@ import knex from '../database/knex'
 import mailer from './mailer'
 import institutionCYT from "./institutionCYT"
 import user from "./user"
+import Files from "./Files"
 
 const getAllProjects = async() => {
   const proyectos = await knex('proyectos').select()
 
   for (let i = 0; i < proyectos.length; i++) {
+    proyectos[i].informe_director = await Files.getNombreInforme(proyectos[i].titulo)
     proyectos[i].participantes = await getParticipants(proyectos[i].id)
     proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
     proyectos[i].director = await getDirector(proyectos[i])
@@ -23,6 +25,7 @@ const getAllInstitutionProjects = async (id_institucion: number) => {
   const proyectos = await knex('proyectos').select().where({ id_institucion: id_institucion })
 
   for (let i = 0; i < proyectos.length; i++) {
+    proyectos[i].informe_director = await Files.getNombreInforme(proyectos[i].titulo)
     proyectos[i].participantes = await getParticipants(proyectos[i].id)
     proyectos[i].instituciones_participantes = await getInstParticipants(proyectos[i].id)
     proyectos[i].director = await getDirector(proyectos[i])
@@ -38,19 +41,19 @@ const getOneProject = async (id_proyecto: number, id_institucion: number | null 
     .where({ id: id_proyecto })
     .first();
 
-
-  const participants = await getParticipants(id_proyecto, queryBuilder)
-  const participating_insts = await getInstParticipants(id_proyecto, queryBuilder)
-
   if (!project) {
     throw new CustomError('There is no project with the provided id', 404)
   }
+
+  const participants = await getParticipants(id_proyecto, queryBuilder)
+  const participating_insts = await getInstParticipants(id_proyecto, queryBuilder)
+  const nombre_informe = await Files.getNombreInforme(project.titulo)
 
   if (id_institucion && project.id_institucion != id_institucion) {
     throw new CustomError('The project is not linked to the institution or the institution does not exist', 403)
   }
 
-  return { proyecto: { ...project, participantes: participants, instituciones_participantes: participating_insts } };
+  return { proyecto: { ...project, informe_director: nombre_informe, participantes: participants, instituciones_participantes: participating_insts } };
 }
 
 const getParticipants = async (id_proyecto: number, trx: any = null) => {
@@ -92,16 +95,9 @@ const getProjectsByUser = async (id_usuario: number) => {
   }
 
   return {proyectos: proyectos}
-
-  /*
-  return { proyectos: proyectos.filter(proyecto => {
-      return !(proyecto.id_estado_eval < 3 && proyecto.id_director !== id_usuario);
-    }) 
-  }*/
 }
 
 const userBelongsToInstitution = async (id_evaluador: number, id_institucion: number) => {
-
   const inst = await knex('instituciones_cyt').select().where({ id: id_institucion }).first()
   if (inst === undefined) {
     throw new CustomError('There is no institution with the provided id', 404)
@@ -156,8 +152,12 @@ const unassignEvaluador = async (id_evaluador: number, id_proyecto: number) => {
     throw new CustomError('You cannot remove a director from his or her own project', 409)
   }
 
-  await knex('evaluadores_x_proyectos').del().where({ id_evaluador, id_proyecto })
-  return;
+  return await knex.transaction(async (trx) => { 
+    Files.deleteUserFundamentaciones(proyecto.titulo, id_evaluador)
+    await trx('respuestas_evaluacion').del().where({ id_evaluador, id_proyecto })
+    await trx('respuestas_encuesta').del().where({ id_evaluador, id_proyecto })
+    await trx('evaluadores_x_proyectos').del().where({ id_evaluador, id_proyecto })
+  })
 }
 
 const assignInstitutionRoles = async (id_proyecto: number, roles: InstitucionParticipante[], trx: any) => {
@@ -181,6 +181,10 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
   
   if (!hasEjecutora || !hasDemandante || !hasAdoptante) {
     throw new CustomError("The project must have at least one demanding institution, one executor and one adopter.", 400)
+  }
+
+  if ((await knex('proyectos').select().where({titulo: proyecto.titulo})).length > 0) {
+    throw new CustomError("Ya existe un proyecto con el mismo nombre en el sistema", 409)
   }
 
   const fecha = new Date()
