@@ -89,12 +89,7 @@ const getFilesEvaluador = async (id_proyecto: number, id_usuario: number) => {
   return {indicadores: files}
 }
 
-const getInforme = async() => {
-
-}
-
 const getOneFile = async (fileFolder: string, fileName: string) => {
-  let fileContent
   const filePath = `${fileFolder}/${fileName}`
   try {
       await fs.access(fileFolder);
@@ -157,6 +152,11 @@ const deleteInforme = async (folder: string, fileName: string) => {
   }
 };
 
+const deleteProjectFolder = async(titulo: string) => {
+  const folderPath = `uploads/${titulo}`
+  await fs.rm(folderPath, { recursive: true });
+}
+
 const getNombreInforme = async(titulo: string) => {
   try {
     return (await fs.readdir(`uploads/${titulo}/informe`))[0];
@@ -171,17 +171,10 @@ const deleteUserFundamentaciones = async(titulo: string, id_usuario: number) => 
     const folders = await fs.readdir(baseFolder);
     const filteredArray = folders.filter(item => item.endsWith(`-${id_usuario}`));
     for(let j = 0; j<filteredArray.length; j++){
-      const folderPath = `uploads/${titulo}/fundamentaciones/${filteredArray[j]}`
-      const files = await fs.readdir(folderPath);
-      for(let i = 0; i<files.length; i++){
-        const filePath = `${folderPath}/${files[i]}`
-        console.log(filePath)
-        await fs.unlink(filePath);
-      }
-      await fs.rmdir(folderPath);
+      await fs.rm(`uploads/${titulo}/fundamentaciones/${filteredArray[j]}`, { recursive: true });
     }
   } catch(error) {
-    console.log(error)
+    //console.log(error)
   }
 }
 
@@ -192,4 +185,6 @@ export default {
   deleteFile, 
   deleteInforme, 
   getNombreInforme, 
-  deleteUserFundamentaciones }
+  deleteUserFundamentaciones,
+  deleteProjectFolder
+}

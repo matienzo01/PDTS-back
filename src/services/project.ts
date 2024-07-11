@@ -108,7 +108,6 @@ const userBelongsToInstitution = async (id_evaluador: number, id_institucion: nu
 }
 
 const assignEvaluador = async (data: any, id_institucion: number, trx: any = null) => {
-  
   const { proyecto } = await getOneProject(data.id_proyecto, id_institucion, trx)
   
   if(proyecto.id_estado_eval == 4 ) {
@@ -145,7 +144,7 @@ const unassignEvaluador = async (id_evaluador: number, id_proyecto: number) => {
 
   const evaluador = await knex('evaluadores_x_proyectos').select().where({ id_evaluador, id_proyecto }).first()
   if ( evaluador === undefined ){
-    throw new CustomError('There is no user with the providied id linked to the project', 409)
+    throw new CustomError('There is no user with the providied id linked to the project', 404)
   }
 
   if (evaluador.rol === 'director'){
@@ -216,7 +215,7 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
 }
 
 const deleteProject = async (id_institucion: number, id_proyecto: number, trxx: any = null) => {
-  await getOneProject(id_proyecto, id_institucion)
+  const {titulo} = (await getOneProject(id_proyecto, id_institucion)).proyecto
 
   if(trxx) {
     await trxx('respuestas_evaluacion').del().where({ id_proyecto })
@@ -229,6 +228,7 @@ const deleteProject = async (id_institucion: number, id_proyecto: number, trxx: 
     await trxx('participantes_x_proyectos').del().where({ id_proyecto })
     // 5) eliminar el proyecto
     await trxx('proyectos').del().where({ id: id_proyecto })
+    Files.deleteProjectFolder(titulo)
   } else {
     await knex.transaction(async (trx: any): Promise<any> => {
       // 1) eliminar las respuestas de los evaluadores
@@ -246,6 +246,7 @@ const deleteProject = async (id_institucion: number, id_proyecto: number, trxx: 
   
       // 5) eliminar el proyecto
       await trx('proyectos').del().where({ id: id_proyecto })
+      Files.deleteProjectFolder(titulo)
     })
   }
 
