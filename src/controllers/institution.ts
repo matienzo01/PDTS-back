@@ -19,10 +19,10 @@ const getRubros = async (req: Request, res: Response) => {
 }
 
 const createRubro = async (req: Request, res: Response, next: NextFunction) => {
-  const { nombre } = req.body
+  const { rubro } = req.body
 
   try {
-    return res.status(200).json(await service.createRubro(nombre))
+    return res.status(200).json(await service.createRubro(rubro.nombre))
   } catch (error) {
     next(error)
   }

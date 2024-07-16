@@ -18,7 +18,7 @@ const createRubro = async(nombre: string) => {
     throw new CustomError("The 'Rubro' already exists", 409)
   } 
   const insertId = parseInt(await knex('rubros').insert({nombre: nombre}))
-  return await knex('rubros').select().where({id: insertId})
+  return { rubro: await knex('rubros').select().where({id: insertId}).first()}
 }
 
 const verify = async(id: number) => {
