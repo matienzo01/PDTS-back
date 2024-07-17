@@ -2,11 +2,10 @@
 	"admin" : {
 		"nombre": "Adrian",
 		"apellido": "Lopez",
-		"email": "mail@mail.com",
-		"password": "1234"
+		"email": "agustinfpatane@gmasdassdasdaail.com",
+		"dni": "123456"
 	},
 	"institucion": {
-		"id_tipo": 1,
 		"nombre": "Facultad de Ingenieria",
 		"pais": "Argentina",
 		"provincia": "Buenos Aires",
@@ -17,7 +16,6 @@
 		"apellido_referente": "Patane",
 		"cargo_referente": "Presidente",
 		"telefono_referente": "223456789",
-		"mail_referente": "apatane@gmail.com",
-		"rubro": "enseñanza"
+		"mail_referente": "apatane@gmail.com"
 	}
 }

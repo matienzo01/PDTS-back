@@ -19,7 +19,15 @@ const getRubros = async (req: Request, res: Response) => {
 }
 
 const createRubro = async (req: Request, res: Response, next: NextFunction) => {
+  if(!req.body.hasOwnProperty('rubro')){
+    return res.status(400).json({ error: "Missing rubro" })
+  }
+  
   const { rubro } = req.body
+
+  if (!rubro.hasOwnProperty('nombre')) {
+    return res.status(400).json({ error: "Missing fields in rubro" })
+  }
 
   try {
     return res.status(200).json(await service.createRubro(rubro.nombre))
@@ -31,6 +39,10 @@ const createRubro = async (req: Request, res: Response, next: NextFunction) => {
 const updateRubro = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_rubro} } = req
   const { updatedRubro } = req.body
+
+  if (!updatedRubro.hasOwnProperty('nombre')) {
+    return res.status(400).json({ error: "Missing fields in rubro" })
+  }
 
   try {
     utils.validateNumberParameter(id_rubro, 'id_rubro')

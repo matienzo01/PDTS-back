@@ -2,32 +2,32 @@
     "successfulLoginTests": [
       {
         "description": "evaluador 1",
-        "credentials": { "mail": "evaluador1@example.com", "password": "1234" },
-        "expectedAttributes": ["id", "mail", "rol", "nombre", "apellido"],
+        "credentials": { "email": "evaluador1@example.com", "password": "1234" },
+        "expectedAttributes": ["id", "email", "rol", "nombre", "apellido", "dni"],
         "headerKey": "header_evaluador_1"
       },
       {
         "description": "evaluador 2",
-        "credentials": { "mail": "evaluador2@example.com", "password": "1234" },
-        "expectedAttributes": ["id", "mail", "rol", "nombre", "apellido"],
+        "credentials": { "email": "evaluador2@example.com", "password": "1234" },
+        "expectedAttributes": ["id", "email", "rol", "nombre", "apellido", "dni"],
         "headerKey": "header_evaluador_2"
       },
       {
         "description": "admin cyt",
-        "credentials": { "mail": "admin1@mail.com", "password": "1234" },
-        "expectedAttributes": ["id", "mail", "rol", "institutionId"],
+        "credentials": { "email": "admin1@mail.com", "password": "1234" },
+        "expectedAttributes": ["id", "email", "rol", "institutionId", "nombre", "apellido", "dni"],
         "headerKey": "header_admincyt_1"
       },
       {
         "description": "admin cyt",
-        "credentials": { "mail": "admin2@mail.com", "password": "1234" },
-        "expectedAttributes": ["id", "mail", "rol", "institutionId"],
+        "credentials": { "email": "admin2@mail.com", "password": "1234" },
+        "expectedAttributes": ["id", "email", "rol", "institutionId", "nombre", "apellido", "dni"],
         "headerKey": "header_admincyt_2"
       },
       {
         "description": "admin general",
-        "credentials": { "mail": "admin@mail.com", "password": "1234" },
-        "expectedAttributes": ["id", "mail", "rol"],
+        "credentials": { "email": "admin@mail.com", "password": "1234" },
+        "expectedAttributes": ["id", "email", "rol"],
         "headerKey": "header_admin_general"
       }
     ]

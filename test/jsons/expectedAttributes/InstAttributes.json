@@ -1,13 +1,14 @@
 {
     "expectedAttributes" : [
         "id",
-        "nombre", 
-        "rubro", 
+        "nombre",  
         "pais", 
         "provincia",
         "localidad", 
         "telefono_institucional", 
         "mail_institucional", 
-        "esCyT"
+        "esCyT",
+        "tipo",
+        "rubro"
       ]
 }

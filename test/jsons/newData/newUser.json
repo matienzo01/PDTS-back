@@ -1,7 +1,6 @@
 {
 	"user": {
         "email": "userdeprueba1@gmail.com",
-        "password": "1234",
         "nombre": "nombre de prueba",
         "apellido": "apellido de prueba",
         "dni": 1000,

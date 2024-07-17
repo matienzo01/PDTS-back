@@ -1,5 +1,5 @@
 const request = require('supertest');
-const server = require('../src/app');
+const server = require('../dist/app');
 const assert = require('assert');
 
 async function GET(route, header, status, type = 'application/json') {
@@ -7,7 +7,7 @@ async function GET(route, header, status, type = 'application/json') {
     .get(route)
     .set(header)
     .expect(status)
-
+  
   assert.equal(res.type, type)
   return res
 }
@@ -19,6 +19,11 @@ async function POST(route, header, status, data, type = 'application/json') {
     .set(header !== null ? header : {})
     .expect(status);
   const res = await requestToSend;
+
+  if (res.error && res.status != status) {
+    console.log(res.error)
+  }
+
   assert.equal(res.type, type)
   return res
 }

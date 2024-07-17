@@ -2,19 +2,16 @@
     "expectedAttributes" : [
         "id",
         "nombre",
-        "rubro",
         "pais",
         "provincia",
         "localidad",
         "telefono_institucional",
         "mail_institucional",
         "esCyT",
-        "id_admin",
         "nombre_referente",
         "apellido_referente",
         "cargo_referente",
         "telefono_referente",
-        "mail_referente",
-        "tipo"
+        "mail_referente"
       ]
 }

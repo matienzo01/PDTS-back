@@ -29,10 +29,11 @@ const createInstitucionCYT = async (req: Request, res: Response, next: NextFunct
   }
 
   if(!req.body.hasOwnProperty('institucion')) {
-    return res.status(400).json({ error: "Missing admin" })
+    return res.status(400).json({ error: "Missing institucion" })
   }
 
   const { admin, institucion } = req.body
+
 
   if (!admin.nombre ||
     !admin.apellido ||

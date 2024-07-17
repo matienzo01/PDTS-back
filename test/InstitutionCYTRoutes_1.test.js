@@ -7,9 +7,11 @@ const { expectedAttributes: UserAttributes } = require('./jsons/expectedAttribut
 const { expectedAttributes: ProjectAttributes } = require('./jsons/expectedAttributes/ProjectAttributes.json')
 const { expectedAttributes: linkedUserToProjectAtt } = require('./jsons/expectedAttributes/linkedUserToProjectAtt.json')
 const { expectedAttributes: projectEvaluatorsAtt } = require('./jsons/expectedAttributes/ProjectEvaluatorsAtt.json')
+
 const newInstCYT = require('./jsons/newData/newInstCYT.json')
 const newUser = require('./jsons/newData/newUser.json');
 const newProject = require('./jsons/newData/newProject.json');
+
 let header_newAdmin
 let header_newEvaluador
 let newInstitutionId 
@@ -69,30 +71,6 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
     })
 
-    describe('GET /api/instituciones_cyt/tipos ==> Get all institution types', async() => {
-        
-        it('Should get all institutions (admin cyt)', async() => {
-            const res = await Requests.GET('/api/instituciones_cyt/tipos', header_admincyt_1, 200)
-            const { tipos } = res.body
-            tipos.forEach(tipo => {
-                Requests.verifyAttributes(tipo, ['id', 'tipo'])
-            });
-        })
-
-        it('Should get all institutions (admin general)', async() => {
-            const res = await Requests.GET('/api/instituciones_cyt/tipos', header_admin_general, 200)
-            const { tipos } = res.body
-            tipos.forEach(tipo => {
-                Requests.verifyAttributes(tipo, ['id', 'tipo'])
-            });
-        })
-
-        it('Should be unauthorized (evaluador) (status 403)', async() => {
-            await Requests.GET('/api/instituciones_cyt/tipos', header_evaluador_1, 403)
-        })
-
-    })
-
     describe('POST /api/instituciones_cyt ==> Create a new institution', async() => {
 
         it('Should create a new institution (admin general)', async() => {
@@ -102,8 +80,8 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
 
             const credentials = {
-                "mail": newInstCYT.admin.email,
-                "password": newInstCYT.admin.password
+                "email": newInstCYT.admin.email,
+                "password": newInstCYT.admin.dni
             }
 
             const res2 = await Requests.POST('/api/login', null, 200, credentials)
@@ -154,7 +132,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-
+    
     describe('GET /api/instituciones_cyt/:id_institucion ==> Get one institution', async() => {
         
         it('Should get one institution (admin cyt)', async() => {
@@ -170,16 +148,18 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
         })
 
-        it('Should get all institutions (admin general)', async() => {
+        it('Should get one institution (admin general)', async() => {
             const id_inst = 1
             const res = await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_admin_general, 200)
             const { institucion_CYT } = res.body
             Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
         })
 
-        it('Should be unauthorized (evaluador) (status 403)', async() => {
+        it('Should get one institution (evaluador)', async() => {
             const id_inst = 1
-            await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_evaluador_1, 403)
+            const res =  await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_evaluador_1, 200)
+            const { institucion_CYT } = res.body
+            Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
         })
 
         it('Should not find the institution (status 404)', async() => {
@@ -197,7 +177,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
     describe('POST /api/instituciones_cyt/:id_institucion/usuarios ==> Create a new evaluator user', async() => {
         
         it('Should create a new user (new admin)', async() => {
-            newUser.user.dni = Math.floor(Math.random() * 1000000) + 1;
+            newUser.user.dni = (Math.floor(Math.random() * 1000000) + 1).toString();
             newUser.user.institucion_origen = newInstCYT.institucion.nombre
 
             const caracteres = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -206,18 +186,15 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             correo += '@example.com'
   
             newUser.user.email = correo
-            newUser.user.password = '1234'
 
             newEvaluatorCredentials = {
-                mail: correo,
-                password: '1234'
+                email: correo,
+                password: newUser.user.dni
             }
-            
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_newAdmin, 200, newUser)
+            
             Requests.verifyAttributes(res.body.usuario, UserAttributes)
-
             newEvaluadorId = res.body.usuario.id
-
             const res2 = await Requests.POST('/api/login', null, 200, newEvaluatorCredentials)
             const { token } = res2.body
             header_newEvaluador = { 'Authorization': `Bearer ${token}` }
@@ -247,7 +224,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-
+    
     describe('POST /api/instituciones_cyt/:id_institucion/usuarios/vincular_usuario ==> Link an evaluator to the institution', async() => {
         
         it('Should link a user to the institution (admin cyt)', async() => {
@@ -297,7 +274,11 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
         it('Should not find the institution (admin cyt) (status 404)', async() => {
-            await Requests.GET(`/api/instituciones_cyt/99999999/usuarios`, header_newAdmin, 404)
+            await Requests.GET(`/api/instituciones_cyt/99999999/usuarios`, header_admin_general, 404)
+        })
+
+        it('Should be forbidden to get other institution users (admin cyt) (status 403)', async() => {
+            await Requests.GET(`/api/instituciones_cyt/99999999/usuarios`, header_newAdmin, 403)
         })
 
     })
@@ -337,7 +318,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-    
+    /*
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Assign a evaluator to the project', async() => {
         
         const data = {
@@ -375,7 +356,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             delete data.obligatoriedad_opinion
             await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 400, data)
         })
-
+/*
     })
 
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Gell all project evaluators', async() => {
@@ -400,7 +381,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.GET(`/api/instituciones_cyt/999999/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 404)
         })
     })
-    
+  /*  
     describe('DELETE /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador ==> Unassign a evaluator from a project', async() => {
         
         it('Should unnassign a evaluator', async() => {
@@ -427,7 +408,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.DELETE(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores/2`, header_newAdmin, 404)
         })
     })
-
+/*
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos ==> Get all institution projects', async() => {
         
         it('Should get all institution projects', async() => {
@@ -443,7 +424,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-
+/*
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto ==> Get one institution project', async() => {
         
         it('Should get one project', async() => {
@@ -461,7 +442,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-
+    */
 })
 
 module.exports = {

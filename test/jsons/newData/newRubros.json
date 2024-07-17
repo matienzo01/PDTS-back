@@ -1,0 +1,13 @@
+{
+    "newRubro1": {
+        "rubro": {
+            "nombre": "rubro de test 1"
+        }
+    },
+
+    "newRubro2": {
+        "rubro": {
+            "nombre": "rubro de test 2"
+        }
+    }
+}

@@ -38,6 +38,11 @@ const updateRubro = async(id:number, updatedRubro: any) => {
 
 const deleteRubro = async(id: number) => {
   await verify(id)
+  const inst = await knex('instituciones').select().where({id_rubro: id}).first()
+  if ( inst != undefined) { 
+    throw new CustomError('El rubro no puede ser eliminado. Existe una institucion con ese rubro asignado a ella', 409)
+  }
+
   await knex('rubros').where({id}).delete()
   return await getRubros()
 }
