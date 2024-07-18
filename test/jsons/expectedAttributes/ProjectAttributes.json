@@ -18,7 +18,11 @@
       "demanda",
       "fecha_carga",
       "obligatoriedad_proposito",
+      "obligatoriedad_opinion",
+      "id_modelo_encuesta",
       "participantes",
-      "instituciones_participantes"
+      "instituciones_participantes",
+      "director",
+      "informe_director"
     ]
   }

@@ -45,33 +45,9 @@ const createProject = async (req: Request, res: Response, next: NextFunction) =>
   if(!req.file) {
     return res.status(400).json({error: 'No se subio ningun archivo'})
   }
-  
-  if (!proyecto.hasOwnProperty("titulo") ||
-    !proyecto.hasOwnProperty("id_director") ||
-    !proyecto.hasOwnProperty("FechaInicio") ||
-    !proyecto.hasOwnProperty("FechaFin") ||
-    !proyecto.hasOwnProperty("area_conocim") ||
-    !proyecto.hasOwnProperty("subarea_conocim") ||
-    !proyecto.hasOwnProperty("problema_a_resolver") ||
-    !proyecto.hasOwnProperty("producto_a_generar") ||
-    !proyecto.hasOwnProperty("resumen") ||
-    !proyecto.hasOwnProperty("novedad_u_originalidad") ||
-    !proyecto.hasOwnProperty("relevancia") ||
-    !proyecto.hasOwnProperty("pertinencia") ||
-    !proyecto.hasOwnProperty("demanda") ||
-    !proyecto.hasOwnProperty('obligatoriedad_proposito') ||
-    !proyecto.hasOwnProperty('obligatoriedad_opinion') ||
-    !proyecto.hasOwnProperty('id_modelo_encuesta') ||
-    !proyecto.hasOwnProperty("roles")) {
-
-    res.status(400).send({
-      status: 'FAILED',
-      data: { error: "Missing fields" }
-    })
-    return;
-  }
 
   try {
+    utils.validateProject(proyecto)
     utils.validateNumberParameter(id_institucion, 'id_institucion')
     await utils.ownInstitution('admin', id_admin, parseInt(id_institucion))
     utils.checRolesInstituciones(proyecto.roles)

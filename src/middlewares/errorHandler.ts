@@ -9,6 +9,11 @@ const errorHandler = async(err: CustomError, req: Request, res: Response, next: 
     try {
       await Files.deleteInforme(folder, req.file.originalname)
     } catch (error) {
+      try {
+        await Files.deleteInforme('', req.file.originalname)
+      } catch (err) {
+
+      }
     }
   }
 

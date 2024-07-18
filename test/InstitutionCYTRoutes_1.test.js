@@ -18,6 +18,7 @@ let newInstitutionId
 let newEvaluadorId
 let newProjectId
 let newEvaluatorCredentials
+let pathInforme
 
 const getNewAdminHeader = () => { return header_newAdmin }
 const getNetEvaluadorHeader = () => { return header_newEvaluador }
@@ -284,47 +285,71 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
     })
 
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos ==> Create a new project', async() => {
-        
+
         it('Should create a new Project (new admin)', async() => {
-            newProject.proyecto.id_director = newEvaluadorId
-            const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 200, newProject)
-            const { proyecto } = res.body
+            newProject.id_director = newEvaluadorId
+            pathInforme = newProject.pathInforme
+            delete newProject.pathInforme
+            const res = await Requests.POSTFormData(
+                `/api/instituciones_cyt/${newInstitutionId}/proyectos`, 
+                header_newAdmin, 
+                200, 
+                pathInforme,
+                newProject,
+                'proyecto')
+            
+            const proyecto = res.body
             Requests.verifyAttributes(proyecto, ProjectAttributes)
             newProjectId = proyecto.id
             assert.equal(newEvaluadorId, proyecto.id_director, 'The director id should be the same as that of the new evaluator')
         })
 
-        it('Should be a bad request (inst id should be a number) (status 400)', async() => {
-            await Requests.POST(`/api/instituciones_cyt/a/proyectos`, header_newAdmin, 400, newProject)
-        })
-
-        it('Should be a bad request (missing fields in project) (status 400)', async() => {
-            const titulo = newProject.proyecto.titulo
-            delete newProject.proyecto.titulo
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 400, newProject)
-            newProject.proyecto.titulo = titulo
-        })
-
         it('Should be unauthorized (admin general) (status 403)', async() => {
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_admin_general, 403, newProject)
+            await Requests.POSTFormData(
+                `/api/instituciones_cyt/${newInstitutionId}/proyectos`, 
+                header_admin_general, 
+                403, 
+                pathInforme,
+                newProject,
+                'proyecto')
         })
 
         it('Should be unauthorized (admin cyt 1) (status 403)', async() => {
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_admincyt_1, 403, newProject)
+            await Requests.POSTFormData(
+                `/api/instituciones_cyt/${newInstitutionId}/proyectos`, 
+                header_admincyt_1, 
+                403, 
+                pathInforme,
+                newProject,
+                'proyecto')
         })
 
         it('Should be unauthorized (evaluador) (status 403)', async() => {
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_evaluador_1, 403, newProject)
+            await Requests.POSTFormData(
+                `/api/instituciones_cyt/${newInstitutionId}/proyectos`, 
+                header_evaluador_1, 
+                403, 
+                pathInforme,
+                newProject,
+                'proyecto')
+        })
+
+        it('Should not let to create the same prohect again (new admin) (status 409)', async() => {
+            await Requests.POSTFormData(
+                `/api/instituciones_cyt/${newInstitutionId}/proyectos`, 
+                header_newAdmin, 
+                409, 
+                pathInforme,
+                newProject,
+                'proyecto')
         })
 
     })
-    /*
+    
     describe('POST /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Assign a evaluator to the project', async() => {
         
         const data = {
-            "id_evaluador": 1,
-            "obligatoriedad_opinion": 1,
-            "id_modelo_encuesta": 1
+            "id_evaluador": 1
         }
 
         it('Should assign 2 evaluators to the new project', async() => {
@@ -348,15 +373,10 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 409, data)
         })
 
-        it('Should be a bad request (missing fields) (status 400)', async() => {
+        it('Should be a bad request (project id must me a number) (status 400)', async() => {
             await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/a/evaluadores`, header_newAdmin, 400, data)
         })
 
-        it('Should be a bad request (missing fields) (status 400)', async() => {
-            delete data.obligatoriedad_opinion
-            await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 400, data)
-        })
-/*
     })
 
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores ==> Gell all project evaluators', async() => {
@@ -381,7 +401,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.GET(`/api/instituciones_cyt/999999/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 404)
         })
     })
-  /*  
+   
     describe('DELETE /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto/evaluadores/:id_evaluador ==> Unassign a evaluator from a project', async() => {
         
         it('Should unnassign a evaluator', async() => {
@@ -408,7 +428,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             await Requests.DELETE(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores/2`, header_newAdmin, 404)
         })
     })
-/*
+
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos ==> Get all institution projects', async() => {
         
         it('Should get all institution projects', async() => {
@@ -424,12 +444,12 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-/*
+
     describe('GET /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto ==> Get one institution project', async() => {
         
         it('Should get one project', async() => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}`, header_newAdmin, 200)
-            const { proyecto } = res.body
+            const proyecto = res.body
             Requests.verifyAttributes(proyecto, ProjectAttributes)
         })
         
@@ -442,7 +462,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         })
 
     })
-    */
+    
 })
 
 module.exports = {

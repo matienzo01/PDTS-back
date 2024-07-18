@@ -1,5 +1,5 @@
 {
-	"proyecto" : {
+		"pathInforme": "./test/jsons/newData/Informe_TEST.pdf",
 		"titulo": "Proyecto de TEST",
 		"FechaInicio": "2024-03-15T03:00:00.000Z",
 		"FechaFin": "2025-03-15T03:00:00.000Z",
@@ -13,33 +13,32 @@
 		"pertinencia": "Muy pertinente",
 		"demanda": "Alta",
 		"obligatoriedad_proposito": 1,
-		"obligatoriedad_opinion_director": 1,
-		"id_modelo_encuesta_director": 1,
+		"obligatoriedad_opinion": 1,
+		"id_modelo_encuesta": 1,
 		"roles": [
 			{
 				"institucion_id": 2,
-				"rol": "Financiadora"
+				"rol": "FINANCIADORA"
 			},
 			{
 				"institucion_id": 2,
-				"rol": "Demandante"
+				"rol": "DEMANDANTE"
 			},
 			{
 				"institucion_id": 2,
-				"rol": "Adoptante"
+				"rol": "ADOPTANTE"
 			},
 			{
 				"institucion_id": 1,
-				"rol": "Ejecutora"
+				"rol": "EJECUTORA"
 			},
 			{
 				"institucion_id": 3,
-				"rol": "Adoptante"
+				"rol": "ADOPTANTE"
 			},
 			{
 				"institucion_id": 2,
-				"rol": "Promotora"
+				"rol": "PROMOTORA"
 			}
 		]
-	}
 }

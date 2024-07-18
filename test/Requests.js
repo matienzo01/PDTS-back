@@ -1,6 +1,7 @@
 const request = require('supertest');
 const server = require('../dist/app');
 const assert = require('assert');
+const fs = require('fs');
 
 async function GET(route, header, status, type = 'application/json') {
   const res = await request(server)
@@ -20,10 +21,19 @@ async function POST(route, header, status, data, type = 'application/json') {
     .expect(status);
   const res = await requestToSend;
 
-  if (res.error && res.status != status) {
-    console.log(res.error)
-  }
+  assert.equal(res.type, type)
+  return res
+}
 
+async function POSTFormData(route, header, status, filePath, data, dataName, type = 'application/json') {
+  const requestToSend = request(server)
+    .post(route)
+    .set(header !== null ? header : {})
+    .field(dataName, JSON.stringify(data))
+    .attach('file', fs.createReadStream(filePath))
+    .expect(status);
+  
+  const res = await requestToSend;
   assert.equal(res.type, type)
   return res
 }
@@ -93,7 +103,7 @@ function verifyDimensiones(dimensiones) {
 }
 
 module.exports = {
-    GET, POST, PUT, DELETE,
+    GET, POST, PUT, DELETE, POSTFormData,
     verifyAttributes,
     verifyEvaluation
 }
