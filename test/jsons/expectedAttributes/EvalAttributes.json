@@ -1,0 +1,47 @@
+{
+    "InstanciaAttributes": [
+        "nombre_instancia", "dimensiones", "opciones"
+    ],
+
+    "EntidadDimAttributes": [
+        "Avance cognitivo",
+        "Novedad local",
+        "Relevancia",
+        "Pertenencia",
+        "Demanda",
+        "Impacto esperado"
+    ],
+
+    "PropositoDimAttributes": [
+        "Calidad del Desempeño",
+        "Alcance del impacto",
+        "Contribucion al desarrollo",
+        "Valoración Socio-Ético-Política"
+    ],
+
+    "DimAttributes": [
+        "id_dimension",
+        "indicadores"
+    ],
+
+    "IndicadorAttributes": [
+        "id_indicador",
+        "pregunta",
+        "descripcion",
+        "determinante",
+        "fundamentacion"
+    ],
+
+    "IndicadorWAnswerAttributes": [
+        "id_indicador",
+        "pregunta",
+        "descripcion",
+        "determinante",
+        "fundamentacion",
+        "respuestas"
+    ],
+
+    "OptionAttributes": [
+        "id", "option", "value"
+    ]
+}

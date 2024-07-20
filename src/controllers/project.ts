@@ -2,6 +2,7 @@ import service from '../services/project';
 import institutionCytService from '../services/institutionCYT';
 import { Request, Response, NextFunction  } from 'express';
 import utils from './utils';
+import { CustomError } from '../types/CustomError';
 
 
 const getAllProjects = async(req: Request, res: Response) => {
@@ -127,8 +128,13 @@ const unassignEvaluador = async (req: Request, res: Response, next: NextFunction
 
 const getProjectsByUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_usuario } } = req
+  const { id, rol } = req.body.userData
+
 
   try {
+    if (rol == 'evaluador' && id != id_usuario) {
+      throw new CustomError("Un usuario solo puede acceder a sus propios proyectos", 401)
+    }
     utils.validateNumberParameter(id_usuario, 'id_usuario')
     res.status(200).json(await service.getProjectsByUser(parseInt(id_usuario)))
   } catch (error) {

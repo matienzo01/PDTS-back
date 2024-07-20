@@ -13,7 +13,7 @@ describe('TEST LOGIN ROUTES', () => {
       it(`Should login successfully with correct credentials (${testCase.description})`, async() => {
         const res = await Requests.POST('/api/login', null, 200, testCase.credentials)
         const { token, user } = res.body
-        Requests.verifyAttributes(user, testCase.expectedAttributes)
+        Requests.verifyAttributes("user", user, testCase.expectedAttributes)
         headers[testCase.headerKey] = { 'Authorization': `Bearer ${token}` }
       });
     });

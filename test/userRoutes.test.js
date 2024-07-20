@@ -24,14 +24,19 @@ describe('TEST USER ROUTES', () => {
 
   describe('GET /api/usuarios ==> Get all users', () => {
 
-  const { expectedAttributes } = require('./jsons/expectedAttributes/userAttributes1.json')
+  const { expectedAttributes: evaluadorAttributes } = require('./jsons/expectedAttributes/userAttributes1.json')
+  const { expectedAttributes: adminAttributes } = require('./jsons/expectedAttributes/AdminCyTAttributes.json')
 
     it('Should return all users', async() => {
       const res = await Requests.GET(`/api/usuarios`, header_admin_general, 200)
-      const { usuarios } = res.body
-      usuarios.forEach(user => {
-        Requests.verifyAttributes(user, expectedAttributes)
+      const { evaluadores, administradores } = res.body
+      evaluadores.forEach(user => {
+        Requests.verifyAttributes("user", user, evaluadorAttributes)
       });    
+
+      administradores.forEach(user => {
+        Requests.verifyAttributes("user", user, adminAttributes)
+      }); 
     });
 
     it('Should be unauthorized for evaluators (status 403)', async() => {
@@ -52,7 +57,7 @@ describe('TEST USER ROUTES', () => {
       const dni = 123456789
       const res = await Requests.GET(`/api/usuarios/${dni}`, header_evaluador_1, 200)
       const { usuario } = res.body
-      Requests.verifyAttributes(usuario, expectedAttributes)
+      Requests.verifyAttributes("user", usuario, expectedAttributes)
     });
 
     it('Should not found an user (status 404)', async() => {
@@ -69,21 +74,37 @@ describe('TEST USER ROUTES', () => {
     
   describe('GET /api/usuarios/:id_usuario/proyectos ==> Get user projects', () => {
 
-    const { expectedAttributes } = require('./jsons/expectedAttributes/UserProjectAttributes.json');
+    const { 
+      projectAttributes,
+      instParticipantAttributes,
+      participantAttributes,
+      directorAttributes
+     } = require('./jsons/expectedAttributes/UserProjectAttributes.json');
 
     it('Should return all user projects', async() => {
       const id_usuario = 1
       const res = await Requests.GET(`/api/usuarios/${id_usuario}/proyectos`, header_evaluador_1, 200)
       const { proyectos } = res.body
-          
+        
       proyectos.forEach(proyecto => {
-        Requests.verifyAttributes(proyecto, expectedAttributes)
+        Requests.verifyAttributes("proyecto", proyecto, projectAttributes)
+
+        proyecto.instituciones_participantes.forEach(i => {
+          Requests.verifyAttributes("institucion participante",i, instParticipantAttributes)
+        })
+  
+        proyecto.participantes.forEach(p => {
+          Requests.verifyAttributes("participante", p, participantAttributes)
+        })
+        
+        Requests.verifyAttributes("director", proyecto.director, directorAttributes)
       })
+
     })
 
-    it('Should be a bad request (id_usuario must be a number) (status 400)', async() => {
-      const id_usuario = 'a'
-      await Requests.GET(`/api/usuarios/${id_usuario}/proyectos`, header_evaluador_1, 400)
+    it('Should be unauthorized (status 401)', async() => {
+      const id_usuario = 150000
+      await Requests.GET(`/api/usuarios/${id_usuario}/proyectos`, header_evaluador_1, 401)
     });
 
   })

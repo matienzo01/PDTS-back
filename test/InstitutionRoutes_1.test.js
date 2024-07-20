@@ -44,7 +44,7 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
         const res = await Requests.GET('/api/instituciones', header_admin_general, 200)
         const { instituciones } = res.body
         instituciones.forEach(inst => {
-          Requests.verifyAttributes(inst, expectedAttributes)
+          Requests.verifyAttributes("institucion", inst, expectedAttributes)
         });  
     });
 
@@ -52,7 +52,7 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
         const res = await Requests.GET('/api/instituciones', header_admincyt_1, 200)
         const { instituciones } = res.body
         instituciones.forEach(inst => {
-          Requests.verifyAttributes(inst, expectedAttributes)
+          Requests.verifyAttributes("institucion", inst, expectedAttributes)
         });  
     });
 
@@ -68,14 +68,14 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
         const inst_id = 1
         const res = await Requests.GET(`/api/instituciones/${inst_id}`, header_admin_general, 200)
         const { institucion } = res.body
-        Requests.verifyAttributes(institucion, expectedAttributes)
+        Requests.verifyAttributes("institucion", institucion, expectedAttributes)
     });
 
     it('Should return one institution (admin cyt)', async() => {
         const inst_id = 1
         const res = await Requests.GET(`/api/instituciones/${inst_id}`, header_admincyt_1, 200)
         const { institucion } = res.body
-        Requests.verifyAttributes(institucion, expectedAttributes)
+        Requests.verifyAttributes("institucion", institucion, expectedAttributes)
     });
 
     it('Should be unauthorized for evaluadores (status 403)', async() => {
@@ -95,13 +95,13 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
     it('Should return all institution types (admin general)', async() => {
         const res = await Requests.GET(`/api/instituciones/tipos`, header_admin_general, 200)
         const { tipos } = res.body
-        tipos.forEach(t => Requests.verifyAttributes(t, typesExpectedAttributes))
+        tipos.forEach(t => Requests.verifyAttributes("tipo", t, typesExpectedAttributes))
     });
 
     it('Should return all institution types (admin cyt)', async() => {
       const res = await Requests.GET(`/api/instituciones/tipos`, header_admincyt_1, 200)
       const { tipos } = res.body
-      tipos.forEach(t => Requests.verifyAttributes(t, typesExpectedAttributes))
+      tipos.forEach(t => Requests.verifyAttributes("tipo", t, typesExpectedAttributes))
     });
 
     it('Should be unauthorized for evaluadores (status 403)', async() => {
@@ -115,13 +115,13 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
     it('Should return all institution rubros (admin general)', async() => {
         const res = await Requests.GET(`/api/instituciones/rubros`, header_admin_general, 200)
         const { rubros } = res.body
-        rubros.forEach(r => Requests.verifyAttributes(r, rubrosExpectedAttributes))
+        rubros.forEach(r => Requests.verifyAttributes("rubro", r, rubrosExpectedAttributes))
     });
 
     it('Should return all institution rubros (admin cyt)', async() => {
       const res = await Requests.GET(`/api/instituciones/rubros`, header_admincyt_1, 200)
       const { rubros } = res.body
-      rubros.forEach(r => Requests.verifyAttributes(r, rubrosExpectedAttributes))
+      rubros.forEach(r => Requests.verifyAttributes("rubro", r, rubrosExpectedAttributes))
     });
 
     it('Should be unauthorized for evaluadores (status 403)', async() => {
@@ -135,7 +135,7 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
     it('Should create a new rubro (admin general)', async() => {
       const res = await Requests.POST('/api/instituciones/rubros', header_admin_general, 200, newRubro1)
       const {rubro} = res.body
-      Requests.verifyAttributes(rubro, rubrosExpectedAttributes)
+      Requests.verifyAttributes("rubro", rubro, rubrosExpectedAttributes)
       _newRubro1 = rubro
 
     })
@@ -143,7 +143,7 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
     it('Should create a new rubro (admin cyt)', async() => {
       const res = await Requests.POST('/api/instituciones/rubros', header_admincyt_1, 200, newRubro2)
       const {rubro} = res.body
-      Requests.verifyAttributes(rubro, rubrosExpectedAttributes)
+      Requests.verifyAttributes("rubro", rubro, rubrosExpectedAttributes)
       _newRubro2 = rubro
     })
 
@@ -163,14 +163,14 @@ describe('TEST INSTITUTION ROUTES - PART 1', () => {
       newInst.institucion.id_rubro = _newRubro1.id
       const res = await Requests.POST('/api/instituciones', header_admincyt_1, 200, newInst)
       const { institucion } = res.body
-      Requests.verifyAttributes(institucion, expectedAttributes)
+      Requests.verifyAttributes("institucion", institucion, expectedAttributes)
       _newInst1 = institucion
     })
 
     it('Should create a new institution (admin general)', async() => {
       const res = await Requests.POST('/api/instituciones', header_admin_general, 200, newInst)
       const { institucion } = res.body
-      Requests.verifyAttributes(institucion, expectedAttributes)  
+      Requests.verifyAttributes("institucion",institucion, expectedAttributes)  
       _newInst2 = institucion
     })
 

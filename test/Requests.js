@@ -58,11 +58,12 @@ async function DELETE(route, header, status) {
   return res
 }
 
-function verifyAttributes(object, expected) {
-    const actualAttributes = Object.keys(object);
-    assert.equal(true, expected.every(element => actualAttributes.includes(element)), `The object should contain all the expected attributes`)
-    const unexpectedAttributes = actualAttributes.filter(attr => !expected.includes(attr));
-    assert.equal(unexpectedAttributes.length, 0, `Object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
+function verifyAttributes(name, object, expected) {
+  const actualAttributes = Object.keys(object);
+  const missingAttributes = expected.filter(attr => !actualAttributes.includes(attr));
+  assert.equal(missingAttributes.length, 0, `${name} is missing the following expected attributes: ${missingAttributes.join(', ')}`);
+  const unexpectedAttributes = actualAttributes.filter(attr => !expected.includes(attr));
+  assert.equal(unexpectedAttributes.length, 0, `${name} has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
 }
 
 function verifyProperties(obj, props){

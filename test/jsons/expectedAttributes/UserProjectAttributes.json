@@ -1,11 +1,28 @@
 {
-    "expectedAttributes": [
+    "projectAttributes": [
       "id_proyecto", "id_evaluador", "obligatoriedad_opinion",
       "id_modelo_encuesta", "rol", "fecha_inicio_eval", "fecha_fin_eval",
       "fecha_fin_op", "id", "titulo", "id_estado_eval", "id_director",
       "id_institucion", "FechaInicio", "FechaFin", "area_conocim",
       "subarea_conocim", "problema_a_resolver", "producto_a_generar",
       "resumen", "novedad_u_originalidad", "relevancia",
-      "pertinencia", "demanda", "fecha_carga", "obligatoriedad_proposito"
+      "pertinencia", "demanda", "fecha_carga", "obligatoriedad_proposito",
+      "instituciones_participantes", "participantes", "director"
+    ],
+
+    "instParticipantAttributes" : [
+      "institucion", "rol", "pais", "provincia", "localidad",
+      "telefono_institucional", "mail_institucional", "id"
+    ],
+
+    "participantAttributes": [
+      "id", "nombre", "apellido", "dni", "rol", "fecha_inicio_eval",
+      "fecha_fin_eval", "fecha_fin_op"
+    ],
+
+    "directorAttributes": [
+      "id", "email", "nombre", "apellido", "dni", "celular", "especialidad", "institucion_origen",
+      "pais_residencia", "provincia_residencia", "localidad_residencia", "fecha_inicio_eval", 
+      "fecha_fin_eval", "fecha_fin_op"
     ]
   }

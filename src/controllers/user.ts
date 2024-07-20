@@ -125,14 +125,12 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_usuario } } = req
   const { user } = req.body
-
-  if (id_usuario != req.body.userData.id){
-    res.status(401).json({ error: "you can only update your own user" })
-    return ;
-  }
   
   try {
     utils.validateNumberParameter(id_usuario, 'id_usuario')
+    if(id_usuario != req.body.userData.id) {
+      throw new CustomError('Solo puedes actualizar tu propia informacion', 401)
+    }
     res.status(200).json(await service.updateUser(parseInt(id_usuario), user,'evaluador'))
   } catch (error) {
     next(error)

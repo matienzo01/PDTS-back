@@ -54,7 +54,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.GET('/api/instituciones_cyt', header_admincyt_1, 200)
             const { instituciones_CYT } = res.body
             instituciones_CYT.forEach(inst => {
-                Requests.verifyAttributes(inst, InstCytAttributes)
+                Requests.verifyAttributes("institucion cyt",inst, InstCytAttributes)
             });
         })
 
@@ -62,7 +62,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.GET('/api/instituciones_cyt', header_admin_general, 200)
             const { instituciones_CYT } = res.body
             instituciones_CYT.forEach(inst => {
-                Requests.verifyAttributes(inst, InstCytAttributes)
+                Requests.verifyAttributes("institucion cyt",inst, InstCytAttributes)
             });
         })
 
@@ -78,7 +78,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.POST('/api/instituciones_cyt', header_admin_general, 200, newInstCYT)
             const { institucion_CYT } = res.body
             newInstitutionId = institucion_CYT.id
-            Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
+            Requests.verifyAttributes("institucion cyt",institucion_CYT, InstCytAttributes)
 
             const credentials = {
                 "email": newInstCYT.admin.email,
@@ -140,27 +140,27 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const id_inst = 1
             const res = await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_admincyt_1, 200)
             const { institucion_CYT } = res.body
-            Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
+            Requests.verifyAttributes("institucion cyt", institucion_CYT, InstCytAttributes)
         })
 
         it('Should get one institution (a new admin cyt)', async() => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}`, header_newAdmin, 200)
             const { institucion_CYT } = res.body
-            Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
+            Requests.verifyAttributes("institucion cyt", institucion_CYT, InstCytAttributes)
         })
 
         it('Should get one institution (admin general)', async() => {
             const id_inst = 1
             const res = await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_admin_general, 200)
             const { institucion_CYT } = res.body
-            Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
+            Requests.verifyAttributes("institucion cyt", institucion_CYT, InstCytAttributes)
         })
 
         it('Should get one institution (evaluador)', async() => {
             const id_inst = 1
             const res =  await Requests.GET(`/api/instituciones_cyt/${id_inst}`, header_evaluador_1, 200)
             const { institucion_CYT } = res.body
-            Requests.verifyAttributes(institucion_CYT, InstCytAttributes)
+            Requests.verifyAttributes("institucion cyt", institucion_CYT, InstCytAttributes)
         })
 
         it('Should not find the institution (status 404)', async() => {
@@ -194,7 +194,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             }
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios`, header_newAdmin, 200, newUser)
             
-            Requests.verifyAttributes(res.body.usuario, UserAttributes)
+            Requests.verifyAttributes("new user", res.body.usuario, UserAttributes)
             newEvaluadorId = res.body.usuario.id
             const res2 = await Requests.POST('/api/login', null, 200, newEvaluatorCredentials)
             const { token } = res2.body
@@ -230,12 +230,12 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         
         it('Should link a user to the institution (admin cyt)', async() => {
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_newAdmin, 200, {"dni": "123456789"})
-            Requests.verifyAttributes(res.body.usuario, UserAttributes)
+            Requests.verifyAttributes("linked user", res.body.usuario, UserAttributes)
         })
 
         it('Should link a user to the institution (admin general)', async() => {
             const res = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/usuarios/vincular_usuario`, header_admin_general, 200, {"dni": "987654321"})
-            Requests.verifyAttributes(res.body.usuario, UserAttributes)
+            Requests.verifyAttributes("linked user", res.body.usuario, UserAttributes)
         })
 
         it('Should be prohibited for an administrator to link a user to a foreign institution (admin cyt) (status 403)', async() => {
@@ -299,7 +299,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
                 'proyecto')
             
             const proyecto = res.body
-            Requests.verifyAttributes(proyecto, ProjectAttributes)
+            Requests.verifyAttributes("new project", proyecto, ProjectAttributes)
             newProjectId = proyecto.id
             assert.equal(newEvaluadorId, proyecto.id_director, 'The director id should be the same as that of the new evaluator')
         })
@@ -354,10 +354,10 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
 
         it('Should assign 2 evaluators to the new project', async() => {
             const res1 = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 201, data)
-            Requests.verifyAttributes(res1.body, linkedUserToProjectAtt)
+            Requests.verifyAttributes("linked user", res1.body, linkedUserToProjectAtt)
             data.id_evaluador = 2
             const res2 = await Requests.POST(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 201, data)
-            Requests.verifyAttributes(res2.body, linkedUserToProjectAtt)
+            Requests.verifyAttributes("linked user", res2.body, linkedUserToProjectAtt)
         })
 
         it('Sould fail, the user is already linked to the institution', async() => {
@@ -385,7 +385,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}/evaluadores`, header_newAdmin, 200)
             const { participantes } = res.body
             participantes.forEach( (p) => {
-                Requests.verifyAttributes(p, projectEvaluatorsAtt)
+                Requests.verifyAttributes("evaluadores", p, projectEvaluatorsAtt)
             })
         })
 
@@ -435,7 +435,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos`, header_newAdmin, 200)
             const { proyectos } = res.body
             proyectos.forEach(proyecto => {
-                Requests.verifyAttributes(proyecto, ProjectAttributes)
+                Requests.verifyAttributes("proyecto", proyecto, ProjectAttributes)
             })
         })
 
@@ -450,7 +450,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 1', () => {
         it('Should get one project', async() => {
             const res = await Requests.GET(`/api/instituciones_cyt/${newInstitutionId}/proyectos/${newProjectId}`, header_newAdmin, 200)
             const proyecto = res.body
-            Requests.verifyAttributes(proyecto, ProjectAttributes)
+            Requests.verifyAttributes("proyecto", proyecto, ProjectAttributes)
         })
         
         it('Should not find the institution (status 403)', async() => {
