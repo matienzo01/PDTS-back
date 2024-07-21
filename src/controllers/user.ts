@@ -1,13 +1,13 @@
 import service from '../services/user'
 import institutionCytService from '../services/institutionCYT'
-import { Request, Response, NextFunction  } from 'express';
-import { CustomError } from '../types/CustomError.js';
+import { Request, Response, NextFunction } from 'express';
+import { CustomError } from '../types/CustomError';
 import utils from './utils';
 
-const getOneAdmin = async(req: Request, res: Response, next: NextFunction) => {
+const getOneAdmin = async (req: Request, res: Response, next: NextFunction) => {
   const id = parseInt(req.params.id_admin)
   const { userData } = req.body
-  
+
   if (userData.rol == 'admin' && userData.id != id) {
     return res.status(403).json({ error: "An admin can only obtain his own information" })
   }
@@ -30,8 +30,8 @@ const getAllUsers = async (req: Request, res: Response) => {
     } else if (rol === 'admins') {
       response = await service.getAllAdmins();
     } else {
-      const {evaluadores} = await service.getAllEvaluadores();
-      const {administradores} = await service.getAllAdmins();
+      const { evaluadores } = await service.getAllEvaluadores();
+      const { administradores } = await service.getAllAdmins();
       response = { evaluadores, administradores };
     }
     res.status(200).json(response);
@@ -79,7 +79,7 @@ const getUserByDni = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 const linkUserToInstitution = async (req: Request, res: Response, next: NextFunction) => {
-  const { params: { id_institucion } } = req  
+  const { params: { id_institucion } } = req
   const { dni } = req.body
   const { id: id_admin, rol } = req.body.userData
 
@@ -107,9 +107,9 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     !user.hasOwnProperty('pais_residencia') ||
     !user.hasOwnProperty('provincia_residencia') ||
     !user.hasOwnProperty('localidad_residencia') ||
-    !user.hasOwnProperty('institucion_origen') ) {
-      res.status(400).json({ error: "Missing fields in the user" })
-      return;
+    !user.hasOwnProperty('institucion_origen')) {
+    res.status(400).json({ error: "Missing fields in the user" })
+    return;
   }
 
   try {
@@ -125,75 +125,75 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_usuario } } = req
   const { user } = req.body
-  
+
   try {
     utils.validateNumberParameter(id_usuario, 'id_usuario')
-    if(id_usuario != req.body.userData.id) {
+    if (id_usuario != req.body.userData.id) {
       throw new CustomError('Solo puedes actualizar tu propia informacion', 401)
     }
-    res.status(200).json(await service.updateUser(parseInt(id_usuario), user,'evaluador'))
+    res.status(200).json(await service.updateUser(parseInt(id_usuario), user, 'evaluador'))
   } catch (error) {
     next(error)
   }
 }
 
-const updateAdminCYT = async(req: Request, res: Response, next: NextFunction) => {
+const updateAdminCYT = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion, id_admin } } = req
   const { admin } = req.body
 
   // PREGUNTAR ESTOS DOS IF
-  if (id_admin != req.body.userData.id){
+  if (id_admin != req.body.userData.id) {
     res.status(401).json({ error: "you can only update your own user" })
-    return ;
+    return;
   }
 
-  if (id_institucion != req.body.userData.institutionId){
+  if (id_institucion != req.body.userData.institutionId) {
     res.status(401).json({ error: "You can only update the admin of your own institution" })
-    return ;
+    return;
   }
 
   try {
     utils.validateNumberParameter(id_institucion, 'id_institucion')
-    res.status(200).json( await service.updateUser(parseInt(id_admin), admin,'admin'))
+    res.status(200).json(await service.updateUser(parseInt(id_admin), admin, 'admin'))
   } catch (error) {
     next(error)
   }
 }
 
-const createAdminGeneral = async(req: Request, res: Response, next: NextFunction) => {
-  const { newAdmin } = req.body 
+const createAdminGeneral = async (req: Request, res: Response, next: NextFunction) => {
+  const { newAdmin } = req.body
 
-  if(!newAdmin.email ||
+  if (!newAdmin.email ||
     !newAdmin.password) {
-      res.status(400).json({ error: "Missing fields in the admin" })
-      return;
+    res.status(400).json({ error: "Missing fields in the admin" })
+    return;
   }
 
   try {
-    res.status(200).json( await service.createAdminGeneral(newAdmin))
+    res.status(200).json(await service.createAdminGeneral(newAdmin))
   } catch (error) {
     next(error)
   }
 }
 
-const deleteAdminGeneral = async(req: Request, res: Response, next: NextFunction) => {
+const deleteAdminGeneral = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
-const getAllAdminsGenerales = async(req: Request, res: Response) => {
+const getAllAdminsGenerales = async (req: Request, res: Response) => {
   try {
-    res.status(200).json( await service.getAllAdminsGenerales())
+    res.status(200).json(await service.getAllAdminsGenerales())
   } catch (error) {
     res.status(500).json({ error: 'Error obteniendo los administradores' })
   }
 }
 
-const getOneAdminGeneral = async(req: Request, res: Response, next: NextFunction) => {
-  
+const getOneAdminGeneral = async (req: Request, res: Response, next: NextFunction) => {
+
 }
 
-const createAdmin = async(req: Request, res: Response, next: NextFunction) => {
-  const { admin } = req.body 
+const createAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  const { admin } = req.body
   const { params: { id_institucion } } = req
   const { id: id_admin, rol } = req.body.userData
 
@@ -201,7 +201,7 @@ const createAdmin = async(req: Request, res: Response, next: NextFunction) => {
     !admin.apellido ||
     !admin.email ||
     !admin.dni) {
-      return res.status(400).json({ error: "Missing fields in the admin" })
+    return res.status(400).json({ error: "Missing fields in the admin" })
   }
 
   try {
@@ -214,7 +214,7 @@ const createAdmin = async(req: Request, res: Response, next: NextFunction) => {
 
 }
 
-const deleteAdminCyT = async(req: Request, res: Response, next: NextFunction) => {
+const deleteAdminCyT = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion } } = req
   const { id: id_admin, rol } = req.body.userData
 
