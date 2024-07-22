@@ -4,7 +4,6 @@ import knex from '../database/knex';
 import { CustomError } from '../types/CustomError';
 import { Evaluador } from '../types/Evaluador';
 import { InstitucionCyT } from '../types/InstitucionCyT';
-import { Proyecto } from '../types/Proyecto';
 
 const transporter = nodemailer.createTransport({
     host: 'vps-4116920-x.dattaweb.com',
