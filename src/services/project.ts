@@ -1,6 +1,7 @@
 import { Knex } from "knex"
 import { CustomError } from "../types/CustomError"
 import { InstitucionParticipante } from "../types/InstitucionParticipante"
+import { promises as fs } from 'fs';
 
 const TABLE = 'proyectos'
 import knex from '../database/knex'
@@ -274,8 +275,13 @@ const verify_date = async (id_proyecto: number, id_evaluador: number) => {
 }
 
 const updateProject = async(project: any, id:number) => {
-  await getOneProject(id)
+  const { titulo: oldTitulo } = (await getOneProject(id)).proyecto
   const roles = project.roles
+
+  const check = await knex('proyectos').select().where({titulo: project.titulo}).first()
+  if (check != undefined && check.id != id) {
+    throw new CustomError("Ya existe un proyecto diferente con el mismo nombre en el sistema", 409)
+  }
 
   const hasEjecutora = roles.some((item: any) => item.rol.toLocaleLowerCase() === 'ejecutora');
   const hasDemandante = roles.some((item: any) => item.rol.toLocaleLowerCase() === 'demandante');
@@ -292,7 +298,20 @@ const updateProject = async(project: any, id:number) => {
     await assignInstitutionRoles(id, roles, trx)
   })
 
-  return await getOneProject(id)
+  const updatedProject = await getOneProject(id);
+
+  if(oldTitulo != updatedProject.proyecto.titulo) {
+    try {
+      Files.moveDirectoryContents(`uploads/${oldTitulo}`, `uploads/${updatedProject.proyecto.titulo}`)
+    } catch(error) {
+      console.log(error)
+    }
+  }
+
+
+  updatedProject.proyecto.director = await getDirector(updatedProject.proyecto)
+
+  return updatedProject
 }
 
 export default {

@@ -178,6 +178,25 @@ const deleteUserFundamentaciones = async(titulo: string, id_usuario: number) => 
   }
 }
 
+const moveDirectoryContents = async(oldDir: string, newDir: string) => {
+  await fs.mkdir(newDir, { recursive: true });
+
+  const items = await fs.readdir(oldDir, { withFileTypes: true });
+
+  for (const item of items) {
+    const oldPath = `${oldDir}/${item.name}`
+    const newPath = `${newDir}/${item.name}`
+
+    if (item.isDirectory()) {
+      await moveDirectoryContents(oldPath, newPath);
+    } else {
+      await fs.rename(oldPath, newPath);
+    }
+  }
+
+  await fs.rmdir(oldDir);
+}
+
 export default { 
   getFilesEvaluador, 
   getParticipantFileNames, 
@@ -186,5 +205,6 @@ export default {
   deleteInforme, 
   getNombreInforme, 
   deleteUserFundamentaciones,
-  deleteProjectFolder
+  deleteProjectFolder,
+  moveDirectoryContents
 }

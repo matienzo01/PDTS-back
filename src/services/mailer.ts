@@ -105,7 +105,7 @@ async function sendMail(to: string, subject: string, text: string) {
 
     
     try {
-        transporter.sendMail(mailOptions)
+        //transporter.sendMail(mailOptions)
     } catch(error) {
         throw error;
     }
