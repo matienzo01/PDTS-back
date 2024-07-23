@@ -1,4 +1,5 @@
 import knex from '../database/knex';
+import project from '../services/project';
 import projectService from '../services/project';
 import { CustomError } from '../types/CustomError';
 import { Participante } from '../types/Participante';
@@ -368,21 +369,67 @@ const calcularPorcentajesOpcionMultiple = (question: any, totalRespuestas: numbe
 
 }
 
-const getPromedios = async() => {
-    const responses = await knex('respuestas_encuesta')
-    .leftJoin('opciones as o', 'respuestas_encuesta.respuesta', 'o.valor')
-    .join('evaluadores_x_proyectos', function() {
+const obtenerRespuestasEncuesta = async (filter: any) => {
+    const query = knex('respuestas_encuesta')
+        .leftJoin('opciones as o', 'respuestas_encuesta.respuesta', 'o.valor')
+        .join('evaluadores_x_proyectos', function() {
         this.on('respuestas_encuesta.id_proyecto', '=', 'evaluadores_x_proyectos.id_proyecto')
             .andOn('respuestas_encuesta.id_evaluador', '=', 'evaluadores_x_proyectos.id_evaluador');
-    })
-    .whereNotNull('evaluadores_x_proyectos.fecha_fin_op')
-    .select('respuestas_encuesta.*', 'o.id as optionId');
+        })
+        .whereNotNull('evaluadores_x_proyectos.fecha_fin_op');
 
-    const cantidad = (await knex('evaluadores_x_proyectos').whereNotNull('fecha_fin_op')).length
-    const encuesta: any =  await generateEncuesta({id_modelo_encuesta: 1}, 'admin_general', responses)
+    for (const key in filter) {
+        if (Array.isArray(filter[key])) {
+        query.whereIn(key, filter[key]);
+        } else {
+        query.andWhere(key, filter[key]);
+        }
+    }
     
-    encuesta.cantidadEncuestas = cantidad
+    return await query.select('respuestas_encuesta.*', 'o.id as optionId');
+};
 
+const obtenerCantidad = async (filter: any): Promise<number> => {
+    const query = knex('evaluadores_x_proyectos')
+        .whereNotNull('fecha_fin_op');
+
+    for (const key in filter) {
+        if (Array.isArray(filter[key])) {
+            query.whereIn(key, filter[key]);
+        } else {
+            query.andWhere(key, filter[key]);
+        }
+    }
+
+  return (await query).length
+};
+
+const getPromediosGlobal = async (): Promise<any> => {
+    const responses = await obtenerRespuestasEncuesta({});
+    const cantidad = await obtenerCantidad({});
+    return getEncuestaPromedios(responses, cantidad);
+};
+  
+const getPromediosInstitucion = async (id_institucion: number): Promise<any> => {
+    const { proyectos } = await project.getAllInstitutionProjects(id_institucion);
+    const ids = proyectos.map(proyecto => proyecto.id);
+  
+    const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': ids });
+    const cantidad = await obtenerCantidad({ 'evaluadores_x_proyectos.id_proyecto': ids });
+    return getEncuestaPromedios(responses, cantidad);
+};
+  
+const getPromediosProyecto = async (id_institucion: number, id_proyecto: number): Promise<any> => {
+    await project.getOneProject(id_proyecto, id_institucion);
+  
+    const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': id_proyecto });
+    const cantidad = await obtenerCantidad({ id_proyecto });
+    return getEncuestaPromedios(responses, cantidad);
+};
+
+const getEncuestaPromedios = async(responses: any, cantidad: number) => {
+    const encuesta: any =  await generateEncuesta({id_modelo_encuesta: 1}, 'admin_general', responses)
+    encuesta.cantidadEncuestas = cantidad
     encuesta.sections.forEach((section: any) => {
         section.questions.forEach( (question: any) => {
             calculaPorcentaje(question, cantidad)
@@ -391,14 +438,14 @@ const getPromedios = async() => {
             })
         })
     })
-    
     return encuesta
 }
-
 
 export default {
     getEncuesta,
     postEncuesta,
     finallizarEncuesta,
-    getPromedios
+    getPromediosGlobal,
+    getPromediosInstitucion,
+    getPromediosProyecto
 }

@@ -44,8 +44,21 @@ const finallizarEncuesta = async(req: Request, res: Response, next: NextFunction
 }
 
 const getPromedios = async(req: Request, res: Response, next: NextFunction) => {
+    const { rol, institutionId } = req.body.userData
+    const { id_proyecto } = req.query
+
     try {
-        res.status(200).json(await service.getPromedios())
+        if (rol == 'admin general') {
+            return res.status(200).json(await service.getPromediosGlobal())
+        } 
+
+        if(id_proyecto) {
+            utils.validateNumberParameter(id_proyecto, 'id_proyecto')
+            return res.status(200).json(await service.getPromediosProyecto(institutionId, parseInt(id_proyecto as string)))
+        }
+
+        return res.status(200).json(await service.getPromediosInstitucion(institutionId))
+        
     } catch(error) {
         next(error)
     }
