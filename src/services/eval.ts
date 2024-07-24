@@ -479,8 +479,16 @@ const generateResumenInstancia = async(id_proyecto: number, id_instancia: number
   for (const clave in dimensiones) {
     dimensiones[clave].indicadores?.map(ind => {
       ind.respuestas = ind.respuestas ? [...ind.respuestas, ...respuestasVacias] : respuestasVacias;
+      const valores = ind.respuestas
+        .map(rta => rta.value)
+        .filter(value => value !== null) as number[];
+      const sumaValores = valores.reduce((acc, curr) => acc + curr, 0);
+      //@ts-ignore
+      ind.promedio = valores.length ? sumaValores / valores.length : null;
       return ind;
     });
+
+
   }
   
   return { Instancia: 
