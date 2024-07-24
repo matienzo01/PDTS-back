@@ -14,6 +14,7 @@ router
     .get('/proposito/:id_proyecto', authUser, checkRol(['evaluador', 'admin']), controller.getProposito)
     .post('/form/:id_proyecto', authUser, checkRol(['evaluador']), controller.saveForm)
     .put('/:id_proyecto/finalizar', authUser, checkRol(['evaluador','admin']), controller.finalizarEvaluacion) 
+    .get('/:id_proyecto/resumen', authUser, checkRol(['admin','admin general']), controller.getResumen) 
     .post('/form/:id_proyecto/:id_indicador/files', (req, res, next) => {
         uploadFundamentacion.single('file')(req, res, (err) => {
             if (err) {

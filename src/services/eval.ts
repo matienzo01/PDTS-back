@@ -256,6 +256,10 @@ const canAnswer = async(id_proyecto: number, id_usuario: number, proyecto: Proye
   if(proposito && !proyecto.obligatoriedad_proposito){
     throw new CustomError("The proposito instance should not be evaluated in this project", 400)
   }
+
+  if(proyecto.id_estado_eval == 4) {
+    throw new CustomError('La evaluacion ya fue cerrada por un administrador, no se pueden cargar nuevas respuestas', 409)
+  }
 }
 
 const saveForm = async(id_proyecto: number, id_usuario: number, respuestas: any) => {
@@ -345,12 +349,12 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
     }
     
     const respuestas_guardadas = (await knex('respuestas_evaluacion')
-    .select("id_indicador")
-    .where({id_proyecto})
-    .where({id_evaluador: id_usuario})
-    .whereNotNull("justificacion")
-    .where('justificacion', '!=', '')
-    .whereNotNull("respuesta"))
+      .select("id_indicador")
+      .where({id_proyecto})
+      .where({id_evaluador: id_usuario})
+      .whereNotNull("justificacion")
+      .where('justificacion', '!=', '')
+      .whereNotNull("respuesta"))
 
     const total_preguntas = await getQuestionsIds(proyecto.obligatoriedad_proposito)
     const preguntas_entidad =  new Set((await getQuestionsIds(false)).map(r => r.id))
@@ -384,11 +388,110 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
         await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
       })
     }
-
-    
   }
   return await getBothInstances(id_proyecto, id_usuario, rol)
 }
+
+const getResumen = async( rol: string, id_proyecto: number, id_institucion: number | null = null) => {
+  let proyecto 
+  if (rol == 'admin') {
+    proyecto = (await projectService.getOneProject(id_proyecto, id_institucion)).proyecto
+  } else {
+    proyecto = (await projectService.getOneProject(id_proyecto)).proyecto
+  }
+
+  if (proyecto.id_estado_eval != 4) {
+    throw new CustomError('Se puede acceder al resumen unicamente si la evaluacion fue cerrada', 409)
+  }
+
+  const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto)
+  const promises = [
+    generateResumenInstancia(id_proyecto, 1, 'Entidad', idsNoRespondieron),
+  ];
+
+  if (proyecto.obligatoriedad_proposito) {
+    promises.push(generateResumenInstancia(id_proyecto, 2, 'Proposito', idsNoRespondieron));
+  }
+  
+  const resultados = await Promise.all(promises);
+  return { Resumen: resultados.map(({ Instancia }) => Instancia) };
+}
+
+const generateResumenInstancia = async(id_proyecto: number, id_instancia: number, nombreInstancia:string, idsNoRespondieron: any[]) => {
+  const dimensiones: { [nombre: string]: Dimension } = {};
+  const [indicadores, options, respuestas] = await Promise.all([
+    knex.select(
+      'i.id as id_indicador',
+      'i.pregunta',
+      'i.determinante',
+      'd.id as id_dimension',
+      'd.nombre as nombre_dimension'
+    )
+      .from('indicadores as i')
+      .join('dimensiones as d', 'i.id_dimension', 'd.id')
+      .where({id_instancia}),
+    knex('opciones_evaluacion')
+      .select('id', 'peso as value')
+      .where({id_instancia}),
+    knex('respuestas_evaluacion as re')
+      .join('indicadores as i', 're.id_indicador', 'i.id')
+      .join('dimensiones as d', 'i.id_dimension', 'd.id')
+      .select('re.id_evaluador', 'id_indicador', 'calificacion as value')
+      .where('re.id_proyecto', id_proyecto)
+      .where('d.id_instancia', id_instancia)
+      .distinct()
+  ])
+
+  indicadores.forEach(row => {
+
+    let newIndicador: Partial<Indicador> = {
+      id_indicador: row.id_indicador,
+      pregunta: row.pregunta,
+      determinante: row.determinante
+    };
+
+    if (respuestas?.length) {
+      const rtasFiltradas = respuestas.filter(rta => rta.id_indicador === newIndicador.id_indicador);
+      if (rtasFiltradas.length) {
+          newIndicador.respuestas = rtasFiltradas.map(({ id_indicador, ...rest }) => rest);
+      }
+    }
+
+    if(!dimensiones[row.nombre_dimension]) {
+      dimensiones[row.nombre_dimension] = {
+        id_dimension: row.id_dimension,
+        indicadores: []
+      }
+    }
+    
+    if (dimensiones[row.nombre_dimension]?.indicadores) {
+      // @ts-ignore
+      dimensiones[row.nombre_dimension].indicadores.push(newIndicador);
+    }
+
+  })
+
+  const respuestasVacias: any[]  = idsNoRespondieron.map(id => ({
+    id_evaluador: id,
+    value: null
+  }));
+
+  for (const clave in dimensiones) {
+    dimensiones[clave].indicadores?.map(ind => {
+      ind.respuestas = ind.respuestas ? [...ind.respuestas, ...respuestasVacias] : respuestasVacias;
+      return ind;
+    });
+  }
+  
+  return { Instancia: 
+    {
+      nombre_instancia: nombreInstancia,
+      dimensiones: dimensiones, 
+      opciones: options
+    } 
+  }
+}
+
 
 export default {
   getEvaluationScores,
@@ -396,6 +499,7 @@ export default {
   getEntidad,
   getProposito,
   saveForm,
+  getResumen,
   finalizarEvaluacion,
   validateAnswers
 }

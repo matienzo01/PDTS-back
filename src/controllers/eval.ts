@@ -52,16 +52,30 @@ const finalizarEvaluacion = async(req: Request, res: Response, next: NextFunctio
 
   try {
     utils.validateNumberParameter(id_proyecto, 'id_proyecto')
-    utils.validateNumberParameter(id_usuario, 'id_usuario')
     res.status(200).json(await service.finalizarEvaluacion(parseInt(id_proyecto), parseInt(id_usuario), rol))
   } catch(error) {
     next(error)
   }
 }
 
+const getResumen = async(req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_proyecto } } = req
+  const { rol, institutionId } = req.body.userData
+
+  try {
+    utils.validateNumberParameter(id_proyecto, 'id_proyecto')
+    res.status(200).json(await service.getResumen(rol, parseInt(id_proyecto), institutionId))
+  } catch(error) {
+    next(error)
+  }
+}
+
+
+
 export default {
   getEntidad,
   getProposito,
   saveForm,
+  getResumen,
   finalizarEvaluacion
 }
