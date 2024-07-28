@@ -58,7 +58,7 @@ const getParticipantFileNames = async (id_proyecto: number, id_admin: number, ro
     throw new CustomError('El administrador no pertenece a la institucion dueña del proyecto', 403)
   }
 
-  const ids = proyecto.participantes.filter((obj: any) => obj.fecha_fin_eval == null).map((obj: any) => obj.id);
+  const ids = proyecto.participantes.filter((obj: any) => obj.fecha_fin_eval != null).map((obj: any) => obj.id);
   const a: {id_evaluador: number, indicadores: any}[] = [];
   
   await Promise.all(ids.map(async (id: number) => {
