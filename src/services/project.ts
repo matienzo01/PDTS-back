@@ -43,7 +43,7 @@ const getOneProject = async (id_proyecto: number, id_institucion: number | null 
     .first();
 
   if (!project) {
-    throw new CustomError('There is no project with the provided id', 404)
+    throw new CustomError('No existe un proyecto con el id dado', 404)
   }
 
   const participants = await getParticipants(id_proyecto, queryBuilder)
@@ -51,7 +51,7 @@ const getOneProject = async (id_proyecto: number, id_institucion: number | null 
   const nombre_informe = await Files.getNombreInforme(project.titulo)
 
   if (id_institucion && project.id_institucion != id_institucion) {
-    throw new CustomError('The project is not linked to the institution or the institution does not exist', 403)
+    throw new CustomError('El proyecto no esta asociado a la institucion o la institucion no existe', 403)
   }
 
   return { proyecto: { ...project, informe_director: nombre_informe, participantes: participants, instituciones_participantes: participating_insts } };
@@ -101,7 +101,7 @@ const getProjectsByUser = async (id_usuario: number) => {
 const userBelongsToInstitution = async (id_evaluador: number, id_institucion: number) => {
   const inst = await knex('instituciones_cyt').select().where({ id: id_institucion }).first()
   if (inst === undefined) {
-    throw new CustomError('There is no institution with the provided id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
   return await knex('evaluadores_x_instituciones').select().where({ id_institucion, id_evaluador }).first() === undefined
     ? false
@@ -112,11 +112,11 @@ const assignEvaluador = async (data: any, id_institucion: number, trx: any = nul
   const { proyecto } = await getOneProject(data.id_proyecto, id_institucion, trx)
   
   if(proyecto.id_estado_eval == 4 ) {
-    throw new CustomError('The evaluation has already been closed. You cant add a new evaluator', 409)
+    throw new CustomError('La evaluacion ya fue cerrada, no se puede agregar un nuevo evaluador', 409)
   }
 
   if (!await userBelongsToInstitution(data.id_evaluador, id_institucion)) {
-    throw new CustomError('The user is not associated with the institution that owns the project', 409)
+    throw new CustomError('El usuario no esta asociado a la institucion que administra el proyecto', 409)
   }
 
   const queryBuilder = trx || knex;
@@ -128,7 +128,7 @@ const assignEvaluador = async (data: any, id_institucion: number, trx: any = nul
   } catch (error) {
     // @ts-ignore
     if (error.code === 'ER_DUP_ENTRY') {
-      throw new CustomError('The user is already asigned to the project', 409)
+      throw new CustomError('El usuario ya esta vinculado al proyecto', 409)
     } else {
       throw error
     }
@@ -140,16 +140,16 @@ const unassignEvaluador = async (id_evaluador: number, id_proyecto: number) => {
   const {proyecto} = await getOneProject(id_proyecto)
 
   if(proyecto.id_estado_eval == 4 ) {
-    throw new CustomError('The evaluation has already been closed. You cant add a new evaluator', 409)
+    throw new CustomError('La evaluacion ya fue cerrada, no se puede desvincular un evaluador', 409)
   }
 
   const evaluador = await knex('evaluadores_x_proyectos').select().where({ id_evaluador, id_proyecto }).first()
   if ( evaluador === undefined ){
-    throw new CustomError('There is no user with the providied id linked to the project', 404)
+    throw new CustomError('No existe un usuario con el id dado vinculado al proyecto', 404)
   }
 
   if (evaluador.rol === 'director'){
-    throw new CustomError('You cannot remove a director from his or her own project', 409)
+    throw new CustomError('No se puede desvincular al director de su propio proyecto', 409)
   }
 
   return await knex.transaction(async (trx) => { 
@@ -180,7 +180,7 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
   const hasAdoptante = roles.some(item => item.rol.toLocaleLowerCase() === 'adoptante');
   
   if (!hasEjecutora || !hasDemandante || !hasAdoptante) {
-    throw new CustomError("The project must have at least one demanding institution, one executor and one adopter.", 400)
+    throw new CustomError("El proyecto debe tener al menos una institucion demandante, una ejecutora y una adoptante", 400)
   }
 
   if ((await knex('proyectos').select().where({titulo: proyecto.titulo})).length > 0) {
@@ -268,7 +268,7 @@ const verify_date = async (id_proyecto: number, id_evaluador: number) => {
       .first()
   
   if(!assigned) {
-      throw new CustomError('The user is not linked to the project', 403)
+      throw new CustomError('El usuario no esta vinculado al proyecto', 403)
   }
 
   return assigned
@@ -288,7 +288,7 @@ const updateProject = async(project: any, id:number) => {
   const hasAdoptante = roles.some((item: any) => item.rol.toLocaleLowerCase() === 'adoptante');
   
   if (!hasEjecutora || !hasDemandante || !hasAdoptante) {
-    throw new CustomError("The project must have at least one demanding institution, one executor and one adopter.", 400)
+    throw new CustomError("El proyecto debe tener al menos una institucion demandante, una ejecutora y una adoptante", 400)
   }
 
   delete project.roles

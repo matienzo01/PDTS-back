@@ -29,7 +29,7 @@ const checkEmail = async(email: string, trx: any = null) => {
     for (let i = 0; i < 3; i++ ){
       const user = await querybuilder(tables[i]).select().where({email})
       if( user.length > 0){
-        throw new CustomError('The email entered is already registered in the system', 409)
+        throw new CustomError('El email ingresado ya esta registrado en el sistema', 409)
       }
     }
 }

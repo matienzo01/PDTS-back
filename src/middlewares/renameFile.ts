@@ -28,20 +28,20 @@ const renameFileFundamentacion = async(req: Request, res: Response, next: NextFu
         const assigned = await projectService.verify_date(id_proyecto, id_usuario)
         //3) puuede responder?
         if (id_estado_eval == 4) {
-            throw new CustomError('The evaluation had already been closed.', 409)
+            throw new CustomError('La evaluacion del PDTS ya fue cerrada', 409)
         }
 
         if (assigned.fecha_fin_eval != null ) {
-            throw new CustomError('The user already finished the evaluation', 409)
+            throw new CustomError('El usuario ya finalizo la evaluacion de este proyecto', 409)
         }
 
         if (id_usuario != id_director && id_estado_eval < 3) {
-            throw new CustomError('The project manager must complete the evaluation first', 409)
+            throw new CustomError('El director del proyecto debe completar su evaluacion primero', 409)
         }
 
         //4) es un indicador valido?
         if (await evalService.validateAnswers([{id_indicador: id_indicador}]) && !obligatoriedad_proposito ){
-            throw new CustomError("The proposito instance should not be evaluated in this project", 400)
+            throw new CustomError("La instancia de proposito no deberia ser evaluada en este proyecto", 400)
         }
 
         let fileFolder =`uploads/${titulo}/fundamentaciones`

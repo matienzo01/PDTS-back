@@ -26,7 +26,7 @@ const login = async (email: string, password: string) => {
   }
 
   if(!user){
-    throw new CustomError('Invalid user or password', 401)
+    throw new CustomError('usuario o contraseña invalido', 401)
   }
 
   const passwordCorrect = user === undefined
@@ -35,7 +35,7 @@ const login = async (email: string, password: string) => {
 
   delete user.password
   if (!passwordCorrect) {
-    throw new CustomError('Invalid user or password', 401)
+    throw new CustomError('usuario o contraseña invalido', 401)
   }
 
   const userForToken: UserForToken = {

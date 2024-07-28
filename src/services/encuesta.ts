@@ -179,7 +179,7 @@ const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) 
   
     if(!proyecto.obligatoriedad_opinion){
         // el mensaje este no va a aparecer, pero lo pono igual
-        throw new CustomError('The survey is not applicable for this project', 204)
+        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 204)
     }
 
     if(rol === 'admin general'){
@@ -198,17 +198,17 @@ const canAnswer = async(id_proyecto: number, id_evaluador: number) => {
 
     if(!proyecto.obligatoriedad_opinion){
         // el mensaje este no va a aparecer, pero lo pongo igual
-        throw new CustomError('The survey is not applicable for this project', 204)
+        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 204)
     }
 
     const assigned = await projectService.verify_date(id_proyecto, id_evaluador)
 
     if(assigned.fecha_fin_eval == null){
-        throw new CustomError('You have to complete the project evaluation first', 409)
+        throw new CustomError('Debes completar la evaluacion del proyecto', 409)
     }
 
     if(assigned.fecha_fin_op != null){
-        throw new CustomError('You have already finished the project survey', 409)
+        throw new CustomError('Ya completaste la encuesta del sistema', 409)
     }
 }
 
@@ -232,7 +232,7 @@ const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespues
 
             if(idsOpciones.includes(rta.id_indicador)){
                 if(!valores.includes(rta.answer)) {
-                    throw new CustomError(`The answer '${rta.answer}' its not valid option for the question ${rta.id_indicador}`, 400)
+                    throw new CustomError(`La respuesta '${rta.answer}' no es una opcion valida para el indicador "${rta.id_indicador}"`, 400)
                 }
             }
             
@@ -287,7 +287,7 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     const respuestasSINO = respuestas.filter(rta => SINO.map(p => p.id_pregunta_padre).includes(rta.id_pregunta))
     
     if(respuestas.length == 0) {
-        throw new CustomError('The amount of answers does not match those expected', 400)
+        throw new CustomError('El numero de respuestas no coincide con el esperado', 400)
     }
 
     let contador = 0
@@ -300,7 +300,7 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
                 id: p.id_subpregunta,
                 pregunta: CUAL.find(c => c.id == p.id_subpregunta).pregunta
             }
-            throw new CustomError('The amount of answers does not match those expected', 400, [question])
+            throw new CustomError('El numero de respuestas no coincide con el esperado', 400, [question])
         }
         
         if (rtaSINO.respuesta == 'no' && rtaCUAL == undefined) {
@@ -309,7 +309,7 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
     })
 
     if(respuestas.length + contador !== rawPreguntas.length){
-        throw new CustomError('The amount of answers does not match those expected', 400)
+        throw new CustomError('El numero de respuestas no coincide con el esperado', 400)
     }
 
     await knex('evaluadores_x_proyectos')

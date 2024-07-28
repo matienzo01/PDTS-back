@@ -10,7 +10,7 @@ const getAllDimensions = async () => {
 const getOneDimension = async(id: number) => { 
     const dim: Dimension | undefined = await knex.select().where({id}).from(TABLE).first();
     if(dim === undefined) {
-        throw new CustomError('There is no dimension with the provided id ', 404)
+        throw new CustomError('No existe una dimension con ese id', 404)
     }
     return { dimension: dim }
 }
@@ -29,7 +29,7 @@ const deleteDimension = async (id: number) => {
     await knex.transaction(async(trx) => {
         // hay que eliminar los indicadores asociados
         if (!await trx(TABLE).del().where({id})){
-            throw new CustomError('There is no dimension with the provided id ', 404)
+            throw new CustomError('No existe una dimension con el id dado', 404)
         }
 
     })

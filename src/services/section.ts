@@ -10,7 +10,7 @@ const getAllSecciones = async () => {
 const getOneSeccion = async(id: number) => { 
     const seccion = await knex.select().where({id}).from(TABLE).first();
     if(seccion === undefined) {
-        throw new CustomError('There is no seccion with the provided id ', 404)
+        throw new CustomError('No existe una seccion con el id dado', 404)
     }
     return {seccion: seccion}
 }
@@ -24,7 +24,7 @@ const deleteSeccion = async (id: number) => {
 
     await knex.transaction(async(trx) => {
         if (!await trx(TABLE).del().where({id})){
-            throw new CustomError('There is no seccion with the provided id ', 404)
+            throw new CustomError('No existe una institucion con el id dado', 404)
         }
     })
     return ;

@@ -14,7 +14,7 @@ import institutionCYT from './institutionCYT'
 const getEvaluationScores = async(id_proyecto: number) => {
 
   if (!await projectService.verifyState(id_proyecto, 'Evaluado')){
-    throw new CustomError('The project has not yet finished evaluating. The answers are not yet available', 409)
+    throw new CustomError('El proyecto aun esta siendo evaluado. Las respuestas no están disponibles', 409)
   }
   
   const rtas = await knex.select('id_indicador','id_dimension','id_instancia','id_evaluador','calificacion','respuesta','determinante','dimensiones.nombre as nombre_dimension')
@@ -54,7 +54,7 @@ const getEvaluationScores = async(id_proyecto: number) => {
 
 const check_director_evaluation = (id_director: number, id_usuario: number, id_estado_eval: number) => {
   if(id_director != id_usuario && id_estado_eval < 3){
-    throw new CustomError("The project manager must complete the evaluation first", 409)
+    throw new CustomError("El director del proyecto debe completar su evaluacion primero", 409)
   }
 }
 
@@ -208,7 +208,7 @@ const verifyProject = async(id_proyecto: number, entidad: boolean, id_usuario: n
   }
 
   if(!entidad && !proyecto.obligatoriedad_proposito){
-    throw new CustomError('The proposito instance should not be evaluated in this project', 204)
+    throw new CustomError('La instancia de proposito no debe ser evaluada en este proyecto', 204)
   }
 
   return proyecto
@@ -250,15 +250,15 @@ const canAnswer = async(id_proyecto: number, id_usuario: number, proyecto: Proye
   check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
 
   if(!(assigned.fecha_fin_eval == null)){
-    throw new CustomError("The user already finished the evaluation", 409)
+    throw new CustomError("El usuario ya termino su evaluacion", 409)
   }
 
   if(proposito && !proyecto.obligatoriedad_proposito){
-    throw new CustomError("The proposito instance should not be evaluated in this project", 400)
+    throw new CustomError("La instancia de proposito no debe ser evaluada en este proyecto", 400)
   }
 
   if(proyecto.id_estado_eval == 4) {
-    throw new CustomError('La evaluacion ya fue cerrada por un administrador, no se pueden cargar nuevas respuestas', 409)
+    throw new CustomError('La evaluacion ya fue cerrada, no se pueden subir nuevas respuestas', 409)
   }
 }
 
@@ -277,7 +277,7 @@ const validateAnswers = async(respuestas: any) => {
 
   const idsRtas = respuestas.map((obj: { id_indicador: number }) => obj.id_indicador)
   if (!(idsRtas.every((id: number) => { return validIds.some(item => item.id === id) })))
-    throw new CustomError('There are answers that do not correspond to any existing indicator', 400)
+    throw new CustomError('Hay respuestas que no corresponden con ningun indicador', 400)
 
   return idsRtas.some((id: number) => {
     return validIds.some(item => item.id === id && item.id_instancia === 2);
@@ -320,7 +320,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
   if( rol == 'admin') {
     const { proyecto } = await projectService.getOneProject(id_proyecto, await insttitutionCYTService.getInstIdFromAdmin(id_usuario))
     if(proyecto.id_estado_eval != 3){
-      throw new CustomError('The evaluation cannot be closed at this time, the director must complete his evaluation first', 409)
+      throw new CustomError('La evaluacion no puede ser cerrada en este momento, el director debe completarla primero', 409)
     }
 
     knex.transaction(async (trx: any) => {
@@ -345,7 +345,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
     check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
     
     if(assigned.fecha_fin_eval != null || proyecto.id_estado_eval == 4){
-      throw new CustomError('The evaluation had already been closed.', 409)
+      throw new CustomError('La evaluacion ya fue cerrada', 409)
     }
     
     const respuestas_guardadas = (await knex('respuestas_evaluacion')
@@ -367,7 +367,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
         Proposito: total_preguntas.filter(p => !ids_respuestas_guardadas.has(p.id) && preguntas_proposito.has(p.id))
       }
       
-      throw new CustomError('The amount of answers does not match those expected', 400, preguntas_no_respondidas)
+      throw new CustomError('El numero de respuestas no coincide con las esperadas', 400, preguntas_no_respondidas)
     } else {
       await knex('evaluadores_x_proyectos')
         .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })

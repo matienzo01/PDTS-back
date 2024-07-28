@@ -15,7 +15,7 @@ const getRubros = async() => {
 
 const createRubro = async(nombre: string) => {
   if((await knex('rubros').select().where({nombre})).length > 0){
-    throw new CustomError("The 'Rubro' already exists", 409)
+    throw new CustomError("Ya existe el rubro", 409)
   } 
   const insertId = parseInt(await knex('rubros').insert({nombre: nombre}))
   return { rubro: await knex('rubros').select().where({id: insertId}).first()}
@@ -23,10 +23,10 @@ const createRubro = async(nombre: string) => {
 
 const verify = async(id: number) => {
   if(id == 1) {
-    throw new CustomError("Unable to delete or update the 'rubro'", 409)
+    throw new CustomError("No se puede borrar ese rubro", 409)
   }
   if ((await knex('rubros').select().where({id})).length == 0 ){
-    throw new CustomError("The 'rubro' doesnt exist", 404)
+    throw new CustomError("El rubro no existe", 404)
   }
 }
 
@@ -92,7 +92,7 @@ const getOneInstitucion = async(id: number, trx: any = null) => {
   ])
 
   if(inst === undefined) {
-    throw new CustomError('There is no institution with the provided id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
 
   const { tipo, rubro} = await setTipoyRubro(inst, tipos_inst, rubros)
@@ -107,11 +107,11 @@ const getOneInstitucion = async(id: number, trx: any = null) => {
 const createInstitucion = async(institution: any) => {
 
   if (institution.id_rubro == 1 || await (knex('rubros').select().where({id: institution.id_rubro})).first() == undefined) {
-    throw new CustomError("There is no 'Rubro' with the provided id",404)
+    throw new CustomError("No existe un rubro con el id dado",404)
   }
 
   if (institution.id_tipo == 1 || await (knex('tipos_instituciones').select().where({id: institution.id_tipo})).first() == undefined) {
-    throw new CustomError("There is no institution type with the provided id",404)
+    throw new CustomError("No existe un tipo de institucion con el id dado",404)
   }
 
   const insertId = parseInt(await knex(TABLE_INSTITUCIONES).insert(institution))
@@ -122,11 +122,11 @@ const updateInstitucion = async(id_institucion: number, institucion: any, trx: a
   const queryBuilder = trx || knex;
 
   if(institucion.id_rubro && (institucion.id_rubro == 1 || await (knex('rubros').select().where({id: institucion.id_rubro})).first() == undefined)) {
-    throw new CustomError("There is no 'Rubro' with the provided id",404)
+    throw new CustomError("No existe un rubro con el id dado",404)
   }
 
   if(institucion.id_tipo && (institucion.id_tipo == 1 || await (knex('tipos_instituciones').select().where({id: institucion.id_tipo})).first() == undefined)) {
-    throw new CustomError("There is no institution type with the provided id",404)
+    throw new CustomError("No existe un tipo de institucion con el id dado",404)
   }
 
   await queryBuilder('instituciones')
@@ -147,11 +147,11 @@ const updateInstitucion = async(id_institucion: number, institucion: any, trx: a
 
 const deleteInstitucion = async(id: number) => {
   if ((await knex('instituciones').where({id,esCyT: 0})).length == 0) {
-    throw new CustomError('There is no institution (no cyt) with the provided id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
 
   if ((await knex('participacion_instituciones').select().where({id_institucion: id})).length > 0) {
-    throw new CustomError('The institution cannot be deleted, it participates in at least one project. You must make sure that he does not participate in any project first', 409)
+    throw new CustomError('La institucion no puede ser eliminada, tiene al menos un proyecto o participa en alguno de otra institucion', 409)
   }
 
   await knex('instituciones').where({id}).del()

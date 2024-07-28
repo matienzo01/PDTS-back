@@ -61,7 +61,7 @@ const getAllEvaluadores = async () => {
 
 const getAllInstitutionUsers = async (id_institucion: number) => {
   if (await knex('instituciones_cyt').select().where({ id: id_institucion }).first() === undefined) {
-    throw new CustomError('There is no institution with the provided id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
 
   const ids = await knex('evaluadores_x_instituciones')
@@ -81,7 +81,7 @@ const getAllInstitutionUsers = async (id_institucion: number) => {
 
 const getAllInstitutionAdmins = async (id_institucion: number) => {
   if (await knex('instituciones_cyt').select().where({ id: id_institucion }).first() === undefined) {
-    throw new CustomError('There is no institution with the provided id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
 
   return {administradores: await knex('instituciones_x_admins as ixa')
@@ -99,7 +99,7 @@ const getAllInstitutionAdmins = async (id_institucion: number) => {
 const createAdmin = async(institutionId: number, newAdmin: any) => {
   const inst = (await institutuionService.getOneInstitucionCYT(institutionId)).institucion_CYT
   if(await knex('admins_cyt').select().where({dni: newAdmin.dni}).first() != undefined) {
-    throw new CustomError('There is already an admin with that DNI', 409)
+    throw new CustomError('Ya existe un administrador con ese DNI', 409)
   }
 
   await mailer.checkEmail(newAdmin.email)
@@ -123,7 +123,7 @@ const getOneUser = async (id: number, trx: any = null) => {
   const user = await queryBuilder(TABLE_EVALUADORES).select().where({ id }).first()
 
   if (!user) {
-    throw new CustomError('There is no user with the provided id', 404)
+    throw new CustomError('No existe un usuario con el id dado', 404)
   }
   const { password, ...returnedData } = user
   return { usuario: returnedData }
@@ -157,7 +157,7 @@ const getOneAdmin = async(id: number) => {
   .first()
 
   if (!user) {
-    throw new CustomError('There is no user with the provided id', 404)
+    throw new CustomError('No existe un usuario con el id dado', 404)
   }
   const { password, ...returnedData } = user
   return { admin: returnedData }
@@ -179,12 +179,12 @@ const createUser = async (newUser: any, institutionId: number) => {
   await institutuionService.getOneInstitucionCYT(institutionId)
 
   if(await knex('evaluadores').select().where({dni: newUser.dni}).first() != undefined) {
-    throw new CustomError('There is already a user with that DNI', 409)
+    throw new CustomError('Ya existe un usuario con ese DNI', 409)
   }
 
   try {
     await getUserByDni(newUser.dni) // debe dar un 404 para asegurarnos de que no exista previamente el usuario
-    throw new CustomError('There is already a user with that DNI', 409)
+    throw new CustomError('Ya existe un usuario con ese DNI', 409)
   } catch (error) {
     if ((error as CustomError).status !== 404) {
       throw error
@@ -211,7 +211,7 @@ const getUserByDni = async (dni: number) => {
   const user = await knex(TABLE_EVALUADORES).select().where({ dni }).first()
 
   if (!user) {
-    throw new CustomError('There is no user with the provided dni', 404)
+    throw new CustomError('No existe un usuario con ese DNI', 404)
   }
   delete user.password
   return user
@@ -237,7 +237,7 @@ const linkUserToInstitution = async (userDni: number, institutionId: number, use
   } catch (error) {
     // @ts-ignore
     if (error.code === 'ER_DUP_ENTRY') {
-      throw new CustomError('The user is already linked to the institution', 409)
+      throw new CustomError('El usuario ya esta vinculado a la institucion', 409)
     } else {
       throw error
     }
@@ -284,9 +284,8 @@ const deleteAdminCyT = async(id_institucion: number, id_admin: number) => {
   await getOneAdmin(id_admin)
 
   const cant = (await knex('instituciones_x_admins').select().where({id_institucion})).length
-  console.log(cant)
   if (cant < 2) {
-    throw new CustomError('The institution must have al least one administrator', 403)
+    throw new CustomError('La institucion debe tener al menos un administrador', 403)
   }
 
   return await knex.transaction(async (trx: any) => {
@@ -316,7 +315,7 @@ const getAllAdminsGenerales = async() => {
 const getOneAdminGeneral = async(id: number) => {
   const admin = await knex('admin').select().where({id})
   if (admin == undefined) {
-    throw new CustomError('There is not admin with the provided id', 404)
+    throw new CustomError('No existe un administrador con el id dado', 404)
   }
   return { admin_general: admin}
 }
