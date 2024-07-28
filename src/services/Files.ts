@@ -62,11 +62,7 @@ const getParticipantFileNames = async (id_proyecto: number, id_admin: number, ro
   const a: {id_evaluador: number, indicadores: any}[] = [];
   
   await Promise.all(ids.map(async (id: number) => {
-    const {indicadores} = await getFilesEvaluador(id_proyecto, id);
-    a.push({
-      id_evaluador: id,
-      indicadores: indicadores
-    });
+    a.push(await getFilesEvaluador(id_proyecto, id))
   }));
   return a
 }
@@ -86,7 +82,7 @@ const getFilesEvaluador = async (id_proyecto: number, id_usuario: number) => {
     } catch (err) {}
   }
   
-  return {indicadores: files}
+  return {id_evaluador: id_usuario, indicadores: files}
 }
 
 const getOneFile = async (fileFolder: string, fileName: string) => {

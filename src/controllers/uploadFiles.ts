@@ -19,7 +19,7 @@ export const getFileNames = async(req: Request, res: Response, next: NextFunctio
 
   try {
     if(rol == 'evaluador'){
-      res.status(200).json(await fileService.getFilesEvaluador(id_proyecto, id_usuario))
+      res.status(200).json([await fileService.getFilesEvaluador(id_proyecto, id_usuario)])
     } else {
       res.status(200).json(await fileService.getParticipantFileNames(id_proyecto, id_usuario, rol))
     }
