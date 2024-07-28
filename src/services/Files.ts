@@ -48,13 +48,13 @@ const fileExists = async (path: string): Promise<boolean> => {
   }
 };
 
-const getParticipantFileNames = async (id_proyecto: number, id_admin: number) => {
+const getParticipantFileNames = async (id_proyecto: number, id_admin: number, rol: string) => {
   const proyecto = (await projectService.getOneProject(id_proyecto)).proyecto;
   const cond = (await knex('instituciones_x_admins')
     .where({id_institucion: proyecto.id_institucion}))
     .some(p => p.id_admin == id_admin)
 
-  if(!cond) {
+  if(rol != 'admin general' && !cond) {
     throw new CustomError('El administrador no pertenece a la institucion dueña del proyecto', 403)
   }
 

@@ -21,7 +21,7 @@ export const getFileNames = async(req: Request, res: Response, next: NextFunctio
     if(rol == 'evaluador'){
       res.status(200).json(await fileService.getFilesEvaluador(id_proyecto, id_usuario))
     } else {
-      res.status(200).json(await fileService.getParticipantFileNames(id_proyecto, id_usuario))
+      res.status(200).json(await fileService.getParticipantFileNames(id_proyecto, id_usuario, rol))
     }
   } catch (error) {
     next(error)
@@ -30,7 +30,7 @@ export const getFileNames = async(req: Request, res: Response, next: NextFunctio
 
 export const getFile = async(req: Request, res: Response, next: NextFunction) => {
   const {params: {file_name, id_proyecto, id_indicador}} = req
-  const {id:id_usuario, rol, institutionId} = req.body.userData; 
+  const {id:id_usuario, rol} = req.body.userData; 
 
   try {
     utils.validateNumberParameter(id_proyecto, 'id_proyecto')
