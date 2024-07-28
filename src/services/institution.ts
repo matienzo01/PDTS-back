@@ -33,7 +33,7 @@ const verify = async(id: number) => {
 const updateRubro = async(id:number, updatedRubro: any) => {
   await verify(id)
   await knex('rubros').where({ id}).update(updatedRubro)
-  return await knex('rubros').select().where({id: id})
+  return { rubro: await knex('rubros').select().where({id: id}).first()}
 }
 
 const deleteRubro = async(id: number) => {
