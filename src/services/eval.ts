@@ -198,7 +198,7 @@ const getIDsEvaluadores = async(id_proyecto: number) => {
   return arrayIds
 }
 
-const verifyProject = async(id_proyecto: number, entidad: boolean, id_usuario: number | null = null) => {
+const verifyProject = async(id_proyecto: number, id_instancia: number, id_usuario: number | null = null) => {
   let proyecto
   if(id_usuario != null) {
     const id  = await insttitutionCYTService.getInstIdFromAdmin(id_usuario)
@@ -207,8 +207,8 @@ const verifyProject = async(id_proyecto: number, entidad: boolean, id_usuario: n
     proyecto = (await projectService.getOneProject(id_proyecto)).proyecto
   }
 
-  if(!entidad && !proyecto.obligatoriedad_proposito){
-    throw new CustomError('La instancia de proposito no debe ser evaluada en este proyecto', 204)
+  if(id_instancia == 2 && !proyecto.obligatoriedad_proposito){
+    throw new CustomError('La instancia de proposito no debe ser evaluada en este proyecto', 409)
   }
 
   return proyecto
@@ -226,15 +226,14 @@ const getProposito = async(id_proyecto: number, id_usuario: number, rol: string)
 const get = async(id_proyecto: number, id_usuario: number, rol: string, instancia: string) => {
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: instancia}).first()
 
-  if (rol === 'admin') { // es el admin, por lo que recibe las respuestas de todos los participantes
-    await verifyProject(id_proyecto, false, id_usuario)
+  if (rol === 'admin') { 
+    await verifyProject(id_proyecto, id_instancia, id_usuario)
     const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto)
     const idsEvaluadores = (await getIDsEvaluadores(id_proyecto)).filter(element => ! idsNoRespondieron.includes(element))
     return await getInstancia(id_instancia, instancia, rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
   } else {
-    const proyecto = await verifyProject(id_proyecto, false)
+    const proyecto = await verifyProject(id_proyecto, id_instancia)
     await projectService.verify_date(id_proyecto, id_usuario)
-    //check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
     let rtas = await getInstanciaRtas(id_instancia, id_proyecto, [id_usuario], rol)
     if (id_usuario != proyecto.id_director && proyecto.id_estado_eval > 2){
       rtas = [...rtas, ...(await getInstanciaRtas(id_instancia, id_proyecto, [proyecto.id_director], 'evaluador'))]
@@ -267,7 +266,14 @@ const saveForm = async(id_proyecto: number, id_usuario: number, respuestas: any)
   await canAnswer(id_proyecto, id_usuario, proyecto, await validateAnswers(respuestas))
   await postRtas(proyecto, id_usuario, respuestas)
 
-  return await getBothInstances(id_proyecto, id_usuario, 'evaluador')
+  //console.log(proyecto)
+
+  if (proyecto.obligatoriedad_proposito == 1) {
+    return await getBothInstances(id_proyecto, id_usuario, 'evaluador')
+  } else {
+    return { "Instancias": [(await getEntidad(id_proyecto, id_usuario, 'evaluador')).Instancia]}
+  }
+  
 }
 
 const validateAnswers = async(respuestas: any) => {
@@ -316,9 +322,9 @@ const postRtas = async(proyecto: Proyecto, id_usuario: number, raw_respuestas: a
 }
 
 const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: string) => {
-
+  let proyecto: any
   if( rol == 'admin') {
-    const { proyecto } = await projectService.getOneProject(id_proyecto, await insttitutionCYTService.getInstIdFromAdmin(id_usuario))
+    ({ proyecto } = await projectService.getOneProject(id_proyecto, await insttitutionCYTService.getInstIdFromAdmin(id_usuario)))
     if(proyecto.id_estado_eval != 3){
       throw new CustomError('La evaluacion no puede ser cerrada en este momento, el director debe completarla primero', 409)
     }
@@ -340,7 +346,7 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
         .whereIn('id_evaluador', noFinalizaron)
     })
   } else {
-    const { proyecto } = await projectService.getOneProject(id_proyecto)        // existe el proyecto?
+    ({ proyecto } = await projectService.getOneProject(id_proyecto))        // existe el proyecto?
     const assigned = await projectService.verify_date(id_proyecto, id_usuario)  // el usuario esta linkeado al proyecto?
     check_director_evaluation(proyecto.id_director, id_usuario, proyecto.id_estado_eval)
     
@@ -368,28 +374,33 @@ const finalizarEvaluacion = async(id_proyecto: number, id_usuario: number, rol: 
       }
       
       throw new CustomError('El numero de respuestas no coincide con las esperadas', 400, preguntas_no_respondidas)
-    } else {
-      await knex('evaluadores_x_proyectos')
+    } 
+
+    await knex('evaluadores_x_proyectos')
         .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
         .update({ fecha_fin_eval: getFecha() });
 
-      if (proyecto.id_director === id_usuario) { 
+    if (proyecto.id_director === id_usuario) { 
         const { institucion_CYT: inst} = await institutionCYT.getOneInstitucionCYT(proyecto.id_institucion)
         const participantes = proyecto.participantes.filter((participante: any) => participante.rol !== 'director');
         const users = await knex('evaluadores').whereIn('id', participantes.map((participante: any) => participante.id));
         users.forEach(user => mailer.ReadyToEvaluate(proyecto.titulo, user, inst));
         await knex('proyectos').where({ id: proyecto.id }).update({ id_estado_eval: 3 });
-      } 
+    } 
 
-      const admins = await knex('instituciones_x_admins as ixa')
+    const admins = await knex('instituciones_x_admins as ixa')
         .join('admins_cyt as a', 'a.id', 'ixa.id_admin')
         .where('ixa.id_institucion', proyecto.id_institucion)
-      admins.forEach( async(admin) => {
+    admins.forEach( async(admin) => {
         await mailer.finalizacionEval(admin, proyecto, await user.getOneUser(id_usuario))
-      })
-    }
+    })
   }
-  return await getBothInstances(id_proyecto, id_usuario, rol)
+
+  if (proyecto.obligatoriedad_proposito == 1) {
+    return await getBothInstances(id_proyecto, id_usuario, rol)
+  } else {
+    return { "Instancias": [(await getEntidad(id_proyecto, id_usuario, rol)).Instancia]}
+  }
 }
 
 const getResumen = async( rol: string, id_proyecto: number, id_institucion: number | null = null) => {

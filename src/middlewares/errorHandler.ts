@@ -19,6 +19,7 @@ const errorHandler = async(err: CustomError, req: Request, res: Response, next: 
 
   const statusCode = err.status || 500;
   const questions = (err as CustomError).questions || undefined
+  console.log(err.message)
   res.status(statusCode).json({ error: err.message, questions: questions });
 };
 

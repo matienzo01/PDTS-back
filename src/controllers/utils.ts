@@ -18,9 +18,12 @@ const validateProject = (proyecto: any) => {
     !proyecto.hasOwnProperty("demanda") ||
     !proyecto.hasOwnProperty('obligatoriedad_proposito') ||
     !proyecto.hasOwnProperty('obligatoriedad_opinion') ||
-    !proyecto.hasOwnProperty('id_modelo_encuesta') ||
     !proyecto.hasOwnProperty("roles")) {
       throw new CustomError('Faltan atributos en el proyecto', 400)
+  }
+
+  if(proyecto.obligatoriedad_opinion == 1 && !proyecto.hasOwnProperty("id_modelo_encuesta")) {
+    throw new CustomError('Falta seleccionar un modelo de encuesta', 400)
   }
 }
 

@@ -179,7 +179,7 @@ const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) 
   
     if(!proyecto.obligatoriedad_opinion){
         // el mensaje este no va a aparecer, pero lo pono igual
-        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 204)
+        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 409)
     }
 
     if(rol === 'admin general'){
@@ -197,14 +197,13 @@ const canAnswer = async(id_proyecto: number, id_evaluador: number) => {
     const { proyecto} = await projectService.getOneProject(id_proyecto)
 
     if(!proyecto.obligatoriedad_opinion){
-        // el mensaje este no va a aparecer, pero lo pongo igual
-        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 204)
+        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 409)
     }
 
     const assigned = await projectService.verify_date(id_proyecto, id_evaluador)
 
     if(assigned.fecha_fin_eval == null){
-        throw new CustomError('Debes completar la evaluacion del proyecto', 409)
+        throw new CustomError('Debes completar la evaluacion del proyecto primero', 409)
     }
 
     if(assigned.fecha_fin_op != null){
@@ -412,16 +411,21 @@ const getPromediosGlobal = async (): Promise<any> => {
   
 const getPromediosInstitucion = async (id_institucion: number): Promise<any> => {
     const { proyectos } = await project.getAllInstitutionProjects(id_institucion);
-    const ids = proyectos.map(proyecto => proyecto.id);
-  
+    const ids = proyectos
+        .filter(proyecto => proyecto.obligatoriedad_opinion == 1)
+        .map(proyecto => proyecto.id);
+
     const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': ids });
     const cantidad = await obtenerCantidad({ 'evaluadores_x_proyectos.id_proyecto': ids });
     return getEncuestaPromedios(responses, cantidad);
 };
   
 const getPromediosProyecto = async (id_institucion: number, id_proyecto: number): Promise<any> => {
-    await project.getOneProject(id_proyecto, id_institucion);
-  
+    const {proyecto} =await project.getOneProject(id_proyecto, id_institucion);
+    if(!proyecto.obligatoriedad_opinion){
+        throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 409)
+    }
+
     const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': id_proyecto });
     const cantidad = await obtenerCantidad({ id_proyecto });
     return getEncuestaPromedios(responses, cantidad);
