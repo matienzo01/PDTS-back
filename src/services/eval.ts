@@ -266,8 +266,6 @@ const saveForm = async(id_proyecto: number, id_usuario: number, respuestas: any)
   await canAnswer(id_proyecto, id_usuario, proyecto, await validateAnswers(respuestas))
   await postRtas(proyecto, id_usuario, respuestas)
 
-  //console.log(proyecto)
-
   if (proyecto.obligatoriedad_proposito == 1) {
     return await getBothInstances(id_proyecto, id_usuario, 'evaluador')
   } else {
