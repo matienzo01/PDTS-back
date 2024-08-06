@@ -226,8 +226,10 @@ const getProposito = async(id_proyecto: number, id_usuario: number, rol: string)
 const get = async(id_proyecto: number, id_usuario: number, rol: string, instancia: string) => {
   const { id: id_instancia } = await knex('instancias').select('id').where({nombre: instancia}).first()
 
-  if (rol === 'admin') { 
-    await verifyProject(id_proyecto, id_instancia, id_usuario)
+  if (rol === 'admin' || rol == 'admin general') { 
+    if (rol == 'admin') {
+      await verifyProject(id_proyecto, id_instancia, id_usuario)
+    }
     const idsNoRespondieron = await getIDsNoRespondieron(id_proyecto)
     const idsEvaluadores = (await getIDsEvaluadores(id_proyecto)).filter(element => ! idsNoRespondieron.includes(element))
     return await getInstancia(id_instancia, instancia, rol, await getInstanciaRtas(id_instancia, id_proyecto, idsEvaluadores, rol), idsNoRespondieron)
