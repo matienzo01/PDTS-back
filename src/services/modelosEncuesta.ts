@@ -2,18 +2,35 @@ import knex from'../database/knex'
 import { CustomError } from '../types/CustomError';
 
 const getAllOptions = async() => {
-
+    return { options: await knex('opciones').select()}
 }
 
-const createOption = async() => {
-
+const createOption = async(option: any) => {
+    const op = await knex('opciones').select().where({valor: option.valor}).first()
+    return op == undefined ? await knex('opciones').insert({valor: option.valor}) : op.id
 }
 
 const getAllModelos = async() => {
+    const modelos = await knex('modelos_encuesta').select()
 
+    for (const modelo of modelos) {
+        const ids = await knex('modelos_x_secciones')
+            .select('id_seccion as id')
+            .where({ id_modelo: modelo.id });
+    
+        modelo.secciones = await Promise.all(ids.map(async ({ id }) => {
+            const { section } = await getOneSeccion(id);
+            return section;
+        }));
+    }
+
+    return {modelos: modelos}
 }
 
 const createModelo = async() => {
+    
+
+
 
 }
 
@@ -123,24 +140,58 @@ const getOneSeccion = async(id_seccion: number | string) => {
 }
 
 const createSeccion = async(seccion: any) => {
-    try {
-        const id_seccion = (await knex('secciones').insert({nombre: seccion.nombre}))[0]
-
-        await Promise.all(seccion.questions.map(async (question: any) => {
-            createPregunta(id_seccion, question)
-        }))
-
-        return await getOneSeccion(id_seccion)
-    } catch(error) {
-
+    if( await knex('secciones').select().where({nombre: seccion.nombre}).first()) {
+        throw new CustomError('Ya existe un modelo de encuesta con el mismo nombre', 404)
     }
+ 
+    const id_seccion = (await knex('secciones').insert({nombre: seccion.nombre}))[0]
+
+    await Promise.all(seccion.questions.map(async (question: any) => {
+        await createPregunta(id_seccion, question)
+    }))
+
+    return await getOneSeccion(id_seccion)
 }
 
-const deleteSeccion = async() => {
-    
+const deleteSeccion = async(id_seccion: number) => {
+    if( (await knex('secciones').select().where({id: id_seccion}).first()) == undefined) {
+        throw new CustomError('No existe una seccion con el id dado', 404)
+    }
+
+    const modelos = await knex('modelos_x_secciones as ms')
+        .select('me.editable')
+        .join('modelos_encuesta as me', 'me.id', 'ms.id_modelo')
+        .where('ms.id_seccion', id_seccion)
+
+    if (modelos.length > 0 && !modelos.every(item => item.editable === 1)) {
+        throw new CustomError('La sección no puede ser eliminada ya que pertenece a un modelo de encuesta que ya no es editable', 409);
+    }
+
+    await knex.transaction(async (trx) => {
+        const ids = (await trx('preguntas_seccion as p')
+            .select('p.id')
+            .leftJoin('relacion_subpregunta as rsp', 'p.id', 'rsp.id_pregunta_padre')
+            .leftJoin('preguntas_seccion as sp', 'rsp.id_subpregunta', 'sp.id')
+            .where('p.id_seccion', id_seccion)
+            .union(function() {
+                this.select('sp.id')
+                    .from('preguntas_seccion as p')
+                    .leftJoin('relacion_subpregunta as rsp', 'p.id', 'rsp.id_pregunta_padre')
+                    .leftJoin('preguntas_seccion as sp', 'rsp.id_subpregunta', 'sp.id')
+                    .where('p.id_seccion', id_seccion);
+            })).map( obj => obj.id)
+
+        await trx('modelos_x_secciones').delete().where({ id_seccion });
+        await trx('opciones_x_preguntas').delete().whereIn('id_preguntas_seccion', ids);
+        await trx('relacion_subpregunta').delete().whereIn('id_pregunta_padre', ids);
+        await trx('preguntas_seccion').delete().whereIn('id', ids);
+        await trx('secciones').delete().where({ id: id_seccion });
+    });
+
+    return await getAllSecciones(); 
 }
 
-const createPregunta = async(id_seccion: number | null, question: any, subpregunta: boolean = false) => {
+const createPregunta = async(id_seccion: number | null, question: any) => {
     try {
         const questionId = (await knex('preguntas_seccion')
             .insert({
@@ -152,7 +203,7 @@ const createPregunta = async(id_seccion: number | null, question: any, subpregun
         
         if (question.typeId == 1) {//multiple choice
             question.options.map( async (option: any) => {
-                const optId = option.id ? option.id : await knex('opciones').insert({valor: option.valor})
+                const optId = option.id ? option.id : await createOption(option)
                 await knex('opciones_x_preguntas')
                     .insert({
                         id_opcion: optId, 
@@ -163,10 +214,9 @@ const createPregunta = async(id_seccion: number | null, question: any, subpregun
 
         // si es tipo 3 y requiere completar el campo de texto => hay que agregar una subpregunta de texto
 
-        
         if(question.subQuestions) {
             await Promise.all(question.subQuestions.map(async ( subq: any) => {
-                const subqId = await createPregunta(null, subq, true)
+                const subqId = await createPregunta(null, subq)
                 await knex('relacion_subpregunta').insert({
                     id_pregunta_padre: questionId, 
                     id_subpregunta: subqId
@@ -181,6 +231,7 @@ const createPregunta = async(id_seccion: number | null, question: any, subpregun
 }
 
 export default {
+    getAllOptions,
     getAllModelos,
     getOneModelo,
     createModelo,

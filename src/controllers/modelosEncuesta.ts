@@ -2,6 +2,22 @@ import service from '../services/modelosEncuesta';
 import { Request, Response, NextFunction  } from 'express';
 import utils from './utils';
 
+const getAllOptions = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).json(await service.getAllOptions())
+    } catch(error) {
+        next(error)
+    }
+}
+
+const getAllModelos = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).json(await service.getAllModelos())
+    } catch(error) {
+        next(error)
+    }
+}
+
 const getOneModelo = async(req: Request, res: Response, next: NextFunction) => {
     const { params: {id_modelo} } = req
 
@@ -42,9 +58,23 @@ const createSeccion = async(req: Request, res: Response, next: NextFunction) => 
     }
 }
 
+const deleteSeccion = async(req: Request, res: Response, next: NextFunction) => {
+    const { params: {id_seccion} } = req
+
+    try {
+        utils.validateNumberParameter(id_seccion, 'id_seccion')
+        res.status(200).json(await service.deleteSeccion(parseInt(id_seccion)))
+    } catch(error) {
+        next(error)
+    }
+}
+
 export default {
+    getAllOptions,
+    getAllModelos,
     getOneModelo,
     getOneSeccion,
     createSeccion,
-    getAllSecciones
+    getAllSecciones,
+    deleteSeccion
   }
