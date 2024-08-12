@@ -6,8 +6,8 @@
 INSERT INTO admin(email,password) VALUES
     ('admin@mail.com','$2b$10$5vTC7fW7I9FBzYnWySB5.OAv56ifhP0kUqei5Ni7XexVO.GGQgXYq');
 
-INSERT INTO modelos_encuesta(nombre) VALUES
-    ('Modelo de encuesta 1');
+INSERT INTO modelos_encuesta(nombre, editable) VALUES
+    ('Modelo de encuesta 1', false);
 
 INSERT INTO secciones(nombre) VALUES
 	('Sistema de evaluación'),				-- id 1
