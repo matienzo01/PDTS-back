@@ -27,13 +27,6 @@ const getAllModelos = async() => {
     return {modelos: modelos}
 }
 
-const createModelo = async() => {
-    
-
-
-
-}
-
 const getOneModelo = async(id_modelo: number) => {
     const modelo = await knex('modelos_encuesta').select().where({id: id_modelo}).first()
     
@@ -58,12 +51,82 @@ const getOneModelo = async(id_modelo: number) => {
     }
 }
 
-const updateModelo = async() => {
-
+const checkSecciones = async(secciones: number[]) => {
+    const seccionesExitentes = (await knex('secciones').select('id').whereIn('id', secciones)).map(seccion => seccion.id)
+    
+    const noExistentes = secciones.filter((seccion: number) => !seccionesExitentes.includes(seccion))
+    if(noExistentes.length > 0) {
+        throw new CustomError(`Algunos de los ids de secciones dados dentro del modelo no existen en el sistema. ids: [${noExistentes}]`, 404)
+    }
 }
 
-const deleteModelo = async() => {
+const createModelo = async(modelo: any) => {
+    if(await knex('modelos_encuesta').select().where('nombre', modelo.nombre).first()) {
+        throw new CustomError('Ya existe un modelo con el mismo nombre', 409)
+    }
 
+    await checkSecciones(modelo.secciones)
+
+    const modeloId = (await knex('modelos_encuesta').insert({nombre: modelo.nombre}))[0]
+    for (const seccionId of modelo.secciones) {
+        await knex('modelos_x_secciones').insert({id_seccion: seccionId, id_modelo: modeloId})
+    }
+    return await getOneModelo(modeloId)
+}
+
+const updateModelo = async(id_modelo: number, updatedModelo: any) => {
+    const modelo = await knex('modelos_encuesta').select().where({id: id_modelo}).first()
+    
+    if(!modelo) {
+        throw new CustomError('No existe un modelo con el id dado', 404)
+    }
+
+    if(!modelo.editable){
+        throw new CustomError('El modelo ya no es editable', 409)
+    }
+
+    if(modelo.nombre != updatedModelo.nombre) {
+        await knex('modelos_encuesta').update({nombre: updatedModelo.nombre})
+    }
+
+    await checkSecciones(updatedModelo.secciones)
+    
+    const currentSecciones = await knex('modelos_x_secciones')
+        .where({ id_modelo })
+        .pluck('id_seccion');
+    
+    const seccionesToRemove = currentSecciones.filter(seccion => !updatedModelo.secciones.includes(seccion));
+    const seccionesToAdd = updatedModelo.secciones.filter((seccion: any) => !currentSecciones.includes(seccion));
+
+    if (seccionesToRemove.length > 0) {
+        await knex('modelos_x_secciones')
+            .where({ id_modelo })
+            .whereIn('id_seccion', seccionesToRemove)
+            .delete();
+    }
+
+    if (seccionesToAdd.length > 0) {
+        const inserts = seccionesToAdd.map((id_seccion: number) => ({ id_seccion, id_modelo }));
+        await knex('modelos_x_secciones').insert(inserts);
+    }
+    console.log(id_modelo)
+    return await getOneModelo(id_modelo)
+}
+
+const finalizarModelo = async(id_modelo: number) => {
+    const modelo = await knex('modelos_encuesta').select().where({id: id_modelo}).first()
+    
+    if(!modelo) {
+        throw new CustomError('No existe un modelo con el id dado', 404)
+    }
+
+    if(!modelo.editable){
+        throw new CustomError('El modelo ya fue finalizado', 409)
+    }
+
+    await knex('modelos_encuesta').update({editable: false}).where({id : id_modelo})
+
+    return await getOneModelo(id_modelo)
 }
 
 const setOptions = (pregunta: any, opciones: any, opciones_preguntas: any) => {
@@ -141,7 +204,7 @@ const getOneSeccion = async(id_seccion: number | string) => {
 
 const createSeccion = async(seccion: any) => {
     if( await knex('secciones').select().where({nombre: seccion.nombre}).first()) {
-        throw new CustomError('Ya existe un modelo de encuesta con el mismo nombre', 404)
+        throw new CustomError('Ya existe un modelo de encuesta con el mismo nombre', 409)
     }
  
     const id_seccion = (await knex('secciones').insert({nombre: seccion.nombre}))[0]
@@ -235,8 +298,9 @@ export default {
     getAllModelos,
     getOneModelo,
     createModelo,
-    deleteModelo,
     updateModelo,
+    finalizarModelo,
+    
     createSeccion,
     getAllSecciones,
     getOneSeccion,

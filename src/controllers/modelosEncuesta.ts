@@ -10,6 +10,39 @@ const getAllOptions = async(req: Request, res: Response, next: NextFunction) => 
     }
 }
 
+const createModelo = async(req: Request, res: Response, next: NextFunction) => {
+    const { modelo } = req.body
+
+    try {
+        res.status(200).json(await service.createModelo(modelo))
+    } catch(error) {
+        next(error)
+    }
+}
+
+const updateModelo = async(req: Request, res: Response, next: NextFunction) => {
+    const { modelo } = req.body
+    const { params: {id_modelo} } = req
+
+    try {
+        utils.validateNumberParameter(id_modelo, 'id_modelo')
+        res.status(200).json(await service.updateModelo(parseInt(id_modelo), modelo))
+    } catch(error) {
+        next(error)
+    }
+}
+
+const finalizarModelo = async(req: Request, res: Response, next: NextFunction) => {
+    const { params: {id_modelo} } = req
+
+    try {
+        utils.validateNumberParameter(id_modelo, 'id_modelo')
+        res.status(200).json(await service.finalizarModelo(parseInt(id_modelo)))
+    } catch(error) {
+        next(error)
+    }
+}
+
 const getAllModelos = async(req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).json(await service.getAllModelos())
@@ -71,8 +104,13 @@ const deleteSeccion = async(req: Request, res: Response, next: NextFunction) => 
 
 export default {
     getAllOptions,
+
+    createModelo,
+    updateModelo,
     getAllModelos,
     getOneModelo,
+    finalizarModelo,
+
     getOneSeccion,
     createSeccion,
     getAllSecciones,
