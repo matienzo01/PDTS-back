@@ -82,10 +82,10 @@ const getOneSeccion = async(req: Request, res: Response, next: NextFunction) => 
 }
 
 const createSeccion = async(req: Request, res: Response, next: NextFunction) => {
-    const { seccion } = req.body
+    const { section } = req.body
 
     try {
-        res.status(200).json(await service.createSeccion(seccion))
+        res.status(200).json(await service.createSeccion(section))
     } catch(error) {
         next(error)
     }

@@ -361,10 +361,9 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
         throw new CustomError('El numero de respuestas no coincide con el esperado', 400)
     }
     
-    /*
     await knex('evaluadores_x_proyectos')
         .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
-        .update({ fecha_fin_op: getFecha() })*/
+        .update({ fecha_fin_op: getFecha() })
 
     return await getEncuesta(id_proyecto, id_usuario, 'evaluador')
 }

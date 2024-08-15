@@ -59,7 +59,6 @@ const checkSecciones = async(secciones: number[]) => {
         throw new CustomError(`Algunos de los ids de secciones dados dentro del modelo no existen en el sistema. ids: [${noExistentes}]`, 404)
     }
 }
-
 const createModelo = async(modelo: any) => {
     if(await knex('modelos_encuesta').select().where('nombre', modelo.nombre).first()) {
         throw new CustomError('Ya existe un modelo con el mismo nombre', 409)
@@ -68,9 +67,11 @@ const createModelo = async(modelo: any) => {
     await checkSecciones(modelo.secciones)
 
     const modeloId = (await knex('modelos_encuesta').insert({nombre: modelo.nombre}))[0]
+    
     for (const seccionId of modelo.secciones) {
         await knex('modelos_x_secciones').insert({id_seccion: seccionId, id_modelo: modeloId})
     }
+
     return await getOneModelo(modeloId)
 }
 
@@ -109,7 +110,6 @@ const updateModelo = async(id_modelo: number, updatedModelo: any) => {
         const inserts = seccionesToAdd.map((id_seccion: number) => ({ id_seccion, id_modelo }));
         await knex('modelos_x_secciones').insert(inserts);
     }
-    console.log(id_modelo)
     return await getOneModelo(id_modelo)
 }
 
@@ -203,11 +203,11 @@ const getOneSeccion = async(id_seccion: number | string) => {
 }
 
 const createSeccion = async(seccion: any) => {
-    if( await knex('secciones').select().where({nombre: seccion.nombre}).first()) {
+    if( await knex('secciones').select().where({nombre: seccion.name}).first()) {
         throw new CustomError('Ya existe un modelo de encuesta con el mismo nombre', 409)
     }
  
-    const id_seccion = (await knex('secciones').insert({nombre: seccion.nombre}))[0]
+    const id_seccion = (await knex('secciones').insert({nombre: seccion.name}))[0]
 
     await Promise.all(seccion.questions.map(async (question: any) => {
         await createPregunta(id_seccion, question)
