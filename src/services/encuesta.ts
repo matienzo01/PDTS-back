@@ -30,6 +30,30 @@ const getFecha = () => {
     return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 }
 
+const getIdsPreguntasModelo = async(id_modelo: number) => {
+
+    if (!await knex('modelos_encuesta').select().where({id: id_modelo})){
+        throw new CustomError('El id del modelo no corresponde con ningun modelo de encuesta existente', 404)
+    }
+    
+    const ids = (await knex('preguntas_seccion as ps')
+        .join('modelos_x_secciones as ms', 'ms.id_seccion', 'ps.id_seccion')
+        .where('ms.id_modelo', id_modelo)
+        .select('ps.id', 'ps.pregunta', 'ps.id_seccion', 'ps.id_tipo_pregunta')
+        .union(function() {
+            this.select('ps.id', 'ps.pregunta', 'ps.id_seccion', 'ps.id_tipo_pregunta')
+            .from('preguntas_seccion as ps')
+            .join('relacion_subpregunta as rs', 'rs.id_subpregunta', 'ps.id')
+            .whereIn('rs.id_pregunta_padre', knex('preguntas_seccion as ps')
+                .join('modelos_x_secciones as ms', 'ms.id_seccion', 'ps.id_seccion')
+                .where('ms.id_modelo', id_modelo)
+                .select('ps.id')
+            );
+        })).map( p => p.id)
+    
+    return ids
+}
+
 const generateEncuesta = async(proyecto: any, rol: string, respuestas: any[] | null = null, idsNoRespondieron: number[] | null = null) => {
     const [tipos_preguntas, opciones, all_preguntas, opciones_x_preguntas, rel_subpreg, modelo] = await Promise.all([
         knex('tipo_preguntas').select(),
@@ -42,6 +66,7 @@ const generateEncuesta = async(proyecto: any, rol: string, respuestas: any[] | n
           'preguntas_seccion.id_tipo_pregunta'
         )
           .from('preguntas_seccion')
+          .whereIn('preguntas_seccion.id', await getIdsPreguntasModelo(proyecto.id_modelo_encuesta))
           .leftJoin('secciones', 'preguntas_seccion.id_seccion', 'secciones.id'),
         knex('opciones_x_preguntas').select(),
         knex('relacion_subpregunta').select(),
@@ -178,7 +203,6 @@ const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) 
     const { proyecto } = await projectService.getOneProject(id_proyecto)
   
     if(!proyecto.obligatoriedad_opinion){
-        // el mensaje este no va a aparecer, pero lo pono igual
         throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 409)
     }
 
@@ -209,6 +233,8 @@ const canAnswer = async(id_proyecto: number, id_evaluador: number) => {
     if(assigned.fecha_fin_op != null){
         throw new CustomError('Ya completaste la encuesta del sistema', 409)
     }
+
+    return proyecto
 }
 
 const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespuestas: {id_indicador: number; answer: string}[]) =>{
@@ -264,11 +290,14 @@ const postEncuesta = async(id_proyecto: number, id_evaluador: number, rawRespues
 }
 
 const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
-    await canAnswer(id_proyecto, id_usuario)
-    
+    const {id_modelo_encuesta} = await canAnswer(id_proyecto, id_usuario)
+
+    await getIdsPreguntasModelo(id_modelo_encuesta)
+
     const [rawPreguntas, respuestas, relacion] = await Promise.all([
-        knex('preguntas_seccion')
-            .where('id_tipo_pregunta','<>','4'),
+        (await knex('preguntas_seccion as ps')
+            .select('ps.id', 'ps.pregunta', 'ps.id_seccion', 'ps.id_tipo_pregunta')
+            .whereIn('ps.id', await getIdsPreguntasModelo(id_modelo_encuesta))).filter( p => p.id_tipo_pregunta != 4),
         knex('respuestas_encuesta')
             .where({id_evaluador: id_usuario})
             .where({id_proyecto})
@@ -280,40 +309,62 @@ const finallizarEncuesta = async(id_proyecto: number, id_usuario: number) => {
         throw new CustomError('Internal server Error', 500)
     }
 
-    const CUAL = rawPreguntas.filter(item => item.pregunta === '¿Cual?');
-    const respuestasCUAL = respuestas.filter(rta => CUAL.map(p => p.id).includes(rta.id_pregunta))
-    const SINO = relacion.filter(item => CUAL.map(p => p.id).includes(item.id_subpregunta))
-    const respuestasSINO = respuestas.filter(rta => SINO.map(p => p.id_pregunta_padre).includes(rta.id_pregunta))
-    
     if(respuestas.length == 0) {
         throw new CustomError('El numero de respuestas no coincide con el esperado', 400)
     }
 
-    let contador = 0
-    SINO.forEach( p => {
-        const rtaSINO = respuestasSINO.find(q => q.id_pregunta == p.id_pregunta_padre)
-        const rtaCUAL = respuestasCUAL.find(q => q.id_pregunta == p.id_subpregunta)
+    const subpreguntasTipo2 = rawPreguntas.filter(pregunta => pregunta.id_tipo_pregunta === 2);
+    const preguntasPadreTipo3 = rawPreguntas.filter(pregunta => pregunta.id_tipo_pregunta === 3);
+    const preguntasRelacionadas: {id_padre: number, id_subpregunta: number}[] = [];
 
-        if (rtaSINO.respuesta == 'si' && rtaCUAL == undefined) {
+    subpreguntasTipo2.forEach(subpregunta => {
+        const relacionPadre = relacion.find(rel => rel.id_subpregunta === subpregunta.id);
+        if (relacionPadre) {
+            const preguntaPadre = preguntasPadreTipo3.find(padre => padre.id === relacionPadre.id_pregunta_padre);
+            if (preguntaPadre) {
+                preguntasRelacionadas.push({
+                    id_padre: preguntaPadre.id,
+                    id_subpregunta: subpregunta.id
+                });
+            }
+        }
+    });
+
+    let contador = 0
+    preguntasRelacionadas.forEach( r => {
+        const rtaPadre = respuestas.find(rta => rta.id_pregunta == r.id_padre)
+        const rtaHija = respuestas.find(rta => rta.id_pregunta == r.id_subpregunta)
+
+        if(rtaPadre == undefined) {
             const question = {
-                id: p.id_subpregunta,
-                pregunta: CUAL.find(c => c.id == p.id_subpregunta).pregunta
+                id: r.id_padre,
+                pregunta: rawPreguntas.find(p => p.id == r.id_padre).pregunta
             }
             throw new CustomError('El numero de respuestas no coincide con el esperado', 400, [question])
         }
-        
-        if (rtaSINO.respuesta == 'no' && rtaCUAL == undefined) {
+
+        if (rtaPadre.respuesta == 'si' && rtaHija == undefined) {
+            const question = {
+                id: r.id_subpregunta,
+                pregunta: rawPreguntas.find(p => p.id == r.id_subpregunta).pregunta
+            }
+            throw new CustomError('El numero de respuestas no coincide con el esperado', 400, [question])
+        }
+
+        if (rtaPadre.respuesta == 'no' && rtaHija == undefined) {
             contador++
         }
-    })
 
+    })
+    
     if(respuestas.length + contador !== rawPreguntas.length){
         throw new CustomError('El numero de respuestas no coincide con el esperado', 400)
     }
-
+    
+    /*
     await knex('evaluadores_x_proyectos')
         .where({ id_proyecto: id_proyecto, id_evaluador: id_usuario })
-        .update({ fecha_fin_op: getFecha() })
+        .update({ fecha_fin_op: getFecha() })*/
 
     return await getEncuesta(id_proyecto, id_usuario, 'evaluador')
 }
