@@ -59,57 +59,44 @@ const checkSecciones = async(secciones: number[]) => {
         throw new CustomError(`Algunos de los ids de secciones dados dentro del modelo no existen en el sistema. ids: [${noExistentes}]`, 404)
     }
 }
-const createModelo = async(modelo: any) => {
-    if(await knex('modelos_encuesta').select().where('nombre', modelo.nombre).first()) {
-        throw new CustomError('Ya existe un modelo con el mismo nombre', 409)
-    }
 
-    await checkSecciones(modelo.secciones)
-
-    const modeloId = (await knex('modelos_encuesta').insert({nombre: modelo.nombre}))[0]
+const postModelo = async(newModelo: any) => {
+    let id_modelo: number
+    let inserts: {id_seccion: number, id_modelo: number}[] = []
+    const modelo = await knex('modelos_encuesta').select().where('nombre', newModelo.nombre).first()
+    await checkSecciones(newModelo.secciones)
     
-    for (const seccionId of modelo.secciones) {
-        await knex('modelos_x_secciones').insert({id_seccion: seccionId, id_modelo: modeloId})
-    }
+    if(modelo) { //modelo existente
+        if(!modelo.editable){
+            throw new CustomError('El modelo ya no es editable', 409)
+        }
 
-    return await getOneModelo(modeloId)
-}
+        id_modelo = modelo.id
 
-const updateModelo = async(id_modelo: number, updatedModelo: any) => {
-    const modelo = await knex('modelos_encuesta').select().where({id: id_modelo}).first()
-    
-    if(!modelo) {
-        throw new CustomError('No existe un modelo con el id dado', 404)
-    }
-
-    if(!modelo.editable){
-        throw new CustomError('El modelo ya no es editable', 409)
-    }
-
-    if(modelo.nombre != updatedModelo.nombre) {
-        await knex('modelos_encuesta').update({nombre: updatedModelo.nombre})
-    }
-
-    await checkSecciones(updatedModelo.secciones)
-    
-    const currentSecciones = await knex('modelos_x_secciones')
-        .where({ id_modelo })
-        .pluck('id_seccion');
-    
-    const seccionesToRemove = currentSecciones.filter(seccion => !updatedModelo.secciones.includes(seccion));
-    const seccionesToAdd = updatedModelo.secciones.filter((seccion: any) => !currentSecciones.includes(seccion));
-
-    if (seccionesToRemove.length > 0) {
-        await knex('modelos_x_secciones')
+        const currentSecciones = await knex('modelos_x_secciones')
             .where({ id_modelo })
-            .whereIn('id_seccion', seccionesToRemove)
-            .delete();
+            .pluck('id_seccion');
+        
+        const seccionesToRemove = currentSecciones.filter(seccion => !newModelo.secciones.includes(seccion));
+        const seccionesToAdd = newModelo.secciones.filter((seccion: any) => !currentSecciones.includes(seccion));
+
+        if (seccionesToRemove.length > 0) {
+            await knex('modelos_x_secciones')
+                .where({ id_modelo })
+                .whereIn('id_seccion', seccionesToRemove)
+                .delete();
+        }
+
+        if (seccionesToAdd.length > 0) {
+            inserts = seccionesToAdd.map((id_seccion: number) => ({ id_seccion, id_modelo }));
+        }
+        
+    } else { //modelo nuevo
+        id_modelo = (await knex('modelos_encuesta').insert({nombre: newModelo.nombre}))[0]
+        inserts = newModelo.secciones.map((id_seccion: number) => ({ id_seccion, id_modelo }));
     }
 
-    if (seccionesToAdd.length > 0) {
-        const inserts = seccionesToAdd.map((id_seccion: number) => ({ id_seccion, id_modelo }));
-        await knex('modelos_x_secciones').insert(inserts);
-    }
+    await knex('modelos_x_secciones').insert(inserts);
     return await getOneModelo(id_modelo)
 }
 
@@ -297,8 +284,7 @@ export default {
     getAllOptions,
     getAllModelos,
     getOneModelo,
-    createModelo,
-    updateModelo,
+    postModelo,
     finalizarModelo,
     
     createSeccion,

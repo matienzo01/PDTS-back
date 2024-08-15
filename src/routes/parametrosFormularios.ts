@@ -7,9 +7,8 @@ import modelosEncuesta from '../controllers/modelosEncuesta'
 router
     .get('/opciones_encuesta', authUser, checkRol(['admin general']), modelosEncuesta.getAllOptions)
 
-    .post('/modelos', authUser, checkRol(['admin general']), modelosEncuesta.createModelo)
+    .post('/modelos', authUser, checkRol(['admin general']), modelosEncuesta.postModelo)
     .get('/modelos', authUser, checkRol(['admin general']), modelosEncuesta.getAllModelos)
-    .put('/modelos/:id_modelo', authUser, checkRol(['admin general']), modelosEncuesta.updateModelo)
     .put('/modelos/:id_modelo/finalizar', authUser, checkRol(['admin general']), modelosEncuesta.finalizarModelo)
     .get('/modelos/:id_modelo', authUser, checkRol(['admin general']), modelosEncuesta.getOneModelo)
 

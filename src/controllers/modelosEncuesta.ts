@@ -10,23 +10,11 @@ const getAllOptions = async(req: Request, res: Response, next: NextFunction) => 
     }
 }
 
-const createModelo = async(req: Request, res: Response, next: NextFunction) => {
+const postModelo = async(req: Request, res: Response, next: NextFunction) => {
     const { modelo } = req.body
 
     try {
-        res.status(200).json(await service.createModelo(modelo))
-    } catch(error) {
-        next(error)
-    }
-}
-
-const updateModelo = async(req: Request, res: Response, next: NextFunction) => {
-    const { modelo } = req.body
-    const { params: {id_modelo} } = req
-
-    try {
-        utils.validateNumberParameter(id_modelo, 'id_modelo')
-        res.status(200).json(await service.updateModelo(parseInt(id_modelo), modelo))
+        res.status(200).json(await service.postModelo(modelo))
     } catch(error) {
         next(error)
     }
@@ -105,8 +93,7 @@ const deleteSeccion = async(req: Request, res: Response, next: NextFunction) => 
 export default {
     getAllOptions,
 
-    createModelo,
-    updateModelo,
+    postModelo,
     getAllModelos,
     getOneModelo,
     finalizarModelo,
