@@ -429,9 +429,9 @@ const obtenerRespuestasEncuesta = async (filter: any) => {
 
     for (const key in filter) {
         if (Array.isArray(filter[key])) {
-        query.whereIn(key, filter[key]);
+            query.whereIn(key, filter[key]);
         } else {
-        query.andWhere(key, filter[key]);
+            query.andWhere(key, filter[key]);
         }
     }
     
@@ -454,20 +454,49 @@ const obtenerCantidad = async (filter: any): Promise<number> => {
 };
 
 const getPromediosGlobal = async (): Promise<any> => {
-    const responses = await obtenerRespuestasEncuesta({});
-    const cantidad = await obtenerCantidad({});
-    return getEncuestaPromedios(responses, cantidad);
+    const modelos = await knex('modelos_encuesta').select('id', 'nombre').where('editable', 0)
+    const proyectos = await knex('proyectos').select('id', 'id_modelo_encuesta')
+
+    const promediosGlobal = []
+    for (const modelo of modelos) {
+        const ids = proyectos.filter(p => p.id_modelo_encuesta == modelo.id).map(p => p.id)
+        console.log(ids)
+        const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': ids });
+        const cantidad = await obtenerCantidad({ 'evaluadores_x_proyectos.id_proyecto': ids });
+        promediosGlobal.push({
+            modelo: modelo.nombre,
+            modeloId: modelo.id,
+            cantidadEncuestas: cantidad,
+            sections: await getEncuestaPromedios(modelo.id, responses, cantidad)
+        })
+    }
+
+    return { promediosGlobal: promediosGlobal }
 };
   
 const getPromediosInstitucion = async (id_institucion: number): Promise<any> => {
     const { proyectos } = await project.getAllInstitutionProjects(id_institucion);
-    const ids = proyectos
-        .filter(proyecto => proyecto.obligatoriedad_opinion == 1)
-        .map(proyecto => proyecto.id);
+    const modelos = await knex('modelos_encuesta').select('id', 'nombre').where('editable',0)
+    const promediosModelos = []
+    for (const modelo of modelos){
+        console.log(modelo)
+        const ids = proyectos
+            .filter(proyecto => proyecto.obligatoriedad_opinion == 1)
+            .filter(proyecto => proyecto.id_modelo_encuesta == modelo.id)
+            .map(proyecto => proyecto.id);
 
-    const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': ids });
-    const cantidad = await obtenerCantidad({ 'evaluadores_x_proyectos.id_proyecto': ids });
-    return getEncuestaPromedios(responses, cantidad);
+        const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': ids });
+        const cantidad = await obtenerCantidad({ 'evaluadores_x_proyectos.id_proyecto': ids });
+
+        promediosModelos.push({
+            modelo: modelo.nombre,
+            modeloId: modelo.id,
+            cantidadEncuestas: cantidad,
+            promedios: await getEncuestaPromedios(modelo.id, responses, cantidad)
+        })
+    }
+    
+    return { promediosInstitucion: promediosModelos}
 };
   
 const getPromediosProyecto = async (id_institucion: number, id_proyecto: number): Promise<any> => {
@@ -478,11 +507,18 @@ const getPromediosProyecto = async (id_institucion: number, id_proyecto: number)
 
     const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': id_proyecto });
     const cantidad = await obtenerCantidad({ id_proyecto });
-    return getEncuestaPromedios(responses, cantidad);
+
+    return {
+        PromediosProyecto: {
+            proyecto: proyecto.titulo,
+            cantidadEncuestas: cantidad,
+            sections: await getEncuestaPromedios(proyecto.id_modelo_encuesta, responses, cantidad)
+        }
+    }
 };
 
-const getEncuestaPromedios = async(responses: any, cantidad: number) => {
-    const encuesta: any =  await generateEncuesta({id_modelo_encuesta: 1}, 'admin_general', responses)
+const getEncuestaPromedios = async(idModelo: number, responses: any, cantidad: number) => {
+    const encuesta: any =  await generateEncuesta({id_modelo_encuesta: idModelo}, 'admin_general', responses)
     encuesta.cantidadEncuestas = cantidad
     encuesta.sections.forEach((section: any) => {
         section.questions.forEach( (question: any) => {
@@ -492,7 +528,7 @@ const getEncuestaPromedios = async(responses: any, cantidad: number) => {
             })
         })
     })
-    return encuesta
+    return encuesta.sections
 }
 
 export default {
