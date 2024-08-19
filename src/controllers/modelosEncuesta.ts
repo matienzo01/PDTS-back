@@ -2,6 +2,14 @@ import service from '../services/modelosEncuesta';
 import { Request, Response, NextFunction  } from 'express';
 import utils from './utils';
 
+const getNombresModelosFinalizados =  async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).json(await service.getNombresModelosFinalizados())
+    } catch(error) {
+        next(error)
+    }
+}
+
 const getAllOptions = async(req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).json(await service.getAllOptions())
@@ -92,6 +100,7 @@ const deleteSeccion = async(req: Request, res: Response, next: NextFunction) => 
 
 export default {
     getAllOptions,
+    getNombresModelosFinalizados,
 
     postModelo,
     getAllModelos,

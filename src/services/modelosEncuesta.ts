@@ -1,6 +1,11 @@
 import knex from'../database/knex'
 import { CustomError } from '../types/CustomError';
 
+const getNombresModelosFinalizados = async() => {
+    const modelos = await knex('modelos_encuesta').select('id', 'nombre').where({editable: 0})
+    return { modelos: modelos}
+}
+
 const getAllOptions = async() => {
     return { options: await knex('opciones').select()}
 }
@@ -282,6 +287,8 @@ const createPregunta = async(id_seccion: number | null, question: any) => {
 
 export default {
     getAllOptions,
+    getNombresModelosFinalizados,
+    
     getAllModelos,
     getOneModelo,
     postModelo,

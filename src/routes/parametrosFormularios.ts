@@ -6,6 +6,7 @@ import modelosEncuesta from '../controllers/modelosEncuesta'
 
 router
     .get('/opciones_encuesta', authUser, checkRol(['admin general']), modelosEncuesta.getAllOptions)
+    .get('/modelos/finalizados', authUser, checkRol(['admin general']), modelosEncuesta.getNombresModelosFinalizados)
 
     .post('/modelos', authUser, checkRol(['admin general']), modelosEncuesta.postModelo)
     .get('/modelos', authUser, checkRol(['admin general']), modelosEncuesta.getAllModelos)
