@@ -5,6 +5,7 @@ import { CustomError } from '../types/CustomError';
 import { Participante } from '../types/Participante';
 import { Proyecto } from '../types/Proyecto';
 import { RespuestaEncuesta } from '../types/RespuestaEncuesta';
+import institutionCYT from './institutionCYT';
 
 const type_and_options = (
     item: any, 
@@ -178,11 +179,14 @@ const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) 
     const { proyecto } = await projectService.getOneProject(id_proyecto)
   
     if(!proyecto.obligatoriedad_opinion){
-        // el mensaje este no va a aparecer, pero lo pono igual
         throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 409)
     }
 
-    if(rol === 'admin general'){
+    if(rol != 'evaluador'){
+        if (rol == 'admin' && proyecto.id_institucion != await institutionCYT.getInstIdFromAdmin(id_usuario)) {
+            throw new CustomError('La encuesta solicitada pertenece a una institucion diferente a la que el administrador corresponde', 409)
+        }
+
         const idsEvaluadores: number[] = await getIDsEvaluadores(id_proyecto)
         const idsNoRespondieron: number[] = await getIDsNoRespondieron(id_proyecto)
         return await generateEncuesta(proyecto, rol, await getEncuestaRtas([id_proyecto], idsEvaluadores, rol), idsNoRespondieron)
