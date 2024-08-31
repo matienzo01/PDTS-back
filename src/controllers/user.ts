@@ -230,13 +230,16 @@ const createAdmin = async (req: Request, res: Response, next: NextFunction) => {
 }
 
 const deleteAdminCyT = async (req: Request, res: Response, next: NextFunction) => {
-  const { params: { id_institucion } } = req
-  const { id: id_admin, rol } = req.body.userData
+  const { params: { id_institucion, id_admin } } = req
+  const { id, rol } = req.body.userData
 
   try {
     utils.validateNumberParameter(id_institucion, 'id_institucion')
-    await utils.ownInstitution(rol, id_admin, parseInt(id_institucion))
-    res.status(200).json(await service.deleteAdminCyT(parseInt(id_institucion), id_admin))
+    utils.validateNumberParameter(id_admin, 'id_admin')
+    if(rol == 'admin') {
+      await utils.ownInstitution(rol, id, parseInt(id_institucion))
+    }
+    res.status(200).json(await service.deleteAdminCyT(parseInt(id_institucion), parseInt(id_admin)))
   } catch (error) {
     next(error)
   }
