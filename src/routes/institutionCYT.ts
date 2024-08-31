@@ -33,7 +33,7 @@ router
   .post('/:id_institucion/admins', authUser, checkRol(['admin', 'admin general']), user_controller.createAdmin)
   .post('/:id_institucion/usuarios/vincular_usuario', authUser, checkRol(['admin', 'admin general']), user_controller.linkUserToInstitution)        // tested 
 
-  .put('/:id_institucion/admins/:id_admin', authUser, checkRol(['admin']), user_controller.updateAdminCYT)
+  .put('/:id_institucion/admins/:id_admin', authUser, checkRol(['admin', 'admin general']), user_controller.updateAdminCYT)
   .put('/:id_institucion', authUser, checkRol(['admin', 'admin general']), institution_controller.updateInstitucionCYT)
   .put('/:id_institucion/proyectos/:id_proyecto', authUser, checkRol(['admin', 'admin general']), project_controller.updateProject)
 

@@ -124,13 +124,19 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
 const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_usuario } } = req
-  const { user } = req.body
-
+  const { user, userData } = req.body
+  
   try {
     utils.validateNumberParameter(id_usuario, 'id_usuario')
-    if (id_usuario != req.body.userData.id) {
+
+    if (userData.rol == 'evaluador' && id_usuario != req.body.userData.id) {
       throw new CustomError('Solo puedes actualizar tu propia informacion', 401)
     }
+
+    if(userData.rol != 'evaluador') {
+      delete user.password
+    }
+
     res.status(200).json(await service.updateUser(parseInt(id_usuario), user, 'evaluador'))
   } catch (error) {
     next(error)
@@ -139,22 +145,31 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
 
 const updateAdminCYT = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { id_institucion, id_admin } } = req
-  const { admin } = req.body
-
-  // PREGUNTAR ESTOS DOS IF
-  if (id_admin != req.body.userData.id) {
-    res.status(401).json({ error: "you can only update your own user" })
-    return;
-  }
-
-  if (id_institucion != req.body.userData.institutionId) {
-    res.status(401).json({ error: "You can only update the admin of your own institution" })
-    return;
-  }
+  const { admin, userData } = req.body
 
   try {
     utils.validateNumberParameter(id_institucion, 'id_institucion')
+    utils.validateNumberParameter(id_admin, 'id_admin')
+    if(userData.rol != 'admin general' && id_admin != req.body.userData.id) {
+      throw new CustomError('Solo puedes actualizar tus propios datos', 401)
+    }
+
+    if(!await service.adminPerteneceInstitucion(parseInt(id_institucion),parseInt(id_admin))){
+      throw new CustomError('El administrador no pertenece a la institucion dada', 401)
+    }
+
     res.status(200).json(await service.updateUser(parseInt(id_admin), admin, 'admin'))
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_usuario } } = req
+
+  try {
+    utils.validateNumberParameter(id_usuario, 'id_usuario')
+    res.status(200).json(await service.deleteUser(parseInt(id_usuario)))
   } catch (error) {
     next(error)
   }
@@ -229,17 +244,20 @@ const deleteAdminCyT = async (req: Request, res: Response, next: NextFunction) =
 }
 
 export default {
+  
   getAllUsers,
+  getUserByDni,
+  createUser,
+  updateUser,
+  deleteUser,
+
   getAllInstitutionUsers,
   getAllInstitutionAdmins,
   getAllAdminsGenerales,
-  getUserByDni,
   getOneAdmin,
   linkUserToInstitution,
-  createUser,
   createAdmin,
   createAdminGeneral,
-  updateUser,
   updateAdminCYT,
   deleteAdminGeneral,
   deleteAdminCyT,
