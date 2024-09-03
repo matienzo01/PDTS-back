@@ -247,6 +247,19 @@ const linkUserToInstitution = async (userDni: number, institutionId: number, use
     return { usuario: user }
 }
 
+const deleteUser = async(id: number) => {
+  await getOneUser(id)
+  if (await knex('evaluadores_x_proyectos').select().where({id_evaluador: id}).first()) {
+    throw new CustomError('El usuario no puede ser eliminado ya que fue designado para ser evaluador de un proyecto', 409)
+  }
+    
+  return await knex.transaction(async (trx: any) => {
+    await trx('evaluadores_x_instituciones').where({id_evaluador: id}).del()
+    await trx('evaluadores').where({id}).del()
+    return ;
+  })
+}
+
 const updateUser = async(id: number, user: any, rol: string) => {
   const userActual = rol === 'admin' ? (await getOneAdmin(id)).admin : (await getOneUser(id)).usuario;
 
@@ -331,6 +344,7 @@ export default {
   createAdminGeneral,
   linkUserToInstitution,
   updateUser,
+  deleteUser,
   getOneUser,
   getOneAdmin,
   deleteAdminGeneral,

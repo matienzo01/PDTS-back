@@ -12,6 +12,7 @@ router
   .get('/:dni', authUser, checkRol(['evaluador', 'admin', 'admin general']), user_controller.getUserByDni)
   .get('/administradores/:id_admin', authUser, checkRol(['admin', 'admin general']), user_controller.getOneAdmin)
   .get('/:id_usuario/proyectos', authUser, checkRol(['evaluador', 'admin', 'admin general']), project_controller.getProjectsByUser)
-  .put('/:id_usuario', authUser, checkRol(['evaluador']), user_controller.updateUser)
+  .put('/:id_usuario', authUser, checkRol(['evaluador', 'admin', 'admin general']), user_controller.updateUser)
+  .delete('/:id_usuario', authUser, checkRol(['admin', 'admin general']), user_controller.deleteUser)
 
 export default router
