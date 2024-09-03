@@ -1,6 +1,7 @@
 import knex from '../database/knex';
 import project from '../services/project';
 import projectService from '../services/project';
+import institutionCYT from './institutionCYT';
 import { CustomError } from '../types/CustomError';
 import { Participante } from '../types/Participante';
 import { Proyecto } from '../types/Proyecto';
@@ -142,7 +143,7 @@ const generateEncuesta = async(proyecto: any, rol: string, respuestas: any[] | n
     });
 
     
-    if(rol == 'admin general' && idsNoRespondieron) {
+    if((rol == 'admin general'|| rol == 'admin') && idsNoRespondieron) {
         const respuestasVacias: RespuestaEncuesta[]  = idsNoRespondieron.map(id => ({
             id_evaluador: id,
             respuesta: null,
@@ -171,7 +172,7 @@ const getEncuestaRtas = async(id_proyecto: number[], arrayIdsEvaluadores: number
         .whereIn('re.id_proyecto', id_proyecto)
         .whereIn('re.id_evaluador', arrayIdsEvaluadores)
 
-    if( rol == 'admin general') {
+    if( rol == 'admin general' || rol == 'admin') {
         query = query
             .join('evaluadores_x_proyectos as ep', 're.id_proyecto', 'ep.id_proyecto')
             .whereNotNull('ep.fecha_fin_op');
@@ -206,7 +207,10 @@ const getEncuesta = async(id_proyecto: number, id_usuario: number, rol: string) 
         throw new CustomError('La encuesta del sistema no es aplcable a este proyecto', 409)
     }
 
-    if(rol === 'admin general'){
+    if(rol != 'evaluador'){
+        if (rol == 'admin' && proyecto.id_institucion != await institutionCYT.getInstIdFromAdmin(id_usuario)) {
+            throw new CustomError('La encuesta solicitada pertenece a una institucion diferente a la que el administrador corresponde', 409)
+        }
         const idsEvaluadores: number[] = await getIDsEvaluadores(id_proyecto)
         const idsNoRespondieron: number[] = await getIDsNoRespondieron(id_proyecto)
         return await generateEncuesta(proyecto, rol, await getEncuestaRtas([id_proyecto], idsEvaluadores, rol), idsNoRespondieron)
