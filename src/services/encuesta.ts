@@ -467,7 +467,7 @@ const getPromediosGlobal = async (): Promise<any> => {
     const responses = await obtenerRespuestasEncuesta({ 'evaluadores_x_proyectos.id_proyecto': ids });
     const cantidad = await obtenerCantidad({ 'evaluadores_x_proyectos.id_proyecto': ids });
     promediosGlobal.push({
-      modelo: modelo.nombre,
+      name: modelo.nombre,
       modeloId: modelo.id,
       cantidadEncuestas: cantidad,
       sections: await getEncuestaPromedios(modelo.id, responses, cantidad)
