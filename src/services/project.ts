@@ -187,6 +187,13 @@ const createProject = async (id_institucion: number, proyecto: any, roles: Insti
     throw new CustomError("Ya existe un proyecto con el mismo nombre en el sistema", 409)
   }
 
+  if(proyecto.obligatoriedad_opinion) {
+    const modelo = await knex('modelos_encuesta').select().where({id: proyecto.id_modelo_encuesta}).first()
+    if(!modelo || modelo.editable) {
+      throw new CustomError('El id del modelo de encuesta dado no corresponde con un modelo existente o que sea utilizable en este momento', 404)
+    }
+  }
+
   const fecha = new Date()
   const fecha_carga = `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`
 

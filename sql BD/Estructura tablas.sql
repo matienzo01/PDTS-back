@@ -82,7 +82,8 @@ CREATE TABLE estado_eval(
 
 CREATE TABLE modelos_encuesta ( 
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre varchar(255)
+    nombre varchar(255),
+    editable boolean default true
 );
 
 CREATE TABLE secciones ( -- son las secciones de las encuestas de opinion
