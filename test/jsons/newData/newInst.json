@@ -1,7 +1,7 @@
 {
     "institucion": {
       "nombre": "INSTITUCION PARTICIPANTE DE PRUEBA",
-      "rubro": "rubroA",
+      "id_tipo": 8,
       "pais": "Argentina",
       "provincia": "Buenos Aires",
       "localidad": "Ciudad B",

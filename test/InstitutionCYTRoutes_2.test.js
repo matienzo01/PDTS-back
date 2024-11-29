@@ -1,8 +1,5 @@
-
-
 const Requests = require('./Requests.js')
 const getHeaders = require('./LoginRoutes.test.js')
-const assert = require('assert');
 const newInstData = require('./InstitutionCYTRoutes_1.test.js')
 
 describe('TEST INSTITUTION (CYT) ROUTES - PART 2', () => {
@@ -25,6 +22,13 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 2', () => {
         header_evaluador_2 = e2
     })
     
+    describe('DELETE /api/instituciones_cyt/:id_institucion ==> Delete one institution', async() => {
+        
+        it('Shouldnt let to delete one institution (it owns al least one project) (admin general) (status 403)', async() => {
+            await Requests.DELETE(`/api/instituciones_cyt/${newInstData.getNewInstitutionId()}`, header_admin_general, 409)
+        })
+    })
+
     describe('DELETE /api/instituciones_cyt/:id_institucion/proyectos/:id_proyecto ==> Delete one project', async() => {
         
         it('Should delete one proect (new admin)', async() => {
@@ -37,7 +41,7 @@ describe('TEST INSTITUTION (CYT) ROUTES - PART 2', () => {
     describe('DELETE /api/instituciones_cyt/:id_institucion ==> Delete one institution', async() => {
         
         it('Should delete one institution (admin general)', async() => {
-            await Requests.DELETE(`/api/instituciones_cyt/${newInstData.getNewInstitutionId()}`, header_admin_general, 204)
+            await Requests.DELETE(`/api/instituciones_cyt/${newInstData.getNewInstitutionId()}`, header_admin_general, 200)
         })
 
         it('Should not be authorized (admin cyt)', async() => {

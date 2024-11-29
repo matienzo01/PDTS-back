@@ -10,7 +10,7 @@ const TABLE_INSTITUCIONES_CYT = 'instituciones_cyt'
 const getInstIdFromAdmin = async (id_admin: number) => {
   const rel =  await knex('instituciones_x_admins').select('id_institucion').where({ id_admin }).first()
   if ( rel.id_institucion == undefined) {
-    throw new CustomError('There is no institution with that admin id', 404)
+    throw new CustomError('No existe una institucion que tenga un administrador con el id dado', 404)
   }
   return rel.id_institucion
 }
@@ -24,7 +24,7 @@ const getOneInstitucionCYT = async (id: number , trx: any = null) => {
     .first()
   
   if (inst === undefined) {
-    throw new CustomError('There is no institution with that id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
 
   delete inst.id_rubro
@@ -107,13 +107,13 @@ const createInstitucionCYT = async (newAdmin: any, institucion: any) => {
     })
     return await getOneInstitucionCYT(id_inst)
   } else {
-    throw new Error('The institution already exists in the system')
+    throw new CustomError('La institucion ya existe en el sistema', 409)
   }
 }
 
 const deleteInstitucionCYT = async (id: number) => {
   if ((await knex('instituciones_cyt').where({id})).length == 0) {
-    throw new CustomError('There is no institution with the provided id', 404)
+    throw new CustomError('No existe una institucion con el id dado', 404)
   }
 
   return knex.transaction(async (trx) => {
@@ -126,7 +126,7 @@ const deleteInstitucionCYT = async (id: number) => {
     const participaciones = await trx('participacion_instituciones').where({id_institucion: id})
 
     if (proyectos.length != 0 || participaciones.length > 0) {
-      throw new CustomError("The institution cannot be deleted, you must first make sure that it does not have any projects in it or that it does not participate in projects of other institutions", 409);
+      throw new CustomError("La institucion no puede ser eliminada, tiene al menos un proyecto o participa en alguno de otra institucion", 409);
     } else {
       await trx('evaluadores_x_instituciones').del().where({ id_institucion: id });
       await trx('instituciones_x_admins').where({id_institucion: id}).del();

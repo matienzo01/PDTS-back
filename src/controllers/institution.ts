@@ -1,6 +1,6 @@
 import service from '../services/institution'
-import { Request, Response } from 'express';
-import { CustomError } from '../types/CustomError';
+import { Request, Response, NextFunction  } from 'express';
+import utils from './utils';
 
 const getTiposInstituciones = async (req: Request, res: Response) => {
   try {
@@ -14,70 +14,79 @@ const getRubros = async (req: Request, res: Response) => {
   try {
     return res.status(200).json(await service.getRubros())
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    return res.status(500).json({ error: 'Error al obtener los rubros' })
   }
 }
 
-const createRubro = async (req: Request, res: Response) => {
-  const { nombre } = req.body
+const createRubro = async (req: Request, res: Response, next: NextFunction) => {
+  if(!req.body.hasOwnProperty('rubro')){
+    return res.status(400).json({ error: "Missing rubro" })
+  }
+  
+  const { rubro } = req.body
+
+  if (!rubro.hasOwnProperty('nombre')) {
+    return res.status(400).json({ error: "Missing fields in rubro" })
+  }
 
   try {
-    return res.status(200).json(await service.createRubro(nombre))
+    return res.status(200).json(await service.createRubro(rubro.nombre))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const updateRubro = async(req: Request, res: Response) => {
+const updateRubro = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_rubro} } = req
-  const { updatedRubro } = req.body
+  const { rubro } = req.body
+
+  if(!req.body.hasOwnProperty('rubro')){
+    return res.status(400).json({ error: "Missing rubro" })
+  }
+
+  if (!rubro.hasOwnProperty('nombre')) {
+    return res.status(400).json({ error: "Missing fields in rubro" })
+  }
 
   try {
-    return res.status(200).json(await service.updateRubro(parseInt(id_rubro), updatedRubro))
+    utils.validateNumberParameter(id_rubro, 'id_rubro')
+    return res.status(200).json(await service.updateRubro(parseInt(id_rubro), rubro))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const deleteRubro = async(req: Request, res: Response) => {
+const deleteRubro = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_rubro} } = req
 
   try {
+    utils.validateNumberParameter(id_rubro, 'id_rubro')
     return res.status(200).json(await service.deleteRubro(parseInt(id_rubro)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const getInstituciones = async (req: Request, res: Response) => {
+const getInstituciones = async (req: Request, res: Response, next: NextFunction) => {
   try {
     res.status(200).json(await service.getInstituciones())
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const getOneInstitucion = async(req: Request, res: Response) => {
-  const { params: { inst_id } } = req
-
-  if (isNaN(parseInt(inst_id))) {
-    return res.status(400).json({ error: "Parameter ':inst_id' should be a number" })
-  }
+const getOneInstitucion = async(req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_institucion } } = req
 
   try {
-    res.status(200).json(await service.getOneInstitucion(parseInt(inst_id)))
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    res.status(200).json(await service.getOneInstitucion(parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const createInstitucion = async(req: Request, res: Response) => {
+const createInstitucion = async(req: Request, res: Response, next: NextFunction) => {
 
   if(!req.body.hasOwnProperty('institucion')){
     return res.status(400).json({ error: "Missing institution" })
@@ -101,31 +110,30 @@ const createInstitucion = async(req: Request, res: Response) => {
   try {
     res.status(200).json(await service.createInstitucion(institucion))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const updateInstitucion = async(req: Request, res: Response) => {
-  const { params: { inst_id} } = req
+const updateInstitucion = async(req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_institucion} } = req
   const { institucion } = req.body
 
   try {
-    return res.status(200).json(await service.updateInstitucion(parseInt(inst_id), institucion))
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    return res.status(200).json(await service.updateInstitucion(parseInt(id_institucion), institucion))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const deleteInstitucion = async(req: Request, res: Response) => {
-  const { params: { inst_id} } = req
+const deleteInstitucion = async(req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_institucion} } = req
 
   try {
-    return res.status(200).json(await service.deleteInstitucion(parseInt(inst_id)))
+    utils.validateNumberParameter(id_institucion, 'id_institucion')
+    return res.status(200).json(await service.deleteInstitucion(parseInt(id_institucion)))
   } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 

@@ -11,6 +11,7 @@ import routerEncuesta from './routes/encuesta';
 import routerTest from './routes/test'
 import routerTerritorio from './routes/territorio'
 import routerProyectos from './routes/proyectos'
+import errorHandler from './middlewares/errorHandler';
 import cors from 'cors';
 import https from 'https'
 import http from 'http'
@@ -31,6 +32,7 @@ app.use('/api/usuarios', routerUser)
 app.use('/api/encuesta', routerEncuesta)
 app.use('/api/territorio', routerTerritorio)
 app.use('/api/proyectos', routerProyectos)
+app.use(errorHandler);
 
 const PORT = process.env.PORT_API
 

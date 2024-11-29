@@ -7,9 +7,9 @@ import { CustomError } from '../types/CustomError';
 const login = async (email: string, password: string) => {
 
   const tablesToCheck = [
-    { rol: 'admin general', tableName: 'admin', columns: ['id','email', 'password'] },
+    { rol: 'admin general', tableName: 'admin', columns: ['id', 'email', 'password'] },
     { rol: 'admin', tableName: 'admins_cyt', columns: ['id', 'email', 'password', 'nombre', 'apellido', 'dni'] },
-    { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido', 'dni'] }
+    { rol: 'evaluador', tableName: 'evaluadores', columns: ['id', 'email', 'password', 'nombre', 'apellido', 'dni', 'institucion_origen'] }
   ];
 
   let user: any = null;
@@ -25,8 +25,8 @@ const login = async (email: string, password: string) => {
     }
   }
 
-  if(!user){
-    throw new CustomError('Invalid user or password', 401)
+  if (!user) {
+    throw new CustomError('usuario o contraseña invalido', 401)
   }
 
   const passwordCorrect = user === undefined
@@ -35,7 +35,7 @@ const login = async (email: string, password: string) => {
 
   delete user.password
   if (!passwordCorrect) {
-    throw new CustomError('Invalid user or password', 401)
+    throw new CustomError('usuario o contraseña invalido', 401)
   }
 
   const userForToken: UserForToken = {
@@ -45,7 +45,8 @@ const login = async (email: string, password: string) => {
     institutionId: user.institutionId,
     nombre: user.nombre,
     apellido: user.apellido,
-    dni : user.dni
+    dni: user.dni,
+    institucion_origen: user.institucion_origen
   }
 
   const token = jwt.sign(userForToken, process.env.SECRET || 'clave')

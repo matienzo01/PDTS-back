@@ -1,13 +1,14 @@
 const request = require('supertest');
-const server = require('../src/app');
+const server = require('../dist/app');
 const assert = require('assert');
+const fs = require('fs');
 
 async function GET(route, header, status, type = 'application/json') {
   const res = await request(server)
     .get(route)
     .set(header)
     .expect(status)
-
+  
   assert.equal(res.type, type)
   return res
 }
@@ -18,6 +19,20 @@ async function POST(route, header, status, data, type = 'application/json') {
     .send(data)
     .set(header !== null ? header : {})
     .expect(status);
+  const res = await requestToSend;
+
+  assert.equal(res.type, type)
+  return res
+}
+
+async function POSTFormData(route, header, status, filePath, data, dataName, type = 'application/json') {
+  const requestToSend = request(server)
+    .post(route)
+    .set(header !== null ? header : {})
+    .field(dataName, JSON.stringify(data))
+    .attach('file', fs.createReadStream(filePath))
+    .expect(status);
+  
   const res = await requestToSend;
   assert.equal(res.type, type)
   return res
@@ -43,11 +58,12 @@ async function DELETE(route, header, status) {
   return res
 }
 
-function verifyAttributes(object, expected) {
-    const actualAttributes = Object.keys(object);
-    assert.equal(true, expected.every(element => actualAttributes.includes(element)), `The object should contain all the expected attributes`)
-    const unexpectedAttributes = actualAttributes.filter(attr => !expected.includes(attr));
-    assert.equal(unexpectedAttributes.length, 0, `Object has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
+function verifyAttributes(name, object, expected) {
+  const actualAttributes = Object.keys(object);
+  const missingAttributes = expected.filter(attr => !actualAttributes.includes(attr));
+  assert.equal(missingAttributes.length, 0, `${name} is missing the following expected attributes: ${missingAttributes.join(', ')}`);
+  const unexpectedAttributes = actualAttributes.filter(attr => !expected.includes(attr));
+  assert.equal(unexpectedAttributes.length, 0, `${name} has unexpected attributes: ${unexpectedAttributes.join(', ')}`);
 }
 
 function verifyProperties(obj, props){
@@ -88,7 +104,7 @@ function verifyDimensiones(dimensiones) {
 }
 
 module.exports = {
-    GET, POST, PUT, DELETE,
+    GET, POST, PUT, DELETE, POSTFormData,
     verifyAttributes,
     verifyEvaluation
 }

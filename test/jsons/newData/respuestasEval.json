@@ -2,123 +2,147 @@
 	"respuestas": [ 		
 		{ 			
 			"id_indicador": 1, 			
-			"answer": "No cumple", 			
-			"value": 0
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "aaa" 
 		}, 
 		{ 			
 			"id_indicador": 2, 			
-			"answer": "No cumple", 			
-			"value": 0 		
-		}, 		
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "aaa" 
+		},  		
 		{ 			
 			"id_indicador": 3, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "asd"
 		}, 		
 		{ 			
-			"id_indicador": 4, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"id_indicador": 4,  			
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "aaa"
 		} , 		
 		{ 			
 			"id_indicador": 5, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "justificacion 5"
 		} , 		
 		{ 			
 			"id_indicador": 6, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "justificacion 6"
 		} , 		
 		{ 			
 			"id_indicador": 7, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1		, 
+			"justificacion": "justificacion 7"
 		} , 		
 		{ 			
 			"id_indicador": 8, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1, 
+			"justificacion": "justificacion 8"
 		} , 		
 		{ 			
 			"id_indicador": 9, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1	, 
+			"justificacion": "justificacion 9"
 		} , 		
 		{ 			
 			"id_indicador": 10, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1, 
+			"justificacion": "justificacion 10"
 		} , 		
 		{ 			
 			"id_indicador": 11, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
+			"answer": "Cumple", 			
+			"value": 1		, 
+			"justificacion": "justificacion 11"
 		} , 		
 		{ 			
 			"id_indicador": 12, 			
-			"answer": "cumple parcial", 			
-			"value": 0.5 		
-		} , 		
+			"answer": "Cumple", 			
+			"value": 1		, 
+			"justificacion": "justificacion 12"
+		}  , 		
 		{ 			
 			"id_indicador": 13, 			
-			"answer": "Alto", 			
-			"value": 3 		
+			"answer": "Muy alto", 			
+			"value": 4,
+			"justificacion": "justificacion 13"
 		} , 		
 		{ 			
 			"id_indicador": 14, 			
-			"answer": "Alto", 			
-			"value": 3 		
+			"answer": "Muy alto", 			
+			"value": 4,
+			"justificacion": "justificacion 14"
 		} , 		
 		{ 			
 			"id_indicador": 15, 			
-			"answer": "Alto", 			
-			"value": 3 			
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 15"
 		} , 		
 		{ 			
 			"id_indicador": 16, 			
-			"answer": "Alto", 			
-			"value": 3 			
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 16"
 		} , 		
 		{ 			
 			"id_indicador": 17, 			
-			"answer": "Alto", 			
-			"value": 3 			
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 17"
 		} , 		
 		{ 			
 			"id_indicador": 18, 			
-			"answer": "Alto", 			
-			"value": 3 				
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 18"		
 		} , 		
 		{ 			
 			"id_indicador": 19, 			
-			"answer": "Alto", 			
-			"value": 3 		 		
+			"answer": "Muy alto", 			
+			"value": 4	 		,
+			"justificacion": "justificacion 19"
 		} , 		
 		{ 			
 			"id_indicador": 20, 			
-			"answer": "Alto", 			
-			"value": 3 				
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 20"	
 		} , 		
 		{ 			
 			"id_indicador": 21, 			
-			"answer": "Alto", 			
-			"value": 3 				
+			"answer": "Muy alto", 			
+			"value": 4		,
+			"justificacion": "justificacion 21"	
 		} , 		
 		{ 			
 			"id_indicador": 22, 			
-			"answer": "Alto", 			
-			"value": 3 				
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 22"	
 		} , 		
 		{ 			
 			"id_indicador": 23, 			
-			"answer": "Alto", 			
-			"value": 3 			
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 23"	
 		} 	, 		
 		{ 			
 			"id_indicador": 24, 			
-			"answer": "Alto", 			
-			"value": 3 			
+			"answer": "Muy alto", 			
+			"value": 4	,
+			"justificacion": "justificacion 24"
 		}  
 	] 
 }

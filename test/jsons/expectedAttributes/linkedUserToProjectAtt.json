@@ -1,6 +1,5 @@
 {
     "expectedAttributes": [
-        "id_evaluador", "id_proyecto", "fecha_inicio_eval", "rol",
-        "obligatoriedad_opinion", "id_modelo_encuesta"
+        "id_evaluador", "id_proyecto", "fecha_inicio_eval", "rol"
     ]
 }

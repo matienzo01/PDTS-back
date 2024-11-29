@@ -1,96 +1,81 @@
 import service from '../services/eval';
-import pdfService from '../services/pdf';
-import { Request, Response } from 'express';
-import { CustomError } from '../types/CustomError';
+import { Request, Response, NextFunction  } from 'express';
+import utils from './utils';
 
-const generatePDF = async(req: Request, res: Response) => {
-  const { params: { id_proyecto } } = req
-  const { id:id_usuario } = req.body.userData
-
-  try {
-    const pdfBuffer = await pdfService.generatePDF(parseInt(id_proyecto), parseInt(id_usuario));
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="output.pdf"');
-    res.send(pdfBuffer); 
-  } catch (error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
-  }
-};
-
-function validateNumberParameter(id_proyecto: any, id_usuario: any) { 
-
-  if (isNaN(id_proyecto)) {
-    throw new CustomError('Parameter id_proyecto should be a number', 400)
-  }
-  if (isNaN(id_usuario)) {
-    throw new CustomError('Parameter id_usuario should be a number', 400)
-  }
-}
-
-const getEntidad = async(req: Request, res: Response) => {
+const getEntidad = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_proyecto } } = req
   const { id:id_usuario, rol } = req.body.userData
 
   try {
-    validateNumberParameter(id_proyecto, id_usuario)
+    utils.validateNumberParameter(id_proyecto, 'id_proyecto')
+    utils.validateNumberParameter(id_usuario, 'id_usuario')
     const Entidad = await service.getEntidad(parseInt(id_proyecto), parseInt(id_usuario), rol)
     return res.status(200).json(Entidad)
   } catch(error) {
-    const statusCode = (error as CustomError).status || 500
-    return res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
 }
 
-const getProposito = async(req: Request, res: Response) => {
+const getProposito = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_proyecto } } = req
   const { id:id_usuario, rol } = req.body.userData
 
   try {
-    validateNumberParameter(id_proyecto, id_usuario)
+    utils.validateNumberParameter(id_proyecto, 'id_proyecto')
+    utils.validateNumberParameter(id_usuario, 'id_usuario')
     const Proposito = await service.getProposito(parseInt(id_proyecto), parseInt(id_usuario), rol)
     res.status(200).json(Proposito)
   } catch(error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ message: (error as CustomError).message })
+    next(error)
   }
   
 }
 
-const saveForm = async(req: Request, res: Response) => {
+const saveForm = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_proyecto } } = req
   const { id:id_usuario } = req.body.userData
   const { respuestas } = req.body
 
   try {
-    validateNumberParameter(id_proyecto, id_usuario)
+    utils.validateNumberParameter(id_proyecto, 'id_proyecto')
+    utils.validateNumberParameter(id_usuario, 'id_usuario')
     res.status(200).json(await service.saveForm(parseInt(id_proyecto), parseInt(id_usuario), respuestas))
   } catch(error) {
-    const statusCode = (error as CustomError).status || 500
-    res.status(statusCode).json({ error: (error as CustomError).message })
+    next(error)
   }
   
 }
 
-const finalizarEvaluacion = async(req: Request, res: Response) => {
+const finalizarEvaluacion = async(req: Request, res: Response, next: NextFunction) => {
   const { params: { id_proyecto } } = req
   const { id:id_usuario, rol } = req.body.userData
 
   try {
-    validateNumberParameter(id_proyecto, id_usuario)
+    utils.validateNumberParameter(id_proyecto, 'id_proyecto')
     res.status(200).json(await service.finalizarEvaluacion(parseInt(id_proyecto), parseInt(id_usuario), rol))
   } catch(error) {
-    const statusCode = (error as CustomError).status || 500
-    const questions = (error as CustomError).questions || undefined
-    res.status(statusCode).json({ error: (error as CustomError).message, questions: questions})
+    next(error)
   }
 }
 
-export default {
-  generatePDF,
+const getResumen = async(req: Request, res: Response, next: NextFunction) => {
+  const { params: { id_proyecto } } = req
+  const { rol, institutionId } = req.body.userData
 
+  try {
+    utils.validateNumberParameter(id_proyecto, 'id_proyecto')
+    res.status(200).json(await service.getResumen(rol, parseInt(id_proyecto), institutionId))
+  } catch(error) {
+    next(error)
+  }
+}
+
+
+
+export default {
   getEntidad,
   getProposito,
   saveForm,
+  getResumen,
   finalizarEvaluacion
 }

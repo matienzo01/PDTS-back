@@ -1,0 +1,21 @@
+{
+    "expectedAttributes": [
+        "nombre",
+        "apellido",
+        "email",
+        "dni",
+        "id",
+        "institutionId",
+        "nombre_institucion",
+        "nombre_referente_institucion",
+        "apellido_referente_institucion",
+        "cargo_referente_institucion",
+        "telefono_referente_institucion",
+        "mail_referente_institucion",
+        "pais_institucion",
+        "provincia_institucion",
+        "localidad_institucion",
+        "telefono_institucional",
+        "mail_institucional"
+    ]
+  }
